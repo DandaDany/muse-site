@@ -1,0 +1,3 @@
+chain_name,official_url,crawl_url,booking_url,all_locations_assumed_showing,notes,location_name,address,city,district,latitude,longitude,source_location_code,location_url
+MUVIE CINEMAS,https://www.vscinemas.com.tw/,https://www.vscinemas.com.tw/ShowTimes/,,1,使用者提供 MUVIE 台北松仁據點 detail URL,MUVIE CINEMAS 台北松仁,,台北市,,,,MU,https://www.vscinemas.com.tw/theater/detail2.aspx?id=23#week
+MUVIE CINEMAS,https://www.vscinemas.com.tw/,https://www.vscinemas.com.tw/ShowTimes/,,1,使用者提供 MUVIE 台中 TIGER CITY 據點 detail URL,MUVIE CINEMAS 台中TIGER CITY,,台中市,,,,TT01,https://www.vscinemas.com.tw/theater/detail2.aspx?id=12#week
