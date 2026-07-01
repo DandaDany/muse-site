@@ -633,7 +633,7 @@ def fetch_in89(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> 
 
 
 def ambassador_url(location_code: str, show_date: str) -> str:
-    dt = urllib.parse.quote(show_date.replace("-", "/"), safe="")
+    dt = urllib.parse.quote(show_date.replace("-", "/"), safe="/")
     return f"https://www.ambassador.com.tw/home/Showtime?ID={location_code}&DT={dt}"
 
 
@@ -667,7 +667,7 @@ def fetch_ambassador_location(location: sqlite3.Row, aliases: list[str], show_da
                     auditorium=info_node.get_text(" ", strip=True) if info_node else None,
                     format=format_text,
                     language=infer_language(format_text),
-                    booking_url=None,
+                    booking_url=source_url,
                     source_url=source_url,
                     raw_text=f"{title_node.get_text(' ', strip=True) if title_node else ''} {format_text or ''}",
                 )

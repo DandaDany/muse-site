@@ -6,7 +6,7 @@ import sqlite3
 import urllib.request
 from datetime import date
 from pathlib import Path
-from urllib.parse import parse_qs, urlencode, urljoin, urlparse
+from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
@@ -36,8 +36,8 @@ def fetch_text(url: str) -> str:
 
 
 def normalize_showtime_url(location_id: str, show_date: str) -> str:
-    query = urlencode({"ID": location_id, "DT": show_date.replace("-", "/")})
-    return f"https://www.ambassador.com.tw/home/Showtime?{query}"
+    dt = show_date.replace("-", "/")
+    return f"https://www.ambassador.com.tw/home/Showtime?ID={quote(location_id)}&DT={dt}"
 
 
 def known_showtime_url(show_date: str) -> str:

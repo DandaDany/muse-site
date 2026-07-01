@@ -14,6 +14,13 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_DIR / "web" / "data" / "locations.geojson"
 
 
+def display_showtime_url(row: sqlite3.Row) -> str | None:
+    source_url = row["source_url"]
+    if source_url and "ambassador.com.tw/home/Showtime" in source_url:
+        return source_url.replace("%2F", "/").replace("%2f", "/")
+    return row["booking_url"] or row["location_url"] or row["official_url"] or source_url
+
+
 def fetch_location_features(conn: sqlite3.Connection) -> list[dict[str, object]]:
     rows = conn.execute(
         """
@@ -146,7 +153,7 @@ def fetch_showtime_features(conn: sqlite3.Connection, movie_title: str, show_dat
                     "map_name": first["map_name"],
                     "address": first["address"],
                     "city": first["city"],
-                    "location_url": first["booking_url"] or first["location_url"] or first["official_url"] or first["source_url"],
+                    "location_url": display_showtime_url(first),
                     "official_url": first["official_url"],
                     "crawl_url": first["source_url"],
                     "movie_title": first["movie_title"],

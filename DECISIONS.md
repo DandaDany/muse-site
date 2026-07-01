@@ -84,8 +84,8 @@ This file records technical choices that are considered confirmed for this proje
 ## Publishing
 
 - Deploy the public map with GitHub Pages and GitHub Actions.
-  - Repository: `https://github.com/DandaDany/muse-site`
-  - Public site: `https://dandadany.github.io/muse-site/`
+  - Repository: `https://github.com/DandaDany/muse_movie_screeing_time`
+  - Public site: `https://dandadany.github.io/muse_movie_screeing_time/`
   - Workflow file: `.github/workflows/pages.yml`.
 
 - Deploy only `web/` to GitHub Pages.
