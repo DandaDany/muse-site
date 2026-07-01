@@ -34,17 +34,12 @@ def main() -> None:
                 "() => ({"
                 "zoomDelta: map.options.zoomDelta,"
                 "zoomSnap: map.options.zoomSnap,"
-                "scrollWheelZoom: map.options.scrollWheelZoom"
-                "})"
-            ),
-            "wheelConstants": page.evaluate(
-                "() => ({"
-                "buttonStep: ZOOM_BUTTON_STEP,"
-                "snapStep: ZOOM_SNAP_STEP,"
-                "wheelSensitivity: WHEEL_ZOOM_SENSITIVITY,"
-                "wheelEase: WHEEL_ZOOM_EASE,"
-                "stopThreshold: WHEEL_ZOOM_STOP_THRESHOLD,"
-                "resetMs: WHEEL_TARGET_RESET_MS"
+                "scrollWheelZoom: map.options.scrollWheelZoom,"
+                "wheelDebounceTime: map.options.wheelDebounceTime,"
+                "wheelPxPerZoomLevel: map.options.wheelPxPerZoomLevel,"
+                "zoomAnimation: map.options.zoomAnimation,"
+                "fadeAnimation: map.options.fadeAnimation,"
+                "markerZoomAnimation: map.options.markerZoomAnimation"
                 "})"
             ),
             "tiles": page.evaluate(

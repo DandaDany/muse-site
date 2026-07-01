@@ -2,12 +2,8 @@ const TAIWAN_CENTER = [23.75, 121.0];
 const TAIWAN_BOUNDS = L.latLngBounds([21.5, 117.7], [26.6, 123.2]);
 const DATA_URL = "data/locations.geojson";
 const LOGO_URL = "data/chain_logos.json";
-const ZOOM_BUTTON_STEP = 0.25;
-const ZOOM_SNAP_STEP = 0;
-const WHEEL_ZOOM_SENSITIVITY = 0.00045;
-const WHEEL_ZOOM_EASE = 0.18;
-const WHEEL_ZOOM_STOP_THRESHOLD = 0.003;
-const WHEEL_TARGET_RESET_MS = 220;
+const ZOOM_BUTTON_STEP = 0.5;
+const ZOOM_SNAP_STEP = 0.25;
 const MIN_MARKER_SIZE = 24;
 const MAX_MARKER_SIZE = 48;
 const CITY_ORDER = [
@@ -65,7 +61,12 @@ const map = L.map("map", {
   zoomControl: true,
   zoomDelta: ZOOM_BUTTON_STEP,
   zoomSnap: ZOOM_SNAP_STEP,
-  scrollWheelZoom: false,
+  scrollWheelZoom: true,
+  wheelDebounceTime: 25,
+  wheelPxPerZoomLevel: 160,
+  zoomAnimation: true,
+  fadeAnimation: true,
+  markerZoomAnimation: true,
 });
 
 function updateMinZoomForBounds() {
@@ -101,10 +102,6 @@ let selectedChain = "";
 let selectedCity = "";
 let currentBasemapId = "carto-voyager";
 let currentBaseLayer = null;
-let wheelZoomTarget = null;
-let wheelFrame = null;
-let wheelPoint = null;
-let wheelResetTimer = null;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -245,45 +242,6 @@ function renderBasemapButtons() {
     fragment.appendChild(button);
   }
   basemapList.replaceChildren(fragment);
-}
-
-function applySmoothWheelZoom() {
-  if (wheelZoomTarget === null || !wheelPoint) {
-    wheelFrame = null;
-    return;
-  }
-  const currentZoom = map.getZoom();
-  const zoomDelta = wheelZoomTarget - currentZoom;
-  const nextZoom =
-    Math.abs(zoomDelta) < WHEEL_ZOOM_STOP_THRESHOLD
-      ? wheelZoomTarget
-      : currentZoom + zoomDelta * WHEEL_ZOOM_EASE;
-  map.setZoomAround(wheelPoint, nextZoom, { animate: false });
-  if (Math.abs(wheelZoomTarget - nextZoom) < WHEEL_ZOOM_STOP_THRESHOLD) {
-    wheelFrame = null;
-    return;
-  }
-  wheelFrame = requestAnimationFrame(applySmoothWheelZoom);
-}
-
-function handleSmoothWheel(event) {
-  event.preventDefault();
-  const modeMultiplier = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 100 : 1;
-  const delta = event.deltaY * modeMultiplier;
-  const baseZoom = wheelZoomTarget ?? map.getZoom();
-  wheelZoomTarget = clamp(
-    baseZoom - delta * WHEEL_ZOOM_SENSITIVITY,
-    map.getMinZoom(),
-    map.getMaxZoom(),
-  );
-  wheelPoint = map.mouseEventToContainerPoint(event);
-  if (!wheelFrame) {
-    wheelFrame = requestAnimationFrame(applySmoothWheelZoom);
-  }
-  clearTimeout(wheelResetTimer);
-  wheelResetTimer = setTimeout(() => {
-    wheelZoomTarget = null;
-  }, WHEEL_TARGET_RESET_MS);
 }
 
 function countBy(featuresToCount, key) {
@@ -529,7 +487,6 @@ clearCityButton.addEventListener("click", () => {
   applyFilters();
 });
 resetViewButton.addEventListener("click", resetView);
-map.getContainer().addEventListener("wheel", handleSmoothWheel, { passive: false });
 map.on("resize", updateMinZoomForBounds);
 
 updateMinZoomForBounds();
