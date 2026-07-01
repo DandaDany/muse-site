@@ -175,7 +175,7 @@ function createIcon(feature) {
   const markerContent = logoUrl
     ? `<img class="cinema-marker-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(
         props.chain_name,
-      )}" loading="lazy" />`
+      )}" />`
     : escapeHtml(markerLabel(props.chain_name));
   const logoClass = logoUrl ? "has-logo" : "";
   return L.divIcon({
