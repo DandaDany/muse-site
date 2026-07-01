@@ -21,7 +21,7 @@ def main() -> None:
         page.wait_for_selector(".cinema-marker", timeout=20_000)
         page.wait_for_selector(".basemap-option", timeout=10_000)
 
-        page.locator(".basemap-option").nth(2).click()
+        page.locator(".basemap-option").last.click()
         page.wait_for_timeout(3_000)
         page.screenshot(path=str(SCREENSHOT), full_page=True)
 

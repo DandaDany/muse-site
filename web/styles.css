@@ -58,6 +58,7 @@ select {
   min-height: 0;
   flex-direction: column;
   gap: 14px;
+  overflow-y: auto;
   border-right: 1px solid var(--line);
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -131,6 +132,7 @@ h1 {
 
 .filter-block {
   display: grid;
+  min-height: 0;
   gap: 7px;
 }
 
@@ -163,7 +165,7 @@ h1 {
 
 .filter-scroll {
   display: grid;
-  max-height: 174px;
+  max-height: clamp(96px, 18vh, 174px);
   gap: 6px;
   overflow-y: auto;
   padding-right: 4px;
@@ -221,15 +223,14 @@ h1 {
 
 .basemap-option {
   display: grid;
-  min-height: 52px;
+  min-height: 40px;
   align-content: center;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfcfb;
   color: var(--text);
   cursor: pointer;
-  gap: 3px;
-  padding: 7px 8px;
+  padding: 7px 9px;
   text-align: left;
 }
 
@@ -245,12 +246,6 @@ h1 {
   font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.basemap-option small {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.25;
 }
 
 .stats-grid {
@@ -280,6 +275,7 @@ h1 {
 }
 
 .list-section {
+  flex: 1 1 160px;
   min-height: 0;
   border-top: 1px solid var(--line);
   padding-top: 10px;
@@ -287,6 +283,7 @@ h1 {
 
 .location-list {
   display: grid;
+  height: 100%;
   max-height: 100%;
   gap: 8px;
   overflow-y: auto;
@@ -401,10 +398,6 @@ h1 {
 
 .leaflet-tile-loaded {
   visibility: inherit;
-}
-
-.osm-muted-tile {
-  filter: saturate(0.45) contrast(0.9) brightness(1.08);
 }
 
 .leaflet-marker-icon,

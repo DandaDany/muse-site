@@ -37,24 +37,8 @@ const CITY_ORDER = [
 
 const BASEMAPS = [
   {
-    id: "osm-muted",
-    name: "OSM 淡化",
-    note: "原版資訊量，海域線較淡",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    className: "osm-muted-tile",
-  },
-  {
-    id: "osm-standard",
-    name: "OSM 原色",
-    note: "最接近原本樣子",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  },
-  {
     id: "carto-voyager",
     name: "CARTO Voyager",
-    note: "接近 Google，路網清楚",
     url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -63,25 +47,10 @@ const BASEMAPS = [
   {
     id: "carto-positron",
     name: "CARTO Positron",
-    note: "乾淨淡色，干擾最少",
     url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: "abcd",
-  },
-  {
-    id: "esri-street",
-    name: "Esri 街道",
-    note: "商用地圖感，標示密",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri",
-  },
-  {
-    id: "esri-topo",
-    name: "Esri 地形",
-    note: "山區地形較清楚",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-    attribution: "Tiles &copy; Esri",
   },
 ];
 
@@ -130,7 +99,7 @@ let markerById = new Map();
 let activeId = null;
 let selectedChain = "";
 let selectedCity = "";
-let currentBasemapId = "osm-muted";
+let currentBasemapId = "carto-voyager";
 let currentBaseLayer = null;
 let wheelZoomTarget = null;
 let wheelFrame = null;
@@ -144,6 +113,13 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("臺", "台");
 }
 
 function markerClass(chainName) {
@@ -264,10 +240,7 @@ function renderBasemapButtons() {
     button.className = "basemap-option";
     button.type = "button";
     button.classList.toggle("is-selected", basemap.id === currentBasemapId);
-    button.innerHTML = `
-      <span>${escapeHtml(basemap.name)}</span>
-      <small>${escapeHtml(basemap.note)}</small>
-    `;
+    button.innerHTML = `<span>${escapeHtml(basemap.name)}</span>`;
     button.addEventListener("click", () => setBasemap(basemap.id));
     fragment.appendChild(button);
   }
@@ -433,16 +406,15 @@ function selectMovie(movieTitle) {
 
 function matchesFilters(feature) {
   const props = feature.properties;
-  const keyword = searchInput.value.trim().toLowerCase();
-  const haystack = [
+  const keyword = normalizeSearchText(searchInput.value);
+  const haystack = normalizeSearchText([
     props.chain_name,
     props.location_name,
     props.map_name,
     props.address,
     props.city,
   ]
-    .join(" ")
-    .toLowerCase();
+    .join(" "));
 
   return (
     (!keyword || haystack.includes(keyword)) &&
