@@ -2,6 +2,16 @@
 
 這個專案用來把「電影上映影城 + 場次」整理成 Google My Maps 可匯入的 KML。
 
+## 專案決策紀錄
+
+已確認採用的技術與重要實作決策記錄在：
+
+```text
+DECISIONS.md
+```
+
+包含 Leaflet、Playwright、GeoJSON、GitHub Pages、影城 logo marker 使用 `background-image` 等決策。後續修改架構或新增重要技術時，請同步更新該檔案。
+
 ## 目前資料庫設計
 
 - `cinema_chains`：影城品牌與官方/場次來源連結。
