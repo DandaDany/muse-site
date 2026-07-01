@@ -88,7 +88,7 @@ const chainFilterList = document.querySelector("#chainFilterList");
 const cityFilterList = document.querySelector("#cityFilterList");
 const clearChainButton = document.querySelector("#clearChainButton");
 const clearCityButton = document.querySelector("#clearCityButton");
-const locationList = document.querySelector("#locationList");
+const searchSuggestions = document.querySelector("#searchSuggestions");
 const resetViewButton = document.querySelector("#resetViewButton");
 
 let features = [];
@@ -383,7 +383,7 @@ function matchesFilters(feature) {
 
 function setActive(id) {
   activeId = id;
-  document.querySelectorAll(".location-row").forEach((row) => {
+  document.querySelectorAll(".suggestion-row").forEach((row) => {
     row.classList.toggle("is-active", Number(row.dataset.id) === id);
   });
 }
@@ -397,12 +397,19 @@ function focusFeature(feature) {
   marker.openPopup();
 }
 
-function renderList(filtered) {
+function renderSearchSuggestions(filtered) {
+  const keyword = normalizeSearchText(searchInput.value);
+  if (!keyword) {
+    searchSuggestions.replaceChildren();
+    searchSuggestions.hidden = true;
+    return;
+  }
+
   const fragment = document.createDocumentFragment();
   for (const feature of filtered) {
     const props = feature.properties;
     const button = document.createElement("button");
-    button.className = "location-row";
+    button.className = "suggestion-row";
     button.type = "button";
     button.dataset.id = props.location_id;
     const showtimeMeta =
@@ -410,13 +417,17 @@ function renderList(filtered) {
         ? `${props.showtime_count} 場 ｜ ${props.start_times}`
         : `${props.chain_name} ｜ ${props.city || "未分縣市"}`;
     button.innerHTML = `
-      <span class="location-name">${escapeHtml(props.location_name)}</span>
-      <span class="location-meta">${escapeHtml(showtimeMeta)}</span>
+      <span class="suggestion-name">${escapeHtml(props.location_name)}</span>
+      <span class="suggestion-meta">${escapeHtml(showtimeMeta)}</span>
     `;
-    button.addEventListener("click", () => focusFeature(feature));
+    button.addEventListener("click", () => {
+      focusFeature(feature);
+      searchSuggestions.hidden = true;
+    });
     fragment.appendChild(button);
   }
-  locationList.replaceChildren(fragment);
+  searchSuggestions.replaceChildren(fragment);
+  searchSuggestions.hidden = filtered.length === 0;
   setActive(activeId);
 }
 
@@ -428,7 +439,7 @@ function renderMarkers(filtered) {
     const [lng, lat] = feature.geometry.coordinates;
     const marker = L.marker([lat, lng], { icon: createIcon(feature) });
     marker.bindPopup(popupHtml(feature), { minWidth: 230, maxWidth: 320 });
-    marker.on("click", () => setActive(props.location_id));
+    marker.on("click", () => focusFeature(feature));
     marker.addTo(markerLayer);
     markerById.set(props.location_id, marker);
   }
@@ -437,7 +448,7 @@ function renderMarkers(filtered) {
 function applyFilters() {
   const filtered = features.filter(matchesFilters);
   renderMarkers(filtered);
-  renderList(filtered);
+  renderSearchSuggestions(filtered);
   visibleCount.textContent = filtered.length;
   totalCount.textContent = features.length;
   const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";

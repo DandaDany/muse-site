@@ -20,14 +20,28 @@ def main() -> None:
         page.goto(URL, wait_until="networkidle", timeout=45_000)
         page.wait_for_selector(".cinema-marker", timeout=20_000)
         page.wait_for_selector(".basemap-option", timeout=10_000)
+        initial_marker_count = page.locator(".cinema-marker").count()
 
         page.locator(".basemap-option").last.click()
         page.wait_for_timeout(3_000)
+        page.locator("#searchInput").fill("台")
+        page.wait_for_selector(".suggestion-row", timeout=10_000)
+        search_suggestion_count = page.locator(".suggestion-row").count()
+        page.locator(".suggestion-row").first.click()
+        page.wait_for_selector(".leaflet-popup", timeout=10_000)
+        popup_after_search = page.locator(".leaflet-popup").count()
+        page.keyboard.press("Escape")
+        page.locator(".cinema-marker").first.click()
+        page.wait_for_selector(".leaflet-popup", timeout=10_000)
+        popup_after_marker = page.locator(".leaflet-popup").count()
         page.screenshot(path=str(SCREENSHOT), full_page=True)
 
         result = {
-            "markers": page.locator(".cinema-marker").count(),
-            "rows": page.locator(".location-row").count(),
+            "initialMarkers": initial_marker_count,
+            "filteredMarkers": page.locator(".cinema-marker").count(),
+            "searchSuggestions": search_suggestion_count,
+            "popupAfterSearch": popup_after_search,
+            "popupAfterMarker": popup_after_marker,
             "basemaps": page.locator(".basemap-option").count(),
             "selectedBasemap": page.locator(".basemap-option.is-selected span").inner_text(),
             "zoom": page.evaluate(

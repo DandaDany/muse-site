@@ -32,8 +32,9 @@
 
         <label class="field">
           <span>搜尋</span>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" />
+          <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
         </label>
+        <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
         <section class="filter-block" aria-label="底圖樣式">
           <div class="filter-head">
@@ -68,10 +69,6 @@
             <span>總點位</span>
           </div>
         </div>
-
-        <section class="list-section" aria-label="影城列表">
-          <div id="locationList" class="location-list"></div>
-        </section>
       </aside>
 
       <section class="map-wrap" aria-label="台灣影城地圖">
