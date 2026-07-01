@@ -99,6 +99,14 @@ const map = L.map("map", {
   scrollWheelZoom: false,
 });
 
+function updateMinZoomForBounds() {
+  const minZoom = Math.max(7, map.getBoundsZoom(TAIWAN_BOUNDS, true));
+  map.setMinZoom(minZoom);
+  if (map.getZoom() < minZoom) {
+    map.setZoom(minZoom, { animate: false });
+  }
+}
+
 const markerLayer = L.layerGroup().addTo(map);
 const summaryText = document.querySelector("#summaryText");
 const visibleCount = document.querySelector("#visibleCount");
@@ -231,7 +239,6 @@ function createTileLayer(basemap) {
     className: basemap.className || "",
     maxZoom: basemap.maxZoom || 18,
     noWrap: true,
-    bounds: TAIWAN_BOUNDS,
   };
   if (basemap.subdomains) {
     options.subdomains = basemap.subdomains;
@@ -551,7 +558,9 @@ clearCityButton.addEventListener("click", () => {
 });
 resetViewButton.addEventListener("click", resetView);
 map.getContainer().addEventListener("wheel", handleSmoothWheel, { passive: false });
+map.on("resize", updateMinZoomForBounds);
 
+updateMinZoomForBounds();
 setBasemap(currentBasemapId);
 
 loadData().catch((error) => {
