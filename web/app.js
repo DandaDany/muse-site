@@ -148,6 +148,10 @@ function markerSize(feature) {
   return Math.round(clamp(MIN_MARKER_SIZE + Math.sqrt(count) * 4.5, MIN_MARKER_SIZE, MAX_MARKER_SIZE));
 }
 
+function markerZIndexOffset(feature) {
+  return (MAX_MARKER_SIZE - markerSize(feature)) * 1000;
+}
+
 function createIcon(feature) {
   const props = feature.properties;
   const size = markerSize(feature);
@@ -437,7 +441,10 @@ function renderMarkers(filtered) {
   for (const feature of filtered) {
     const props = feature.properties;
     const [lng, lat] = feature.geometry.coordinates;
-    const marker = L.marker([lat, lng], { icon: createIcon(feature) });
+    const marker = L.marker([lat, lng], {
+      icon: createIcon(feature),
+      zIndexOffset: markerZIndexOffset(feature),
+    });
     marker.bindPopup(popupHtml(feature), { minWidth: 230, maxWidth: 320 });
     marker.on("click", () => focusFeature(feature));
     marker.addTo(markerLayer);

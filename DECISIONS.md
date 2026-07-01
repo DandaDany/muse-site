@@ -42,6 +42,10 @@ This file records technical choices that are considered confirmed for this proje
   - Reason: theaters with more showtimes should be visually emphasized.
   - Current range: `MIN_MARKER_SIZE = 24`, `MAX_MARKER_SIZE = 48`.
 
+- Smaller markers are rendered above larger markers with `zIndexOffset`.
+  - Reason: theaters with fewer showtimes have smaller logos and would otherwise be hidden when overlapping larger logos.
+  - Current rule: `zIndexOffset = (MAX_MARKER_SIZE - markerSize(feature)) * 1000`.
+
 ## Data Pipeline
 
 - Use SQLite as the local working database.
@@ -103,15 +107,11 @@ This file records technical choices that are considered confirmed for this proje
 
 ## Basemaps
 
-- Keep multiple basemap options in the UI.
-  - Current options include:
-    - OpenStreetMap muted
-    - OpenStreetMap standard
+- Keep only CARTO basemap options in the UI.
+  - Current options:
     - CARTO Voyager
     - CARTO Positron
-    - Esri Street
-    - Esri Topographic
-  - Reason: different basemaps are useful for checking readability and map context.
+  - Reason: these two styles cover the useful readability range without cluttering the controls.
 
 ## Files That Should Stay Out Of Git
 
