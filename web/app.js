@@ -1,6 +1,7 @@
 const TAIWAN_CENTER = [23.75, 121.0];
 const TAIWAN_BOUNDS = L.latLngBounds([21.5, 117.7], [26.6, 123.2]);
 const DATA_URL = "data/locations.geojson";
+const LOGO_URL = "data/chain_logos.json";
 const ZOOM_BUTTON_STEP = 0.25;
 const ZOOM_SNAP_STEP = 0;
 const WHEEL_ZOOM_SENSITIVITY = 0.00045;
@@ -116,6 +117,7 @@ let features = [];
 let movieSummaries = [];
 let movieFeaturesByTitle = new Map();
 let selectedMovieTitle = "";
+let chainLogoByName = new Map();
 let markerById = new Map();
 let activeId = null;
 let selectedChain = "";
@@ -148,6 +150,10 @@ function markerLabel(chainName) {
   return normalized.slice(0, 1).toUpperCase();
 }
 
+function markerLogo(chainName) {
+  return chainLogoByName.get(chainName) || "";
+}
+
 function showtimeCount(feature) {
   const props = feature.properties;
   const count = Number(props.showtime_count);
@@ -165,13 +171,18 @@ function createIcon(feature) {
   const props = feature.properties;
   const size = markerSize(feature);
   const fontSize = Math.round(clamp(size * 0.38, 11, 16));
+  const logoUrl = markerLogo(props.chain_name);
+  const markerContent = logoUrl
+    ? `<img class="cinema-marker-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(
+        props.chain_name,
+      )}" loading="lazy" />`
+    : escapeHtml(markerLabel(props.chain_name));
+  const logoClass = logoUrl ? "has-logo" : "";
   return L.divIcon({
     className: "",
     html: `<span class="cinema-marker ${markerClass(
       props.chain_name,
-    )}" style="--marker-size: ${size}px; --marker-font-size: ${fontSize}px;">${escapeHtml(
-      markerLabel(props.chain_name),
-    )}</span>`,
+    )} ${logoClass}" style="--marker-size: ${size}px; --marker-font-size: ${fontSize}px;">${markerContent}</span>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -Math.round(size / 2)],
@@ -501,7 +512,21 @@ function resetView() {
   map.setView(TAIWAN_CENTER, 8, { animate: true });
 }
 
+async function loadLogos() {
+  const response = await fetch(LOGO_URL, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Logo 對應表載入失敗：${response.status}`);
+  }
+  const data = await response.json();
+  chainLogoByName = new Map(Object.entries(data));
+}
+
 async function loadData() {
+  await loadLogos().catch((error) => {
+    console.warn(error);
+    chainLogoByName = new Map();
+  });
+
   const response = await fetch(DATA_URL, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`GeoJSON 載入失敗：${response.status}`);
