@@ -609,15 +609,10 @@ h1 {
 .cinema-marker.has-logo {
   overflow: hidden;
   background: #f7faf8;
-  padding: 2px;
-}
-
-.cinema-marker-logo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+  background-image: var(--marker-logo);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .popup-title {

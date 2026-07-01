@@ -172,17 +172,16 @@ function createIcon(feature) {
   const size = markerSize(feature);
   const fontSize = Math.round(clamp(size * 0.38, 11, 16));
   const logoUrl = markerLogo(props.chain_name);
-  const markerContent = logoUrl
-    ? `<img class="cinema-marker-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(
-        props.chain_name,
-      )}" />`
-    : escapeHtml(markerLabel(props.chain_name));
+  const markerContent = logoUrl ? "" : escapeHtml(markerLabel(props.chain_name));
   const logoClass = logoUrl ? "has-logo" : "";
+  const logoStyle = logoUrl ? ` --marker-logo: url('${escapeHtml(logoUrl)}');` : "";
   return L.divIcon({
     className: "",
     html: `<span class="cinema-marker ${markerClass(
       props.chain_name,
-    )} ${logoClass}" style="--marker-size: ${size}px; --marker-font-size: ${fontSize}px;">${markerContent}</span>`,
+    )} ${logoClass}" aria-label="${escapeHtml(
+      props.chain_name,
+    )}" style="--marker-size: ${size}px; --marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -Math.round(size / 2)],
