@@ -65,6 +65,11 @@ select {
   padding: 18px;
 }
 
+/* 區塊不被 flex 壓縮：空間不夠時改由側欄整體捲動，清單才不會被壓到只剩一列 */
+.sidebar > * {
+  flex: 0 0 auto;
+}
+
 .panel-head {
   display: flex;
   align-items: flex-start;
@@ -132,7 +137,8 @@ h1 {
 
 .search-suggestions {
   display: grid;
-  max-height: clamp(140px, 28vh, 280px);
+  /* 固定高度，避免矮螢幕被 vh 壓縮到只剩一列 */
+  max-height: 260px;
   gap: 8px;
   overflow-y: auto;
   padding-right: 4px;
@@ -208,7 +214,8 @@ h1 {
 
 .filter-scroll {
   display: grid;
-  max-height: clamp(96px, 18vh, 174px);
+  /* 以行數為準：一列約 42px + 6px 間距，固定露出 4 列再多一點提示可捲動 */
+  max-height: 210px;
   gap: 6px;
   overflow-y: auto;
   padding-right: 4px;
@@ -256,65 +263,6 @@ h1 {
 .filter-option.is-selected strong {
   background: var(--green);
   color: #ffffff;
-}
-
-.basemap-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.basemap-option {
-  display: grid;
-  min-height: 40px;
-  align-content: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfcfb;
-  color: var(--text);
-  cursor: pointer;
-  padding: 7px 9px;
-  text-align: left;
-}
-
-.basemap-option:hover,
-.basemap-option.is-selected {
-  border-color: var(--green);
-  background: #f1f8f4;
-}
-
-.basemap-option span {
-  overflow: hidden;
-  font-size: 13px;
-  font-weight: 750;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.stats-grid div {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfcfb;
-  padding: 10px;
-}
-
-.stats-grid strong {
-  display: block;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.stats-grid span {
-  display: block;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .popup-showtimes {
@@ -650,8 +598,10 @@ h1 {
   .sidebar {
     order: 2;
     min-height: 58vh;
+    gap: 18px;
     border-top: 1px solid var(--line);
     border-right: 0;
     box-shadow: none;
+    padding: 18px 16px 28px;
   }
 }

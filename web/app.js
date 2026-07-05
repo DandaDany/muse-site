@@ -31,24 +31,14 @@ const CITY_ORDER = [
   "連江縣",
 ];
 
-const BASEMAPS = [
-  {
-    id: "carto-voyager",
-    name: "CARTO Voyager",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-  },
-  {
-    id: "carto-positron",
-    name: "CARTO Positron",
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: "abcd",
-  },
-];
+const BASEMAP = {
+  id: "carto-voyager",
+  name: "CARTO Voyager",
+  url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: "abcd",
+};
 
 const map = L.map("map", {
   center: TAIWAN_CENTER,
@@ -79,11 +69,8 @@ function updateMinZoomForBounds() {
 
 const markerLayer = L.layerGroup().addTo(map);
 const summaryText = document.querySelector("#summaryText");
-const visibleCount = document.querySelector("#visibleCount");
-const totalCount = document.querySelector("#totalCount");
 const movieSelect = document.querySelector("#movieSelect");
 const searchInput = document.querySelector("#searchInput");
-const basemapList = document.querySelector("#basemapList");
 const chainFilterList = document.querySelector("#chainFilterList");
 const cityFilterList = document.querySelector("#cityFilterList");
 const clearChainButton = document.querySelector("#clearChainButton");
@@ -100,8 +87,6 @@ let markerById = new Map();
 let activeId = null;
 let selectedChain = "";
 let selectedCity = "";
-let currentBasemapId = "carto-voyager";
-let currentBaseLayer = null;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -206,10 +191,6 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function basemapById(id) {
-  return BASEMAPS.find((basemap) => basemap.id === id) || BASEMAPS[0];
-}
-
 function createTileLayer(basemap) {
   const options = {
     attribution: basemap.attribution,
@@ -221,31 +202,6 @@ function createTileLayer(basemap) {
     options.subdomains = basemap.subdomains;
   }
   return L.tileLayer(basemap.url, options);
-}
-
-function setBasemap(id) {
-  const basemap = basemapById(id);
-  if (currentBaseLayer) {
-    currentBaseLayer.remove();
-  }
-  currentBasemapId = basemap.id;
-  currentBaseLayer = createTileLayer(basemap).addTo(map);
-  currentBaseLayer.bringToBack();
-  renderBasemapButtons();
-}
-
-function renderBasemapButtons() {
-  const fragment = document.createDocumentFragment();
-  for (const basemap of BASEMAPS) {
-    const button = document.createElement("button");
-    button.className = "basemap-option";
-    button.type = "button";
-    button.classList.toggle("is-selected", basemap.id === currentBasemapId);
-    button.innerHTML = `<span>${escapeHtml(basemap.name)}</span>`;
-    button.addEventListener("click", () => setBasemap(basemap.id));
-    fragment.appendChild(button);
-  }
-  basemapList.replaceChildren(fragment);
 }
 
 function countBy(featuresToCount, key) {
@@ -456,10 +412,9 @@ function applyFilters() {
   const filtered = features.filter(matchesFilters);
   renderMarkers(filtered);
   renderSearchSuggestions(filtered);
-  visibleCount.textContent = filtered.length;
-  totalCount.textContent = features.length;
+  const totalShowtimes = filtered.reduce((sum, feature) => sum + showtimeCount(feature), 0);
   const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";
-  summaryText.textContent = `${moviePrefix}${filtered.length} / ${features.length} 個點位`;
+  summaryText.textContent = `${moviePrefix}${filtered.length} 影城上映中，共 ${totalShowtimes} 場次`;
 }
 
 function resetView() {
@@ -508,7 +463,7 @@ resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
 updateMinZoomForBounds();
-setBasemap(currentBasemapId);
+createTileLayer(BASEMAP).addTo(map).bringToBack();
 
 loadData().catch((error) => {
   summaryText.textContent = error.message;

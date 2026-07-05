@@ -107,11 +107,16 @@ This file records technical choices that are considered confirmed for this proje
 
 ## Basemaps
 
-- Keep only CARTO basemap options in the UI.
-  - Current options:
-    - CARTO Voyager
-    - CARTO Positron
-  - Reason: these two styles cover the useful readability range without cluttering the controls.
+- Use a single fixed basemap: CARTO Voyager. No basemap picker in the UI.
+  - Reason: one good default keeps the sidebar simple; the picker added a control without real value.
+
+## Sidebar Layout
+
+- Sidebar summary line format: `{電影}：{N} 影城上映中，共 {M} 場次` (counts follow active filters).
+- No standalone stats tiles (顯示/總點位) — the summary line carries the numbers.
+- Filter lists (品牌/縣市) use fixed pixel max-heights (rows-based), not `vh`.
+  - Reason: `vh`-based heights collapsed to a single visible row on short phone screens.
+- Sidebar children use `flex: 0 0 auto` so blocks never get flex-compressed; the sidebar itself scrolls when space runs out.
 
 ## Files That Should Stay Out Of Git
 
