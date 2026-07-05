@@ -58,6 +58,8 @@ select {
   min-height: 0;
   flex-direction: column;
   gap: 14px;
+  /* 內容比側欄矮時，把剩餘空白平分到各區塊之間（gap 為最小間距） */
+  justify-content: space-between;
   overflow-y: auto;
   border-right: 1px solid var(--line);
   background: var(--panel);
