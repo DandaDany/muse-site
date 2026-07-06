@@ -127,6 +127,21 @@ This file records technical choices that are considered confirmed for this proje
 - After the height transition, JS calls `map.invalidateSize()` so Leaflet re-renders tiles at the new container size.
 - Desktop is untouched — all sheet behaviour is scoped to the `max-width: 760px` media query and mobile-only JS guards.
 
+## Location Popup
+
+- Show only 影城名稱 (title) + 地址; drop the `品牌 ｜ 縣市` line.
+- Address row has a Google Maps pin link on the right: `https://www.google.com/maps/search/?api=1&query={lat},{lng}` (built from the feature coordinates).
+- Showtimes header is `當日, yyyy/mm/dd` (from `show_date`), not movie title.
+- Showtime rows: no numbering; large bold time (17px, tabular) + smaller format/auditorium sublabel. About 7 rows visible, the rest scroll.
+- Popup height is kept compact (~400px) so it fits inside the mobile map area (which is only ~64vh and clips via `overflow:hidden`); popups use `autoPan`/`keepInView`.
+
+## Marker Click Zoom
+
+- 1st click on a map logo: fly in to `FOCUS_ZOOM` (14, 據點層級) and open the popup.
+- Clicking the same logo again while zoomed in: fly back out to `CITY_ZOOM` (11, 縣市層級) and close the popup — not all the way to the Taiwan overview (that stays on the home button).
+- Search-suggestion clicks always zoom in (never toggle out).
+- Selecting a city filter flies the map to that city's centroid (averaged cinema coordinates) at `CITY_ZOOM` (11).
+
 ## Files That Should Stay Out Of Git
 
 - `data/movie_map.sqlite`

@@ -158,17 +158,44 @@ function createIcon(feature) {
   });
 }
 
+const PIN_SVG =
+  '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">' +
+  '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.05 6.16 12.24 6.42 12.55a.75.75 0 0 0 1.16 0C12.84 21.24 19 14.05 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>';
+
+function mapsUrl(feature) {
+  const coords = feature.geometry && feature.geometry.coordinates;
+  if (!Array.isArray(coords) || coords.length < 2) return "";
+  const [lng, lat] = coords;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+}
+
+function showtimeSubLabel(showtime) {
+  const label = showtime.label || "";
+  const rest = showtime.time ? label.replace(showtime.time, "").trim() : label;
+  return rest || showtime.format || "";
+}
+
 function popupHtml(feature) {
   const props = feature.properties;
-  const address = props.address ? `<p class="popup-meta">${escapeHtml(props.address)}</p>` : "";
+  const gmap = mapsUrl(feature);
+  const pin = gmap
+    ? `<a class="popup-pin" href="${escapeHtml(gmap)}" target="_blank" rel="noreferrer" title="在 Google 地圖開啟" aria-label="在 Google 地圖開啟">${PIN_SVG}</a>`
+    : "";
+  const address = props.address
+    ? `<p class="popup-address"><span>${escapeHtml(props.address)}</span>${pin}</p>`
+    : "";
+  const dateText = props.show_date ? `當日, ${escapeHtml(props.show_date).replaceAll("-", "/")}` : "當日";
   const showtimeBlock =
     Array.isArray(props.showtimes) && props.showtimes.length
       ? `
         <div class="popup-showtimes">
-          <p>${escapeHtml(props.movie_title || "")} ${escapeHtml(props.show_date || "")}</p>
-          <ol>${props.showtimes
-            .map((showtime) => `<li>${escapeHtml(showtime.label || showtime.time)}</li>`)
-            .join("")}</ol>
+          <p class="popup-showtimes-head">${dateText}</p>
+          <ul class="showtime-list">${props.showtimes
+            .map(
+              (showtime) =>
+                `<li><b>${escapeHtml(showtime.time || "")}</b><span>${escapeHtml(showtimeSubLabel(showtime))}</span></li>`,
+            )
+            .join("")}</ul>
         </div>
       `
       : "";
@@ -180,7 +207,6 @@ function popupHtml(feature) {
     : "";
   return `
     <h2 class="popup-title">${escapeHtml(props.location_name)}</h2>
-    <p class="popup-meta">${escapeHtml(props.chain_name)} ｜ ${escapeHtml(props.city || "")}</p>
     ${address}
     ${showtimeBlock}
     <div class="popup-links">${locationLink}${officialLink}</div>
@@ -234,6 +260,20 @@ function sortedCities() {
   });
 }
 
+// 以該縣市所有影城座標的中心點，把地圖飛到縣市層級
+function flyToCity(city) {
+  const pts = features.filter((feature) => feature.properties.city === city);
+  if (!pts.length) return;
+  let sumLat = 0;
+  let sumLng = 0;
+  for (const feature of pts) {
+    const [lng, lat] = feature.geometry.coordinates;
+    sumLat += lat;
+    sumLng += lng;
+  }
+  map.flyTo([sumLat / pts.length, sumLng / pts.length], CITY_ZOOM, { duration: 0.5 });
+}
+
 function renderFilterButtons(container, items, selectedValue, onSelect) {
   const fragment = document.createDocumentFragment();
   for (const [value, count] of items) {
@@ -261,6 +301,7 @@ function renderFilters() {
     selectedCity = selectedCity === value ? "" : value;
     renderFilters();
     applyFilters();
+    if (selectedCity) flyToCity(selectedCity);
   });
   clearChainButton.classList.toggle("is-active", !selectedChain);
   clearCityButton.classList.toggle("is-active", !selectedCity);
@@ -348,13 +389,34 @@ function setActive(id) {
   });
 }
 
+const FOCUS_ZOOM = 14; // 點 logo 放大到的據點層級
+const CITY_ZOOM = 11; // 再點一下縮回的縣市層級
+let zoomedInId = null;
+
+// 放大聚焦某據點並開啟資訊卡片（搜尋清單與第一次點 logo 都走這條）
 function focusFeature(feature) {
   const props = feature.properties;
   const marker = markerById.get(props.location_id);
   if (!marker) return;
   setActive(props.location_id);
-  map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), 14), { duration: 0.45 });
+  zoomedInId = props.location_id;
+  map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), { duration: 0.45 });
   marker.openPopup();
+}
+
+// 點地圖上的 logo：已放大在同一據點時再點一下 → 縮回縣市層級；否則放大
+function toggleFeatureZoom(feature) {
+  const props = feature.properties;
+  const marker = markerById.get(props.location_id);
+  if (!marker) return;
+  const zoomedHere = zoomedInId === props.location_id && map.getZoom() >= FOCUS_ZOOM - 0.5;
+  if (zoomedHere) {
+    zoomedInId = null;
+    marker.closePopup();
+    map.flyTo(marker.getLatLng(), CITY_ZOOM, { duration: 0.45 });
+  } else {
+    focusFeature(feature);
+  }
 }
 
 function renderSearchSuggestions(filtered) {
@@ -401,8 +463,14 @@ function renderMarkers(filtered) {
       icon: createIcon(feature),
       zIndexOffset: markerZIndexOffset(feature),
     });
-    marker.bindPopup(popupHtml(feature), { minWidth: 230, maxWidth: 320 });
-    marker.on("click", () => focusFeature(feature));
+    marker.bindPopup(popupHtml(feature), {
+      minWidth: 240,
+      maxWidth: 320,
+      autoPan: true,
+      autoPanPadding: [16, 16],
+      keepInView: true,
+    });
+    marker.on("click", () => toggleFeatureZoom(feature));
     marker.addTo(markerLayer);
     markerById.set(props.location_id, marker);
   }
