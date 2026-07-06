@@ -274,32 +274,84 @@ h1 {
   color: #ffffff;
 }
 
+.popup-address {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 4px 0;
+  color: #3d4a42;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.popup-pin {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: -3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7faf8;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.popup-pin:hover {
+  border-color: var(--green);
+  background: #eef6f1;
+}
+
 .popup-showtimes {
-  margin: 8px 0;
+  margin: 7px 0;
   border-top: 1px solid #dbe4de;
   border-bottom: 1px solid #dbe4de;
-  padding: 8px 0;
+  padding: 7px 0;
 }
 
-.popup-showtimes p {
-  margin: 0 0 6px;
+.popup-showtimes-head {
+  margin: 0 0 7px;
   color: var(--text);
   font-weight: 700;
+  font-size: 13px;
 }
 
-.popup-showtimes ol {
-  display: grid;
-  max-height: 170px;
-  gap: 4px;
+.showtime-list {
+  display: flex;
+  flex-direction: column;
+  /* 一次顯示約 7 筆，其餘往下滑（壓緊高度，小螢幕也裝得下） */
+  max-height: 196px;
+  gap: 6px;
   margin: 0;
+  padding: 0 2px 0 0;
   overflow-y: auto;
-  padding-left: 20px;
+  list-style: none;
 }
 
-.popup-showtimes li {
+.showtime-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  line-height: 1.2;
+}
+
+.showtime-list li b {
+  flex: 0 0 auto;
+  min-width: 52px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.showtime-list li span {
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .map-wrap,
@@ -489,7 +541,7 @@ h1 {
 }
 
 .leaflet-popup-content {
-  margin: 14px 16px;
+  margin: 12px 15px;
   line-height: 1.45;
 }
 
