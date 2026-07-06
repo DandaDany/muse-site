@@ -30,28 +30,29 @@
           <select id="movieSelect" aria-label="選擇電影"></select>
         </label>
 
-        <label class="field">
-          <span>搜尋</span>
-          <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
-        </label>
-        <div id="searchSuggestions" class="search-suggestions" hidden></div>
+        <div class="sheet-body" id="sheetBody">
+          <label class="field">
+            <span>搜尋</span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
+          </label>
+          <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
-        <section class="filter-block" aria-label="品牌篩選">
-          <div class="filter-head">
-            <span>品牌</span>
-            <button class="filter-reset" id="clearChainButton" type="button">全部品牌</button>
-          </div>
-          <div class="filter-scroll" id="chainFilterList"></div>
-        </section>
+          <section class="filter-block" aria-label="品牌篩選">
+            <div class="filter-head">
+              <span>品牌</span>
+              <button class="filter-reset" id="clearChainButton" type="button">全部品牌</button>
+            </div>
+            <div class="filter-scroll" id="chainFilterList"></div>
+          </section>
 
-        <section class="filter-block" aria-label="縣市篩選">
-          <div class="filter-head">
-            <span>縣市</span>
-            <button class="filter-reset" id="clearCityButton" type="button">全部縣市</button>
-          </div>
-          <div class="filter-scroll" id="cityFilterList"></div>
-        </section>
-
+          <section class="filter-block" aria-label="縣市篩選">
+            <div class="filter-head">
+              <span>縣市</span>
+              <button class="filter-reset" id="clearCityButton" type="button">全部縣市</button>
+            </div>
+            <div class="filter-scroll" id="cityFilterList"></div>
+          </section>
+        </div>
       </aside>
 
       <section class="map-wrap" aria-label="台灣影城地圖">

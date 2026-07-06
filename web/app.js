@@ -462,6 +462,51 @@ clearCityButton.addEventListener("click", () => {
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
+/* ---- 手機版篩選面板收合 / 展開 ---- */
+const appShell = document.querySelector(".app-shell");
+const sidebar = document.querySelector(".sidebar");
+const mapWrap = document.querySelector(".map-wrap");
+const mobileQuery = window.matchMedia("(max-width: 760px)");
+
+function isMobile() {
+  return mobileQuery.matches;
+}
+
+function refreshMapSize() {
+  // 面板動畫改變了地圖容器高度，讓 Leaflet 重新計算圖磚與尺寸
+  map.invalidateSize({ animate: false });
+  updateMinZoomForBounds();
+}
+
+function setSheetOpen(open) {
+  if (!isMobile()) return;
+  appShell.classList.toggle("sheet-open", open);
+}
+
+// 收合時：點面板上半部（標題／電影區）即展開；home 鍵維持原用途
+sidebar.addEventListener("click", (event) => {
+  if (appShell.classList.contains("sheet-open")) return;
+  if (event.target.closest("#resetViewButton")) return;
+  setSheetOpen(true);
+});
+
+// 開始使用篩選（聚焦搜尋、清單等）也會展開
+sidebar.addEventListener("focusin", () => setSheetOpen(true));
+
+// 點地圖即收合，把版面還給地圖
+map.on("click", () => setSheetOpen(false));
+
+// 面板高度轉場結束後才重繪地圖，避免圖磚破圖
+mapWrap.addEventListener("transitionend", (event) => {
+  if (event.propertyName === "height") refreshMapSize();
+});
+
+// 切換手機／桌機時，桌機不需要收合狀態
+mobileQuery.addEventListener("change", () => {
+  if (!isMobile()) appShell.classList.remove("sheet-open");
+  refreshMapSize();
+});
+
 updateMinZoomForBounds();
 createTileLayer(BASEMAP).addTo(map).bringToBack();
 

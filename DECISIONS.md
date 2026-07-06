@@ -118,6 +118,15 @@ This file records technical choices that are considered confirmed for this proje
   - Reason: `vh`-based heights collapsed to a single visible row on short phone screens.
 - Sidebar children use `flex: 0 0 auto` so blocks never get flex-compressed; the sidebar itself scrolls when space runs out.
 
+## Mobile Sheet (≤760px)
+
+- Sidebar becomes a rounded (18px) floating bottom sheet that peeks over the map.
+- Collapsed by default: only 標題 + 摘要 + 電影選單 show; map takes 64vh.
+- Search + filters live inside `.sheet-body` and are hidden (max-height/visibility) until expanded.
+- Expanding (tap the handle, or focus anything inside) restores the ~44vh map / larger sheet split; tapping the map collapses it again.
+- After the height transition, JS calls `map.invalidateSize()` so Leaflet re-renders tiles at the new container size.
+- Desktop is untouched — all sheet behaviour is scoped to the `max-width: 760px` media query and mobile-only JS guards.
+
 ## Files That Should Stay Out Of Git
 
 - `data/movie_map.sqlite`
