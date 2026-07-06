@@ -309,6 +309,59 @@ function renderFilters() {
   });
 }
 
+// 去掉名稱尾端的規格括號，例如「台北松仁 (MUCROWN)」→「台北松仁」
+function locationGroupName(name) {
+  return String(name ?? "")
+    .replace(/\s*[（(][^（()）]*[)）]\s*$/, "")
+    .trim();
+}
+
+function showtimeMinutes(showtime) {
+  const match = /(\d{1,2}):(\d{2})/.exec(showtime.time || "");
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+// 同一據點（同座標）但不同規格廳（如一般廳與 MUCROWN）在來源被拆成多筆，
+// 合併成一張資訊卡：沿用主要那筆的基本資料，場次接起來依時間排序。
+// 場次文字本身已帶「數位／MUCROWN」等規格字樣，使用者可自行分辨。
+function mergeFeatures(rawFeatures) {
+  const groups = new Map();
+  const order = [];
+  for (const feature of rawFeatures) {
+    const [lng, lat] = feature.geometry.coordinates;
+    const key = `${feature.properties.chain_name}@${lng},${lat}`;
+    if (!groups.has(key)) {
+      groups.set(key, []);
+      order.push(key);
+    }
+    groups.get(key).push(feature);
+  }
+
+  return order.map((key) => {
+    const group = groups.get(key);
+    if (group.length === 1) return group[0];
+    // 以名稱最短者為主，通常即為不帶規格括號的一般廳
+    const primary = group.reduce((a, b) =>
+      (b.properties.location_name || "").length < (a.properties.location_name || "").length ? b : a,
+    );
+    const showtimes = group
+      .flatMap((feature) => (Array.isArray(feature.properties.showtimes) ? feature.properties.showtimes : []))
+      .slice()
+      .sort((a, b) => showtimeMinutes(a) - showtimeMinutes(b));
+    return {
+      ...primary,
+      properties: {
+        ...primary.properties,
+        location_name: locationGroupName(primary.properties.location_name),
+        map_name: locationGroupName(primary.properties.map_name),
+        showtimes,
+        showtime_count: showtimes.length,
+      },
+    };
+  });
+}
+
 function normalizeMovieData(data) {
   movieSummaries = [];
   movieFeaturesByTitle = new Map();
@@ -317,21 +370,22 @@ function normalizeMovieData(data) {
     for (const movie of data.movies) {
       const title = movie.title;
       if (!title) continue;
-      const movieFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
+      const rawFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
+      const movieFeatures = mergeFeatures(rawFeatures);
       movieSummaries.push({
         title,
         showDate: movie.show_date || data.show_date || "",
-        featureCount: movie.feature_count ?? movieFeatures.length,
+        featureCount: movieFeatures.length,
       });
       movieFeaturesByTitle.set(title, movieFeatures);
     }
   } else {
     const title = data.movie_title || data.name || "目前資料";
-    const fallbackFeatures = Array.isArray(data.features) ? data.features : [];
+    const fallbackFeatures = mergeFeatures(Array.isArray(data.features) ? data.features : []);
     movieSummaries.push({
       title,
       showDate: data.show_date || "",
-      featureCount: data.feature_count ?? fallbackFeatures.length,
+      featureCount: fallbackFeatures.length,
     });
     movieFeaturesByTitle.set(title, fallbackFeatures);
   }
