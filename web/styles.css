@@ -79,11 +79,6 @@ select {
   gap: 14px;
 }
 
-/* 手機收合把手：桌機隱藏 */
-.sheet-handle {
-  display: none;
-}
-
 .panel-head {
   display: flex;
   align-items: flex-start;
@@ -633,34 +628,14 @@ h1 {
     border: 1px solid var(--line);
     border-radius: 18px;
     box-shadow: 0 -6px 22px rgba(25, 37, 31, 0.14);
-    padding: 6px 16px 20px;
+    padding: 14px 16px 20px;
     justify-content: flex-start;
   }
 
-  .sheet-handle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    width: 100%;
-    border: 0;
-    background: transparent;
-    color: var(--muted);
+  /* 收合狀態：上半部（標題／電影）可點擊展開 */
+  .app-shell:not(.sheet-open) .panel-head,
+  .app-shell:not(.sheet-open) .sidebar > .field {
     cursor: pointer;
-    padding: 8px 0 4px;
-  }
-
-  .sheet-grabber {
-    width: 42px;
-    height: 5px;
-    border-radius: 999px;
-    background: var(--line);
-  }
-
-  .sheet-handle-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--green);
   }
 
   /* 收合面板：預設藏起搜尋以下的內容，並移出鍵盤/tab 巡覽 */
