@@ -73,8 +73,7 @@ const movieSelect = document.querySelector("#movieSelect");
 const searchInput = document.querySelector("#searchInput");
 const chainFilterList = document.querySelector("#chainFilterList");
 const cityFilterList = document.querySelector("#cityFilterList");
-const clearChainButton = document.querySelector("#clearChainButton");
-const clearCityButton = document.querySelector("#clearCityButton");
+const clearSearchButton = document.querySelector("#clearSearchButton");
 const searchSuggestions = document.querySelector("#searchSuggestions");
 const resetViewButton = document.querySelector("#resetViewButton");
 
@@ -161,6 +160,11 @@ function createIcon(feature) {
 const PIN_SVG =
   '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">' +
   '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.05 6.16 12.24 6.42 12.55a.75.75 0 0 0 1.16 0C12.84 21.24 19 14.05 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>';
+
+// 搜尋候選右側「跳到地圖」的往右上箭頭
+const ARROW_SVG =
+  '<svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M7 17L17 7M17 7H8M17 7v9"/></svg>';
 
 function mapsUrl(feature) {
   const props = feature.properties || {};
@@ -303,8 +307,6 @@ function renderFilters() {
     applyFilters();
     if (selectedCity) flyToCity(selectedCity);
   });
-  clearChainButton.classList.toggle("is-active", !selectedChain);
-  clearCityButton.classList.toggle("is-active", !selectedCity);
 }
 
 function normalizeMovieData(data) {
@@ -434,13 +436,10 @@ function renderSearchSuggestions(filtered) {
     button.className = "suggestion-row";
     button.type = "button";
     button.dataset.id = props.location_id;
-    const showtimeMeta =
-      Array.isArray(props.showtimes) && props.showtimes.length
-        ? `${props.showtime_count} 場 ｜ ${props.start_times}`
-        : `${props.chain_name} ｜ ${props.city || "未分縣市"}`;
     button.innerHTML = `
       <span class="suggestion-name">${escapeHtml(props.location_name)}</span>
-      <span class="suggestion-meta">${escapeHtml(showtimeMeta)}</span>
+      <span class="suggestion-count">${showtimeCount(feature)} 場</span>
+      ${ARROW_SVG}
     `;
     button.addEventListener("click", () => {
       focusFeature(feature);
@@ -516,16 +515,15 @@ async function loadData() {
 }
 
 movieSelect.addEventListener("change", () => selectMovie(movieSelect.value));
-searchInput.addEventListener("input", applyFilters);
-clearChainButton.addEventListener("click", () => {
-  selectedChain = "";
-  renderFilters();
+searchInput.addEventListener("input", () => {
+  clearSearchButton.hidden = !searchInput.value;
   applyFilters();
 });
-clearCityButton.addEventListener("click", () => {
-  selectedCity = "";
-  renderFilters();
+clearSearchButton.addEventListener("click", () => {
+  searchInput.value = "";
+  clearSearchButton.hidden = true;
   applyFilters();
+  searchInput.focus();
 });
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);

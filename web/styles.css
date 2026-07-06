@@ -146,9 +146,61 @@ h1 {
 }
 
 .field span {
-  color: color-mix(in srgb, var(--text) 60%, transparent);
+  color: var(--flame);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* 搜尋框：左放大鏡 + 右清除鈕 */
+.search-box {
+  position: relative;
+}
+
+/* 提高詳細度，蓋過後方 `.field input` 的 padding 簡寫 */
+.field .search-box input {
+  padding-left: 38px;
+  padding-right: 34px;
+}
+
+.search-ico {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: #8a8791;
+  pointer-events: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #cfccd4;
+  color: #fff;
   font-size: 12px;
-  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.search-clear[hidden] {
+  display: none;
+}
+
+/* 隱藏 search input 的原生清除鈕，改用自訂的 */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .field input,
@@ -169,13 +221,15 @@ h1 {
   outline: 3px solid rgba(245, 100, 30, 0.16);
 }
 
+/* 搜尋候選：極簡列（一張白卡＋分隔線；名稱＋場次徽章＋往右上箭頭） */
 .search-suggestions {
-  display: grid;
   /* 固定高度，避免矮螢幕被 vh 壓縮到只剩一列 */
-  max-height: 260px;
-  gap: 8px;
-  overflow-y: auto;
-  padding-right: 4px;
+  max-height: 300px;
+  overflow: hidden auto;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
 }
 
 .search-suggestions[hidden] {
@@ -183,35 +237,54 @@ h1 {
 }
 
 .suggestion-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  border: 1px solid var(--card-line);
-  border-radius: 12px;
-  background: var(--card);
-  box-shadow: var(--card-shadow);
+  border: 0;
+  border-bottom: 1px solid #f0eef2;
+  background: transparent;
   cursor: pointer;
-  padding: 10px 12px;
+  padding: 12px 13px;
   text-align: left;
+}
+
+.suggestion-row:last-child {
+  border-bottom: 0;
 }
 
 .suggestion-row:hover,
 .suggestion-row.is-active {
-  border-color: var(--flame);
-  background: var(--peach-tint);
+  background: rgba(245, 100, 30, 0.07);
 }
 
 .suggestion-name {
-  display: block;
-  font-size: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14.5px;
   font-weight: 700;
   line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.suggestion-meta {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
+.suggestion-count {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--peach-tint);
+  color: var(--flame);
   font-size: 12px;
-  line-height: 1.45;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 9px;
+}
+
+.suggestion-arrow {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: #b7b4bd;
 }
 
 /* 每個篩選類別＝一張浮在漸層上的白色圓角卡片 */
@@ -234,24 +307,10 @@ h1 {
 }
 
 .filter-head span {
-  color: color-mix(in srgb, var(--text) 66%, transparent);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.filter-reset {
-  border: 0;
-  background: transparent;
   color: var(--flame);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 2px 0;
-}
-
-.filter-reset:hover,
-.filter-reset.is-active {
-  text-decoration: underline;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 /* 卡片內：可換行的膠囊網格 */

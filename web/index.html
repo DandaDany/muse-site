@@ -10,7 +10,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="styles.css?v=20260706" />
+    <link rel="stylesheet" href="styles.css?v=20260706b" />
   </head>
   <body>
     <main class="app-shell">
@@ -34,14 +34,20 @@
         <div class="sheet-body" id="sheetBody">
           <label class="field">
             <span>搜尋</span>
-            <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
+            <div class="search-box">
+              <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.5" y2="16.5" />
+              </svg>
+              <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
+              <button class="search-clear" id="clearSearchButton" type="button" aria-label="清除搜尋" hidden>✕</button>
+            </div>
           </label>
           <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
           <section class="filter-block" aria-label="縣市篩選">
             <div class="filter-head">
               <span>縣市</span>
-              <button class="filter-reset" id="clearCityButton" type="button">全部縣市</button>
             </div>
             <div class="filter-scroll" id="cityFilterList"></div>
           </section>
@@ -49,7 +55,6 @@
           <section class="filter-block" aria-label="品牌篩選">
             <div class="filter-head">
               <span>品牌</span>
-              <button class="filter-reset" id="clearChainButton" type="button">全部品牌</button>
             </div>
             <div class="filter-scroll" id="chainFilterList"></div>
           </section>
@@ -66,6 +71,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20260706"></script>
+    <script src="app.js?v=20260706b"></script>
   </body>
 </html>
