@@ -72,6 +72,18 @@ select {
   flex: 0 0 auto;
 }
 
+/* 桌機：sheet-body 只是一般容器，內部沿用側欄的排版與間距 */
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 手機收合把手：桌機隱藏 */
+.sheet-handle {
+  display: none;
+}
+
 .panel-head {
   display: flex;
   align-items: flex-start;
@@ -588,22 +600,85 @@ h1 {
     overflow: auto;
   }
 
+  /* 改用彈性直排：地圖高度可在「收起 / 展開」之間切換，側欄依內容自動撐高 */
   .app-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(300px, 42vh) minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow: visible;
   }
 
   .map-wrap {
     order: 1;
+    /* 收起狀態：地圖佔多數版面 */
+    height: 64vh;
+    flex: 0 0 auto;
+    transition: height 0.28s ease;
+  }
+
+  /* 展開篩選時，地圖讓出空間回到原本比例 */
+  .app-shell.sheet-open .map-wrap {
+    height: 44vh;
   }
 
   .sidebar {
     order: 2;
-    min-height: 58vh;
-    gap: 18px;
-    border-top: 1px solid var(--line);
-    border-right: 0;
-    box-shadow: none;
-    padding: 18px 16px 28px;
+    flex: 0 0 auto;
+    min-height: 0;
+    gap: 12px;
+    /* 圓角浮動面板，並以負的上邊距輕壓在地圖底部，露出圓角的分頁感 */
+    margin: -18px 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 -6px 22px rgba(25, 37, 31, 0.14);
+    padding: 6px 16px 20px;
+    justify-content: flex-start;
+  }
+
+  .sheet-handle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 8px 0 4px;
+  }
+
+  .sheet-grabber {
+    width: 42px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--line);
+  }
+
+  .sheet-handle-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  /* 收合面板：預設藏起搜尋以下的內容，並移出鍵盤/tab 巡覽 */
+  .sheet-body {
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.28s ease,
+      opacity 0.2s ease,
+      visibility 0.28s;
+  }
+
+  .app-shell.sheet-open .sheet-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    visibility: visible;
+    opacity: 1;
   }
 }

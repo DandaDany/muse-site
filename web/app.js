@@ -462,6 +462,67 @@ clearCityButton.addEventListener("click", () => {
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
+/* ---- 手機版篩選面板收合 / 展開 ---- */
+const appShell = document.querySelector(".app-shell");
+const sidebar = document.querySelector(".sidebar");
+const sheetHandle = document.querySelector("#sheetHandle");
+const sheetHandleLabel = document.querySelector("#sheetHandleLabel");
+const sheetBody = document.querySelector("#sheetBody");
+const mobileQuery = window.matchMedia("(max-width: 760px)");
+
+function isMobile() {
+  return mobileQuery.matches;
+}
+
+function syncSheetControls() {
+  const open = appShell.classList.contains("sheet-open");
+  sheetHandle.setAttribute("aria-expanded", String(open));
+  sheetHandleLabel.textContent = open ? "收合篩選" : "展開篩選";
+}
+
+function refreshMapSize() {
+  // 面板動畫改變了地圖容器高度，讓 Leaflet 重新計算圖磚與尺寸
+  map.invalidateSize({ animate: false });
+  updateMinZoomForBounds();
+}
+
+function setSheetOpen(open) {
+  if (!isMobile()) return;
+  appShell.classList.toggle("sheet-open", open);
+  syncSheetControls();
+}
+
+sheetHandle.addEventListener("click", () => {
+  setSheetOpen(!appShell.classList.contains("sheet-open"));
+});
+
+// 開始使用篩選（聚焦搜尋、清單等）就自動展開
+sidebar.addEventListener("focusin", (event) => {
+  if (event.target === sheetHandle) return;
+  setSheetOpen(true);
+});
+
+// 點地圖即收合，把版面還給地圖
+map.on("click", () => setSheetOpen(false));
+
+// 面板高度轉場結束後才重繪地圖，避免圖磚破圖
+mapWrapEl().addEventListener("transitionend", (event) => {
+  if (event.propertyName === "height") refreshMapSize();
+});
+
+function mapWrapEl() {
+  return document.querySelector(".map-wrap");
+}
+
+// 切換手機／桌機時，桌機不需要收合狀態
+mobileQuery.addEventListener("change", () => {
+  if (!isMobile()) appShell.classList.remove("sheet-open");
+  syncSheetControls();
+  refreshMapSize();
+});
+
+syncSheetControls();
+
 updateMinZoomForBounds();
 createTileLayer(BASEMAP).addTo(map).bringToBack();
 
