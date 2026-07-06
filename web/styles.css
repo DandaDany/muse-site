@@ -628,8 +628,8 @@ h1 {
     flex: 0 0 auto;
     min-height: 0;
     gap: 12px;
-    /* 圓角浮動面板，並以負的上邊距輕壓在地圖底部，露出圓角的分頁感 */
-    margin: -18px 8px 10px;
+    /* 左右滿版貼齊螢幕（不內縮）；負的上邊距讓面板輕壓在地圖底部，露出圓角的分頁感 */
+    margin: -18px 0 10px;
     border: 1px solid var(--line);
     border-radius: 18px;
     box-shadow: 0 -6px 22px rgba(25, 37, 31, 0.14);
