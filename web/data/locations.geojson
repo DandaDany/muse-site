@@ -4413,8 +4413,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            120.6437,
-            24.1654
+            120.64371,
+            24.16526
           ]
         },
         "properties": {
@@ -4422,7 +4422,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台中中港",
           "map_name": "新光影城 新光影城台中中港",
-          "address": null,
+          "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
           "city": "台中市",
           "location_url": "https://www.skcinemas.com/films?c=1003",
           "official_url": "https://www.skcinemas.com/",
@@ -4520,8 +4520,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.3201,
-            25.0701
+            121.5342,
+            25.118
           ]
         },
         "properties": {
@@ -4529,7 +4529,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台北天母",
           "map_name": "新光影城 新光影城台北天母",
-          "address": null,
+          "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
           "city": "台北市",
           "location_url": "https://www.skcinemas.com/films?c=1005",
           "official_url": "https://www.skcinemas.com/",
@@ -4627,8 +4627,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.5064,
-            25.0453
+            121.50664,
+            25.045591
           ]
         },
         "properties": {
@@ -4636,7 +4636,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台北獅子林",
           "map_name": "新光影城 新光影城台北獅子林",
-          "address": null,
+          "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
           "city": "台北市",
           "location_url": "https://www.skcinemas.com/films?c=1001",
           "official_url": "https://www.skcinemas.com/",
@@ -4670,8 +4670,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            120.1978,
-            22.9871
+            120.197693,
+            22.986882
           ]
         },
         "properties": {
@@ -4679,7 +4679,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台南西門",
           "map_name": "新光影城 新光影城台南西門",
-          "address": null,
+          "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
           "city": "台南市",
           "location_url": "https://www.skcinemas.com/films?c=1002",
           "official_url": "https://www.skcinemas.com/",
@@ -4769,8 +4769,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.2127,
-            25.017
+            121.213758,
+            25.017327
           ]
         },
         "properties": {
@@ -4778,7 +4778,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城桃園青埔",
           "map_name": "新光影城 新光影城桃園青埔",
-          "address": null,
+          "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
           "city": "桃園市",
           "location_url": "https://www.skcinemas.com/films?c=1004",
           "official_url": "https://www.skcinemas.com/",
@@ -12572,8 +12572,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            120.6437,
-            24.1654
+            120.64371,
+            24.16526
           ]
         },
         "properties": {
@@ -12581,7 +12581,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台中中港",
           "map_name": "新光影城 新光影城台中中港",
-          "address": null,
+          "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
           "city": "台中市",
           "location_url": "https://www.skcinemas.com/films?c=1003",
           "official_url": "https://www.skcinemas.com/",
@@ -12663,8 +12663,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.3201,
-            25.0701
+            121.5342,
+            25.118
           ]
         },
         "properties": {
@@ -12672,7 +12672,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台北天母",
           "map_name": "新光影城 新光影城台北天母",
-          "address": null,
+          "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
           "city": "台北市",
           "location_url": "https://www.skcinemas.com/films?c=1005",
           "official_url": "https://www.skcinemas.com/",
@@ -12746,8 +12746,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.5064,
-            25.0453
+            121.50664,
+            25.045591
           ]
         },
         "properties": {
@@ -12755,7 +12755,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台北獅子林",
           "map_name": "新光影城 新光影城台北獅子林",
-          "address": null,
+          "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
           "city": "台北市",
           "location_url": "https://www.skcinemas.com/films?c=1001",
           "official_url": "https://www.skcinemas.com/",
@@ -12789,8 +12789,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            120.1978,
-            22.9871
+            120.197693,
+            22.986882
           ]
         },
         "properties": {
@@ -12798,7 +12798,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城台南西門",
           "map_name": "新光影城 新光影城台南西門",
-          "address": null,
+          "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
           "city": "台南市",
           "location_url": "https://www.skcinemas.com/films?c=1002",
           "official_url": "https://www.skcinemas.com/",
@@ -12896,8 +12896,8 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.2127,
-            25.017
+            121.213758,
+            25.017327
           ]
         },
         "properties": {
@@ -12905,7 +12905,7 @@
           "chain_name": "新光影城",
           "location_name": "新光影城桃園青埔",
           "map_name": "新光影城 新光影城桃園青埔",
-          "address": null,
+          "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
           "city": "桃園市",
           "location_url": "https://www.skcinemas.com/films?c=1004",
           "official_url": "https://www.skcinemas.com/",
@@ -20029,8 +20029,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          120.6437,
-          24.1654
+          120.64371,
+          24.16526
         ]
       },
       "properties": {
@@ -20038,7 +20038,7 @@
         "chain_name": "新光影城",
         "location_name": "新光影城台中中港",
         "map_name": "新光影城 新光影城台中中港",
-        "address": null,
+        "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
         "city": "台中市",
         "location_url": "https://www.skcinemas.com/films?c=1003",
         "official_url": "https://www.skcinemas.com/",
@@ -20136,8 +20136,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          121.3201,
-          25.0701
+          121.5342,
+          25.118
         ]
       },
       "properties": {
@@ -20145,7 +20145,7 @@
         "chain_name": "新光影城",
         "location_name": "新光影城台北天母",
         "map_name": "新光影城 新光影城台北天母",
-        "address": null,
+        "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
         "city": "台北市",
         "location_url": "https://www.skcinemas.com/films?c=1005",
         "official_url": "https://www.skcinemas.com/",
@@ -20243,8 +20243,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          121.5064,
-          25.0453
+          121.50664,
+          25.045591
         ]
       },
       "properties": {
@@ -20252,7 +20252,7 @@
         "chain_name": "新光影城",
         "location_name": "新光影城台北獅子林",
         "map_name": "新光影城 新光影城台北獅子林",
-        "address": null,
+        "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
         "city": "台北市",
         "location_url": "https://www.skcinemas.com/films?c=1001",
         "official_url": "https://www.skcinemas.com/",
@@ -20286,8 +20286,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          120.1978,
-          22.9871
+          120.197693,
+          22.986882
         ]
       },
       "properties": {
@@ -20295,7 +20295,7 @@
         "chain_name": "新光影城",
         "location_name": "新光影城台南西門",
         "map_name": "新光影城 新光影城台南西門",
-        "address": null,
+        "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
         "city": "台南市",
         "location_url": "https://www.skcinemas.com/films?c=1002",
         "official_url": "https://www.skcinemas.com/",
@@ -20385,8 +20385,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          121.2127,
-          25.017
+          121.213758,
+          25.017327
         ]
       },
       "properties": {
@@ -20394,7 +20394,7 @@
         "chain_name": "新光影城",
         "location_name": "新光影城桃園青埔",
         "map_name": "新光影城 新光影城桃園青埔",
-        "address": null,
+        "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
         "city": "桃園市",
         "location_url": "https://www.skcinemas.com/films?c=1004",
         "official_url": "https://www.skcinemas.com/",
