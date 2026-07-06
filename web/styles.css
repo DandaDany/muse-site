@@ -18,6 +18,24 @@
   --red: #b84c45;
   --yellow: #d89b24;
   --shadow: 0 10px 30px rgba(25, 37, 31, 0.12);
+
+  /* 木棉花＝橘紅色，篩選面板配色（取自參考圖：Apple Health 橘漸層 + Day trips 橘框膠囊） */
+  --flame: #f5641e; /* 主橘：選中框線／強調 */
+  --flame-deep: #da520d; /* 選中文字 */
+  --peach-top: #f7b274; /* 漸層頂 */
+  --peach-mid: #fbd9be; /* 漸層中 */
+  --peach-tint: #fdeee0; /* 選中膠囊底色 */
+  --ground: #ecebef; /* 漸層底／灰白 */
+  --card: #ffffff;
+  --card-line: #eae7ec;
+  --card-shadow: 0 4px 14px rgba(60, 40, 20, 0.1);
+  --panel-gradient: linear-gradient(
+    180deg,
+    var(--peach-top) 0%,
+    var(--peach-mid) 20%,
+    var(--ground) 46%,
+    var(--ground) 100%
+  );
 }
 
 * {
@@ -61,10 +79,15 @@ select {
   /* 內容比側欄矮時，把剩餘空白平分到各區塊之間（gap 為最小間距） */
   justify-content: space-between;
   overflow-y: auto;
-  border-right: 1px solid var(--line);
-  background: var(--panel);
-  box-shadow: var(--shadow);
-  padding: 18px;
+  /* 橘→灰白縱向漸層；右緣投影壓在地圖上，做出接縫的陰影連接 */
+  background: var(--panel-gradient);
+  box-shadow: 10px 0 26px rgba(60, 40, 20, 0.16);
+  padding: 18px 16px 20px;
+}
+
+/* 手機底部抽屜的抓握條；桌機隱藏 */
+.grabber {
+  display: none;
 }
 
 /* 區塊不被 flex 壓縮：空間不夠時改由側欄整體捲動，清單才不會被壓到只剩一列 */
@@ -95,7 +118,7 @@ h1 {
 
 .panel-head p {
   margin: 6px 0 0;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 62%, transparent);
   font-size: 13px;
 }
 
@@ -105,16 +128,16 @@ h1 {
   height: 38px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #f8faf8;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
   color: var(--text);
   cursor: pointer;
 }
 
 .icon-button:hover {
-  border-color: #9fb0a5;
-  background: #eef4f0;
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .field {
@@ -123,25 +146,27 @@ h1 {
 }
 
 .field span {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 60%, transparent);
   font-size: 12px;
+  font-weight: 600;
 }
 
 .field input,
 .field select {
   width: 100%;
-  height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfcfb;
+  height: 42px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
   color: var(--text);
-  padding: 0 10px;
+  padding: 0 12px;
 }
 
 .field input:focus,
 .field select:focus {
-  border-color: var(--green);
-  outline: 3px solid rgba(31, 122, 90, 0.14);
+  border-color: var(--flame);
+  outline: 3px solid rgba(245, 100, 30, 0.16);
 }
 
 .search-suggestions {
@@ -159,18 +184,19 @@ h1 {
 
 .suggestion-row {
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
   cursor: pointer;
-  padding: 10px;
+  padding: 10px 12px;
   text-align: left;
 }
 
 .suggestion-row:hover,
 .suggestion-row.is-active {
-  border-color: var(--green);
-  background: #f1f8f4;
+  border-color: var(--flame);
+  background: var(--peach-tint);
 }
 
 .suggestion-name {
@@ -188,10 +214,16 @@ h1 {
   line-height: 1.45;
 }
 
+/* 每個篩選類別＝一張浮在漸層上的白色圓角卡片 */
 .filter-block {
   display: grid;
   min-height: 0;
-  gap: 7px;
+  gap: 11px;
+  border: 1px solid var(--card-line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--card-shadow);
+  padding: 13px 13px 14px;
 }
 
 .filter-head {
@@ -202,14 +234,15 @@ h1 {
 }
 
 .filter-head span {
-  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 66%, transparent);
   font-size: 12px;
+  font-weight: 700;
 }
 
 .filter-reset {
   border: 0;
   background: transparent;
-  color: var(--green);
+  color: var(--flame);
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
@@ -221,57 +254,59 @@ h1 {
   text-decoration: underline;
 }
 
+/* 卡片內：可換行的膠囊網格 */
 .filter-scroll {
-  display: grid;
-  /* 以行數為準：一列約 42px + 6px 間距，固定露出 4 列再多一點提示可捲動 */
-  max-height: 210px;
-  gap: 6px;
-  overflow-y: auto;
-  padding-right: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
+/* 篩選項目＝膠囊；選中＝橘框橘字淺橘底（Day trips 樣式） */
 .filter-option {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: inline-flex;
   align-items: center;
-  min-height: 30px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fbfcfb;
+  border: 1.5px solid var(--card-line);
+  border-radius: 999px;
+  background: var(--card);
   color: var(--text);
   cursor: pointer;
-  gap: 8px;
-  padding: 5px 8px;
+  gap: 6px;
+  padding: 7px 13px;
   text-align: left;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
-.filter-option:hover,
+.filter-option:hover {
+  border-color: color-mix(in srgb, var(--flame) 55%, var(--card-line));
+}
+
 .filter-option.is-selected {
-  border-color: var(--green);
-  background: #f1f8f4;
+  border-color: var(--flame);
+  background: var(--peach-tint);
 }
 
 .filter-option span {
-  overflow: hidden;
   font-size: 13px;
   font-weight: 650;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .filter-option strong {
-  min-width: 24px;
-  border-radius: 999px;
-  background: #e7efe9;
-  color: #375446;
-  font-size: 12px;
-  line-height: 20px;
-  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-option.is-selected span {
+  color: var(--flame-deep);
+  font-weight: 800;
 }
 
 .filter-option.is-selected strong {
-  background: var(--green);
-  color: #ffffff;
+  color: var(--flame);
 }
 
 .popup-address {
@@ -675,13 +710,25 @@ h1 {
     flex: 0 0 auto;
     min-height: 0;
     gap: 12px;
-    /* 左右滿版貼齊螢幕（不內縮）；負的上邊距讓面板輕壓在地圖底部，露出圓角的分頁感 */
-    margin: -18px 0 10px;
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    box-shadow: 0 -6px 22px rgba(25, 37, 31, 0.14);
-    padding: 14px 16px 20px;
+    /* 負的上邊距讓面板由下往上壓在地圖底部；圓角上緣 + 向上抬升的投影＝接縫的陰影連接 */
+    margin: -22px 0 10px;
+    border: 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -10px 26px rgba(60, 40, 20, 0.18);
+    padding: 10px 16px 20px;
     justify-content: flex-start;
+  }
+
+  /* 抓握條：底部抽屜的可拖曳提示 */
+  .grabber {
+    display: block;
+    align-self: center;
+    width: 40px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 45%, transparent);
+    margin: 2px 0 -2px;
   }
 
   /* 收合狀態：上半部（標題／電影）可點擊展開 */
