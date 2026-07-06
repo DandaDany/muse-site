@@ -260,6 +260,20 @@ function sortedCities() {
   });
 }
 
+// 以該縣市所有影城座標的中心點，把地圖飛到縣市層級
+function flyToCity(city) {
+  const pts = features.filter((feature) => feature.properties.city === city);
+  if (!pts.length) return;
+  let sumLat = 0;
+  let sumLng = 0;
+  for (const feature of pts) {
+    const [lng, lat] = feature.geometry.coordinates;
+    sumLat += lat;
+    sumLng += lng;
+  }
+  map.flyTo([sumLat / pts.length, sumLng / pts.length], CITY_ZOOM, { duration: 0.5 });
+}
+
 function renderFilterButtons(container, items, selectedValue, onSelect) {
   const fragment = document.createDocumentFragment();
   for (const [value, count] of items) {
@@ -287,6 +301,7 @@ function renderFilters() {
     selectedCity = selectedCity === value ? "" : value;
     renderFilters();
     applyFilters();
+    if (selectedCity) flyToCity(selectedCity);
   });
   clearChainButton.classList.toggle("is-active", !selectedChain);
   clearCityButton.classList.toggle("is-active", !selectedCity);

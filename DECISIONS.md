@@ -140,6 +140,7 @@ This file records technical choices that are considered confirmed for this proje
 - 1st click on a map logo: fly in to `FOCUS_ZOOM` (14, 據點層級) and open the popup.
 - Clicking the same logo again while zoomed in: fly back out to `CITY_ZOOM` (11, 縣市層級) and close the popup — not all the way to the Taiwan overview (that stays on the home button).
 - Search-suggestion clicks always zoom in (never toggle out).
+- Selecting a city filter flies the map to that city's centroid (averaged cinema coordinates) at `CITY_ZOOM` (11).
 
 ## Files That Should Stay Out Of Git
 
