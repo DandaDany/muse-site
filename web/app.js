@@ -163,10 +163,10 @@ const PIN_SVG =
   '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.05 6.16 12.24 6.42 12.55a.75.75 0 0 0 1.16 0C12.84 21.24 19 14.05 19 9a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>';
 
 function mapsUrl(feature) {
-  const coords = feature.geometry && feature.geometry.coordinates;
-  if (!Array.isArray(coords) || coords.length < 2) return "";
-  const [lng, lat] = coords;
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  const props = feature.properties || {};
+  const name = props.location_name || props.map_name || "";
+  if (!name) return "";
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
 }
 
 function showtimeSubLabel(showtime) {
