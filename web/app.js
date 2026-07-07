@@ -242,8 +242,6 @@ function brandTag(chainName) {
 
 const VS_PIN =
   '<svg viewBox="0 0 24 32" fill="none"><path d="M12 31S22 19.6 22 11.5C22 5.15 17.52 1 12 1S2 5.15 2 11.5C2 19.6 12 31 12 31Z" fill="currentColor"/><circle cx="12" cy="11.5" r="3.4" fill="#1b211d"/></svg>';
-const VS_CAL =
-  '<svg width="31" height="31" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2.2"/><path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 const VS_TICKET =
   '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M4 8.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>';
 const VS_GLOBE =
@@ -289,7 +287,6 @@ function vieshowCardHtml(feature) {
       </div>
       <div class="date-panel"></div>
       <div class="date-content">
-        <div class="calendar-box">${VS_CAL}</div>
         <div class="date-label">當日,</div>
         <div class="date-value">${escapeHtml(date)}</div>
       </div>
