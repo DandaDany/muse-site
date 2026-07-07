@@ -681,34 +681,15 @@ input[type="search"]::-webkit-search-cancel-button {
   line-height: 28px;
 }
 
-/* 水滴／氣球造型 pin：圓面（.cinema-marker）＋下方尖端（::after），錨點在尖端 */
+/* 浮起圓牌 pin（設計四）：圓牌 logo 面浮在上方，細桿連到地面小點，錨點在地面點 */
 .cinema-pin {
-  position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: var(--marker-size, 30px);
-  height: calc(var(--marker-size, 30px) + var(--pin-tail, 12px));
-}
-
-.cinema-pin::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: calc(var(--marker-size, 30px) - 3px);
-  z-index: 1;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: calc(var(--marker-size, 30px) * 0.3) solid transparent;
-  border-right: calc(var(--marker-size, 30px) * 0.3) solid transparent;
-  border-top: var(--pin-tail, 12px) solid var(--pin-tail-color, #ffffff);
-  filter: drop-shadow(0 2px 1.5px rgba(20, 40, 30, 0.28));
 }
 
 .cinema-marker {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
   display: grid;
   width: var(--marker-size, 30px);
   height: var(--marker-size, 30px);
@@ -716,10 +697,23 @@ input[type="search"]::-webkit-search-cancel-button {
   border: 2px solid #ffffff;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 4px 10px rgba(20, 40, 30, 0.32);
+  box-shadow: 0 8px 12px rgba(20, 40, 30, 0.3);
   color: #ffffff;
   font-size: var(--marker-font-size, 12px);
   font-weight: 800;
+}
+
+.pin-stem {
+  width: 2px;
+  height: var(--pin-stem, 7px);
+  background: rgba(35, 48, 38, 0.5);
+}
+
+.pin-ground {
+  width: calc(var(--marker-size, 30px) * 0.32);
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(20, 40, 30, 0.28);
 }
 
 .cinema-marker.marker-blue {
