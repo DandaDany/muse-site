@@ -681,7 +681,34 @@ input[type="search"]::-webkit-search-cancel-button {
   line-height: 28px;
 }
 
+/* 水滴／氣球造型 pin：圓面（.cinema-marker）＋下方尖端（::after），錨點在尖端 */
+.cinema-pin {
+  position: relative;
+  display: block;
+  width: var(--marker-size, 30px);
+  height: calc(var(--marker-size, 30px) + var(--pin-tail, 12px));
+}
+
+.cinema-pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(var(--marker-size, 30px) - 3px);
+  z-index: 1;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: calc(var(--marker-size, 30px) * 0.3) solid transparent;
+  border-right: calc(var(--marker-size, 30px) * 0.3) solid transparent;
+  border-top: var(--pin-tail, 12px) solid var(--pin-tail-color, #ffffff);
+  filter: drop-shadow(0 2px 1.5px rgba(20, 40, 30, 0.28));
+}
+
 .cinema-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
   display: grid;
   width: var(--marker-size, 30px);
   height: var(--marker-size, 30px);
@@ -689,7 +716,7 @@ input[type="search"]::-webkit-search-cancel-button {
   border: 2px solid #ffffff;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 5px 14px rgba(20, 40, 30, 0.3);
+  box-shadow: 0 4px 10px rgba(20, 40, 30, 0.32);
   color: #ffffff;
   font-size: var(--marker-font-size, 12px);
   font-weight: 800;
@@ -830,361 +857,69 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 /* ============================================================
-   威秀影城（VIESHOW）專用資訊卡：電影票造型 popup
-   來源設計：design/popup-card-preview.html（幾何 854×836，scale 縮小到 popup 尺寸）
-   全部選擇器都掛在 .vs-popup 下，避免影響一般 popup / 其他版面
+   方案一：品牌色帶頁首 popup（全影城統一）
+   色帶頁首（標題＋地址反白）＋ 白底內容（沿用場次膠囊與連結）
+   全部選擇器掛在 .band-popup 下，只影響此類 popup
    ============================================================ */
-
-/* Leaflet popup 外框：去掉內距與白底陰影，讓卡片自己的圓角與陰影露出 */
-.vs-popup .leaflet-popup-content-wrapper {
+.band-popup .leaflet-popup-content-wrapper {
   padding: 0;
-  border-radius: 9px;
-  background: transparent;
-  box-shadow: none;
+  overflow: hidden;
+  border-radius: 14px;
 }
 
-.vs-popup .leaflet-popup-content {
-  width: auto !important;
+.band-popup .leaflet-popup-content {
   margin: 0;
-  line-height: normal;
+  line-height: 1.45;
 }
 
-.vs-popup .leaflet-popup-tip-container {
-  display: none;
-}
-
-.vs-popup.leaflet-popup {
-  margin-bottom: 16px;
-}
-
-.vs-popup svg {
-  display: block;
-}
-
-/* 整張卡 scale 縮到 popup 尺寸（桌機 0.5→427px；手機 0.4→342px） */
-.vs-popup .scale-wrap {
-  --card-scale: 0.5;
-  width: calc(854px * var(--card-scale));
-  height: calc(836px * var(--card-scale));
-  overflow: hidden;
-  border-radius: 9px;
-  box-shadow: 0 16px 40px rgba(30, 25, 18, 0.28);
-}
-
-/* 卡片幾何（已定稿版本，854×836） */
-.vs-popup .movie-card {
-  --orange: #e8793a;
-  --orange-strong: #ef6b22;
-  --green: #173f2f;
-  --green-dark: #113326;
-  --paper: #fffdf8;
-  --line: #e8ded2;
-  position: relative;
-  width: 854px;
-  height: 836px;
-  border-radius: 18px;
-  overflow: hidden;
-  background: var(--paper);
-  isolation: isolate;
-  transform: scale(var(--card-scale));
-  transform-origin: top left;
-}
-
-.vs-popup .movie-card::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 24px;
-  background: var(--orange-strong);
-  clip-path: polygon(0 100%, 100% 0, 100% 100%);
-  z-index: 80;
-}
-
-.vs-popup .base-cream {
-  position: absolute;
-  left: 0;
-  top: 130px;
-  width: 100%;
-  height: 550px;
-  background: #fdf4e4;
-  z-index: 1;
-}
-
-.vs-popup .geometry-svg {
-  position: absolute;
-  inset: 0;
-  width: 854px;
-  height: 836px;
-  display: block;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.vs-popup .shape-white-main {
-  fill: #fff;
-}
-.vs-popup .shape-dark {
-  fill: #242823;
-}
-.vs-popup .shape-orange-line {
-  fill: var(--orange-strong);
-}
-
-.vs-popup .hero-content {
-  position: absolute;
-  top: 58px;
-  left: 44px;
-  z-index: 30;
+/* 橘色品牌色帶頁首 */
+.band-popup .pop-head {
+  background: linear-gradient(135deg, var(--flame), var(--flame-deep));
   color: #fff;
-  max-width: 470px;
+  padding: 13px 15px 12px;
 }
 
-.vs-popup .hero-title {
-  margin: 0 0 22px;
-  font-size: 45px;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  line-height: 1.08;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
-}
-
-.vs-popup .hero-address {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 20px;
+.band-popup .pop-head .popup-title {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: 17px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.3;
+}
+
+.band-popup .pop-head .popup-address {
+  margin: 0;
   color: rgba(255, 255, 255, 0.93);
+  font-size: 13px;
 }
 
-.vs-popup .hero-address svg {
-  width: 17px;
-  height: 23px;
-  color: #fff;
-  flex: 0 0 auto;
-}
-
-.vs-popup .close-hit {
-  position: absolute;
-  top: 26px;
-  right: 27px;
-  z-index: 85;
-  width: 52px;
-  height: 52px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-
-.vs-popup .close-hit:hover {
-  background: rgba(255, 255, 255, 0.36);
-}
-
-.vs-popup .date-panel {
-  position: absolute;
-  left: 0;
-  top: 235px;
-  width: 262px;
-  height: 432px;
-  background: #fff3df;
-  clip-path: polygon(0 0, 100% 0, 78% 100%, 0 89%);
-  z-index: 9;
-}
-
-.vs-popup .date-content {
-  position: absolute;
-  top: 300px;
-  left: 44px;
-  z-index: 45;
-}
-
-.vs-popup .date-label {
-  color: var(--orange);
-  font-size: 36px;
-  line-height: 1.05;
-  font-weight: 900;
-  margin-bottom: 16px;
-}
-
-.vs-popup .date-value {
-  color: #202520;
-  font-size: 33px;
-  line-height: 1.05;
-  font-weight: 900;
-}
-
-/* 時間表：動態列數＋可捲動（放大整體佔比） */
-.vs-popup .msched {
-  position: absolute;
-  top: 250px;
-  left: 280px;
-  width: 548px;
-  height: 400px;
-  overflow-y: auto;
-  z-index: 50;
-}
-
-.vs-popup .mrow {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 74px;
-  padding-left: 34px;
-  gap: 22px;
-}
-
-.vs-popup .mrow::before {
-  content: "";
-  position: absolute;
-  left: 7px;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--orange);
-}
-
-.vs-popup .mrow:first-child::before {
-  top: 37px;
-}
-.vs-popup .mrow:last-child::before {
-  bottom: 37px;
-}
-
-.vs-popup .mrow::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 37px;
-  margin-top: -9px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--orange);
-}
-
-.vs-popup .mtime {
-  flex: 0 0 auto;
-  width: 134px;
-  font-size: 47px;
-  font-weight: 950;
-  line-height: 1;
-  color: #1a211e;
-  font-variant-numeric: tabular-nums;
-}
-
-.vs-popup .mdetail {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px dashed var(--line);
-  font-size: 20px;
-  font-weight: 800;
-  color: #737873;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vs-popup .mrow:last-child .mdetail {
-  border-bottom: 0;
-}
-
-.vs-popup .footer-white {
-  position: absolute;
-  right: 0;
-  bottom: 13px;
-  width: 445px;
-  height: 105px;
-  background: #fff;
-  clip-path: polygon(7% 0, 100% 0, 100% 100%, 0 100%);
-  z-index: 60;
-  filter: drop-shadow(0 -5px 6px rgba(0, 0, 0, 0.28)) drop-shadow(-4px 0 5px rgba(0, 0, 0, 0.22));
-}
-
-.vs-popup .footer-green {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 425px;
-  height: 187px;
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
-  clip-path: polygon(0 0, 100% 40%, 93% 100%, 0 100%);
-  z-index: 61;
-}
-
-.vs-popup .entry-button,
-.vs-popup .site-button {
-  position: absolute;
-  bottom: 37px;
-  z-index: 70;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  text-decoration: none;
-}
-
-/* 滑鼠移過去：文字加底線（不含圖示與箭頭） */
-.vs-popup .entry-button:hover span:not(.arrow),
-.vs-popup .site-button:hover span:not(.arrow) {
-  text-decoration: underline;
-}
-
-/* 按鈕圖示隨字級縮小，維持比例 */
-.vs-popup .entry-button > svg,
-.vs-popup .site-button > svg {
-  width: 32px;
-  height: 32px;
-}
-
-.vs-popup .entry-button {
-  left: 39px;
+/* 地址右側 Google 地圖鈕：改成頁首上的半透明白色 */
+.band-popup .pop-head .popup-pin {
+  margin-top: -2px;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.16);
   color: #fff;
 }
 
-.vs-popup .site-button {
-  right: 52px;
-  bottom: 38px;
-  color: var(--green);
+.band-popup .pop-head .popup-pin:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.28);
 }
 
-.vs-popup .entry-button .arrow {
+/* 白底內容區 */
+.band-popup .pop-body {
+  padding: 12px 15px 13px;
+}
+
+.band-popup .pop-body .popup-showtimes {
+  margin-top: 0;
+}
+
+/* 關閉鈕落在橘色頁首上，改成白色 */
+.band-popup .leaflet-popup-close-button {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.band-popup .leaflet-popup-close-button:hover {
   color: #fff;
-}
-.vs-popup .site-button .arrow {
-  color: var(--orange);
-}
-
-.vs-popup .arrow {
-  font-weight: 300;
-  font-size: 31px;
-  margin-left: 6px;
-}
-
-.vs-popup .photo-fill {
-  fill: #c96a2e;
-}
-
-.vs-popup .photo-label {
-  fill: #f6d3b4;
-  font-family: Arial, sans-serif;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-@media (max-width: 760px) {
-  .vs-popup .scale-wrap {
-    --card-scale: 0.4;
-  }
 }
