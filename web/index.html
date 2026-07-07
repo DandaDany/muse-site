@@ -10,7 +10,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="styles.css?v=20260706d" />
+    <link rel="stylesheet" href="styles.css?v=20260707a" />
   </head>
   <body>
     <main class="app-shell">
@@ -31,20 +31,20 @@
           <select id="movieSelect" aria-label="選擇電影"></select>
         </label>
 
-        <div class="sheet-body" id="sheetBody">
-          <label class="field">
-            <span>搜尋</span>
-            <div class="search-box">
-              <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.5" y2="16.5" />
-              </svg>
-              <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
-              <button class="search-clear" id="clearSearchButton" type="button" aria-label="清除搜尋" hidden>✕</button>
-            </div>
-          </label>
-          <div id="searchSuggestions" class="search-suggestions" hidden></div>
+        <label class="field" id="searchField">
+          <span>搜尋</span>
+          <div class="search-box">
+            <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <line x1="21" y1="21" x2="16.5" y2="16.5" />
+            </svg>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="影城、品牌、縣市" aria-controls="searchSuggestions" />
+            <button class="search-clear" id="clearSearchButton" type="button" aria-label="清除搜尋" hidden>✕</button>
+          </div>
+        </label>
+        <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
+        <div class="sheet-body" id="sheetBody">
           <section class="filter-block" aria-label="縣市篩選">
             <div class="filter-head">
               <span>縣市</span>
@@ -71,6 +71,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20260706d"></script>
+    <script src="app.js?v=20260707a"></script>
   </body>
 </html>

@@ -49,6 +49,7 @@ const map = L.map("map", {
   maxBoundsViscosity: 1,
   worldCopyJump: false,
   zoomControl: true,
+  attributionControl: false,
   zoomDelta: ZOOM_BUTTON_STEP,
   zoomSnap: ZOOM_SNAP_STEP,
   scrollWheelZoom: true,
@@ -58,6 +59,9 @@ const map = L.map("map", {
   fadeAnimation: true,
   markerZoomAnimation: true,
 });
+
+// 版本／圖資標示改放左上角一顆小圓標，避免壓在地圖與抽屜的接縫中間
+L.control.attribution({ position: "topleft", prefix: false }).addTo(map);
 
 function updateMinZoomForBounds() {
   const minZoom = Math.max(7, map.getBoundsZoom(TAIWAN_BOUNDS, true));
@@ -536,6 +540,7 @@ function applyFilters() {
   const totalShowtimes = filtered.reduce((sum, feature) => sum + showtimeCount(feature), 0);
   const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";
   summaryText.textContent = `${moviePrefix}${filtered.length} 影城上映中，共 ${totalShowtimes} 場次`;
+  if (!isDragging) refreshSheetLayout();
 }
 
 function resetView() {
@@ -582,55 +587,157 @@ clearSearchButton.addEventListener("click", () => {
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
-/* ---- 手機版篩選面板收合 / 展開 ---- */
+/* ---- 手機版底部抽屜：可自由拖曳，貼齊「收起／一半／展開」三個位置 ---- */
 const appShell = document.querySelector(".app-shell");
 const sidebar = document.querySelector(".sidebar");
-const mapWrap = document.querySelector(".map-wrap");
+const grabber = document.querySelector(".grabber");
+const panelHead = document.querySelector(".panel-head");
+const searchField = document.querySelector("#searchField");
 const mobileQuery = window.matchMedia("(max-width: 760px)");
+
+const SHEET_HEIGHT_RATIO = 0.86; // 抽屜總高度佔螢幕高度的比例（展開時最上緣露出的地圖比例反之）
+const DRAG_CLICK_THRESHOLD = 6; // 移動小於這個距離視為點擊，不是拖曳
+
+let snapPoints = { full: 0, half: 0, peek: 0 };
+let currentSnap = "peek";
+let dragPointerId = null;
+let dragStartY = 0;
+let dragStartTranslate = 0;
+let isDragging = false;
 
 function isMobile() {
   return mobileQuery.matches;
 }
 
-function refreshMapSize() {
-  // 面板動畫改變了地圖容器高度，讓 Leaflet 重新計算圖磚與尺寸
-  map.invalidateSize({ animate: false });
-  updateMinZoomForBounds();
+function viewportHeight() {
+  return window.visualViewport ? window.visualViewport.height : window.innerHeight;
 }
 
-function setSheetOpen(open) {
+function setTranslate(px, animate) {
+  appShell.classList.toggle("sheet-dragging", !animate);
+  sidebar.style.setProperty("--sheet-translate", `${px}px`);
+}
+
+// 依螢幕高度與「抓握條＋標題／電影／搜尋」實際內容高度，算出收起時該露出多少
+function computeSnapPoints() {
   if (!isMobile()) return;
-  appShell.classList.toggle("sheet-open", open);
+  const sheetHeight = Math.round(viewportHeight() * SHEET_HEIGHT_RATIO);
+  sidebar.style.setProperty("--sheet-height", `${sheetHeight}px`);
+
+  const paddingBottom = parseFloat(getComputedStyle(sidebar).paddingBottom) || 0;
+  const contentHeight = searchField.offsetTop + searchField.offsetHeight;
+  const peekVisible = clamp(contentHeight + paddingBottom, 160, sheetHeight - 40);
+
+  const peek = sheetHeight - peekVisible;
+  const half = clamp(sheetHeight * 0.45, 0, peek);
+  snapPoints = { full: 0, half, peek };
 }
 
-// 收合時：點面板上半部（標題／電影區）即展開；home 鍵維持原用途
-sidebar.addEventListener("click", (event) => {
-  if (appShell.classList.contains("sheet-open")) return;
-  if (event.target.closest("#resetViewButton")) return;
-  setSheetOpen(true);
-});
+function currentTranslate() {
+  const raw = getComputedStyle(sidebar).getPropertyValue("--sheet-translate");
+  const value = parseFloat(raw);
+  return Number.isFinite(value) ? value : snapPoints[currentSnap];
+}
 
-// 開始使用篩選（聚焦搜尋、清單等）也會展開
-sidebar.addEventListener("focusin", () => setSheetOpen(true));
+function nearestSnapName(px) {
+  let best = "peek";
+  let bestDistance = Infinity;
+  for (const [name, value] of Object.entries(snapPoints)) {
+    const distance = Math.abs(value - px);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = name;
+    }
+  }
+  return best;
+}
+
+function applySnap(name, animate = true) {
+  currentSnap = name;
+  appShell.classList.toggle("sheet-open", name !== "peek");
+  setTranslate(snapPoints[name], animate);
+}
+
+function refreshSheetLayout() {
+  if (!isMobile()) return;
+  computeSnapPoints();
+  setTranslate(snapPoints[currentSnap], false);
+}
+
+function onSheetPointerDown(event) {
+  if (!isMobile()) return;
+  if (event.target.closest("#resetViewButton")) return;
+  isDragging = true;
+  dragPointerId = event.pointerId;
+  dragStartY = event.clientY;
+  dragStartTranslate = currentTranslate();
+  event.currentTarget.setPointerCapture?.(dragPointerId);
+}
+
+function onSheetPointerMove(event) {
+  if (!isDragging || event.pointerId !== dragPointerId) return;
+  const delta = event.clientY - dragStartY;
+  const next = clamp(dragStartTranslate + delta, snapPoints.full, snapPoints.peek);
+  setTranslate(next, false);
+}
+
+function onSheetPointerUp(event) {
+  if (!isDragging || event.pointerId !== dragPointerId) return;
+  isDragging = false;
+  dragPointerId = null;
+  const moved = Math.abs(event.clientY - dragStartY);
+  if (moved < DRAG_CLICK_THRESHOLD) {
+    // 幾乎沒移動＝視為點擊：在收起與一半之間切換
+    applySnap(currentSnap === "peek" ? "half" : "peek");
+    return;
+  }
+  applySnap(nearestSnapName(currentTranslate()));
+}
+
+grabber.addEventListener("pointerdown", onSheetPointerDown);
+panelHead.addEventListener("pointerdown", onSheetPointerDown);
+window.addEventListener("pointermove", onSheetPointerMove);
+window.addEventListener("pointerup", onSheetPointerUp);
+window.addEventListener("pointercancel", onSheetPointerUp);
+
+// 聚焦搜尋或篩選內容時，至少展開到一半，避免鍵盤把內容蓋住
+sidebar.addEventListener("focusin", () => {
+  if (!isMobile() || currentSnap !== "peek") return;
+  applySnap("half");
+});
 
 // 點地圖即收合，把版面還給地圖
-map.on("click", () => setSheetOpen(false));
-
-// 面板高度轉場結束後才重繪地圖，避免圖磚破圖
-mapWrap.addEventListener("transitionend", (event) => {
-  if (event.propertyName === "height") refreshMapSize();
+map.on("click", () => {
+  if (isMobile()) applySnap("peek");
 });
 
-// 切換手機／桌機時，桌機不需要收合狀態
+window.addEventListener("resize", () => {
+  refreshSheetLayout();
+  map.invalidateSize({ animate: false });
+  updateMinZoomForBounds();
+});
+
+// 切換手機／桌機時重置抽屜狀態
 mobileQuery.addEventListener("change", () => {
-  if (!isMobile()) appShell.classList.remove("sheet-open");
-  refreshMapSize();
+  if (isMobile()) {
+    currentSnap = "peek";
+    refreshSheetLayout();
+  } else {
+    appShell.classList.remove("sheet-open", "sheet-dragging");
+    sidebar.style.removeProperty("--sheet-translate");
+    sidebar.style.removeProperty("--sheet-height");
+  }
+  map.invalidateSize({ animate: false });
+  updateMinZoomForBounds();
 });
 
 updateMinZoomForBounds();
 createTileLayer(BASEMAP).addTo(map).bringToBack();
+refreshSheetLayout();
 
-loadData().catch((error) => {
-  summaryText.textContent = error.message;
-  console.error(error);
-});
+loadData()
+  .then(refreshSheetLayout)
+  .catch((error) => {
+    summaryText.textContent = error.message;
+    console.error(error);
+  });
