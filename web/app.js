@@ -140,35 +140,27 @@ function markerZIndexOffset(feature) {
   return (MAX_MARKER_SIZE - markerSize(feature)) * 1000;
 }
 
-// 對應各品牌的顏色（與 markerClass 一致），供水滴 pin 的尖端與底色使用
-function markerColor(chainName) {
-  if (/威秀|MUVIE/.test(chainName)) return "#2f6f9f";
-  if (/國賓|秀泰|新光/.test(chainName)) return "#b84c45";
-  if (/in89|喜樂|美麗新/.test(chainName)) return "#d89b24";
-  return "#1f7a5a";
-}
-
-// 水滴／氣球造型 pin：白色圓面放 logo + 下方尖端 + 陰影，錨點在尖端
+// 浮起圓牌 pin（設計四）：圓牌 logo 面浮在上方，細桿連到地面小點，錨點在地面點
 function createIcon(feature) {
   const props = feature.properties;
   const size = markerSize(feature);
   const fontSize = Math.round(clamp(size * 0.38, 11, 16));
-  const tail = Math.round(size * 0.42);
-  const totalHeight = size + tail;
+  const stem = Math.max(6, Math.round(size * 0.24));
+  const groundHeight = 4;
+  const totalHeight = size + stem + groundHeight;
   const logoUrl = markerLogo(props.chain_name);
   const markerContent = logoUrl ? "" : escapeHtml(markerLabel(props.chain_name));
   const logoClass = logoUrl ? "has-logo" : "";
   const logoStyle = logoUrl ? ` --marker-logo: url('${escapeHtml(logoUrl)}');` : "";
-  const tailColor = logoUrl ? "#ffffff" : markerColor(props.chain_name);
   return L.divIcon({
     className: "",
-    html: `<span class="cinema-pin" style="--marker-size: ${size}px; --pin-tail: ${tail}px; --pin-tail-color: ${tailColor};"><span class="cinema-marker ${markerClass(
+    html: `<span class="cinema-pin" style="--marker-size: ${size}px; --pin-stem: ${stem}px;"><span class="cinema-marker ${markerClass(
       props.chain_name,
     )} ${logoClass}" aria-label="${escapeHtml(
       props.chain_name,
-    )}" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span></span>`,
+    )}" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span><span class="pin-stem"></span><span class="pin-ground"></span></span>`,
     iconSize: [size, totalHeight],
-    iconAnchor: [size / 2, totalHeight],
+    iconAnchor: [size / 2, totalHeight - Math.round(groundHeight / 2)],
     popupAnchor: [0, -totalHeight + 2],
   });
 }
