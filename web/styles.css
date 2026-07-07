@@ -618,10 +618,16 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .leaflet-control-attribution {
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 2px 8px rgba(20, 40, 30, 0.14);
   color: var(--muted);
-  font-size: 11px;
-  padding: 3px 6px;
+  font-size: 10.5px;
+  padding: 3px 9px;
+}
+
+.leaflet-top.leaflet-left .leaflet-control-attribution {
+  margin-top: 8px;
 }
 
 .leaflet-popup {
@@ -742,48 +748,63 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 @media (max-width: 760px) {
+  html,
   body {
-    overflow: auto;
+    height: 100%;
   }
 
-  /* 改用彈性直排：地圖高度可在「收起 / 展開」之間切換，側欄依內容自動撐高 */
+  body {
+    overflow: hidden;
+  }
+
+  /* 地圖鋪滿全螢幕當底層；篩選面板改成浮在上面、可自由拖曳的底部抽屜 */
   .app-shell {
-    display: flex;
-    flex-direction: column;
-    height: auto;
+    position: relative;
+    display: block;
+    height: 100vh;
+    height: 100dvh;
     min-height: 100vh;
+    min-height: 100dvh;
     max-height: none;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .map-wrap {
-    order: 1;
-    /* 收起狀態：地圖佔多數版面 */
-    height: 64vh;
-    flex: 0 0 auto;
-    transition: height 0.28s ease;
-  }
-
-  /* 展開篩選時，地圖讓出空間回到原本比例 */
-  .app-shell.sheet-open .map-wrap {
-    height: 44vh;
+    position: absolute;
+    inset: 0;
+    height: 100%;
   }
 
   .sidebar {
-    order: 2;
-    flex: 0 0 auto;
+    position: fixed;
+    z-index: 900;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: var(--sheet-height, 86vh);
     min-height: 0;
     gap: 12px;
-    /* 負的上邊距讓面板由下往上壓在地圖底部；圓角上緣 + 向上抬升的投影＝接縫的陰影連接 */
-    margin: -22px 0 10px;
+    margin: 0;
     border: 0;
     border-radius: 22px 22px 0 0;
     box-shadow: 0 -10px 26px rgba(60, 40, 20, 0.18);
-    padding: 10px 16px 20px;
+    padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
     justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    transform: translateY(var(--sheet-translate, 60vh));
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
   }
 
-  /* 抓握條：底部抽屜的可拖曳提示 */
+  /* 拖曳中關閉轉場，讓面板即時貼著手指移動 */
+  .app-shell.sheet-dragging .sidebar {
+    transition: none;
+  }
+
+  /* 抓握條與標題列＝拖曳把手，本身不需要跟著內容捲動 */
   .grabber {
     display: block;
     align-self: center;
@@ -793,30 +814,17 @@ input[type="search"]::-webkit-search-cancel-button {
     border-radius: 999px;
     background: color-mix(in srgb, var(--muted) 45%, transparent);
     margin: 2px 0 -2px;
+    touch-action: none;
   }
 
-  /* 收合狀態：上半部（標題／電影）可點擊展開 */
-  .app-shell:not(.sheet-open) .panel-head,
-  .app-shell:not(.sheet-open) .sidebar > .field {
-    cursor: pointer;
+  .panel-head {
+    touch-action: none;
+    cursor: grab;
   }
 
-  /* 收合面板：預設藏起搜尋以下的內容，並移出鍵盤/tab 巡覽 */
   .sheet-body {
-    max-height: 0;
-    overflow: hidden;
-    visibility: hidden;
-    opacity: 0;
-    transition:
-      max-height 0.28s ease,
-      opacity 0.2s ease,
-      visibility 0.28s;
-  }
-
-  .app-shell.sheet-open .sheet-body {
-    max-height: 60vh;
-    overflow-y: auto;
-    visibility: visible;
-    opacity: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 }
