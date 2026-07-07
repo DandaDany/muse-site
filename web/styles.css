@@ -943,7 +943,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .vs-popup .hero-title {
   margin: 0 0 22px;
-  font-size: 39px;
+  font-size: 45px;
   font-weight: 900;
   letter-spacing: 0.03em;
   line-height: 1.08;
@@ -1000,45 +1000,33 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .vs-popup .date-content {
   position: absolute;
-  top: 261px;
+  top: 300px;
   left: 44px;
   z-index: 45;
 }
 
-.vs-popup .calendar-box {
-  width: 58px;
-  height: 58px;
-  border-radius: 6px;
-  background: var(--orange);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  margin-bottom: 25px;
-  box-shadow: 0 8px 20px rgba(209, 100, 44, 0.22);
-}
-
 .vs-popup .date-label {
   color: var(--orange);
-  font-size: 25px;
-  line-height: 1;
+  font-size: 36px;
+  line-height: 1.05;
   font-weight: 900;
-  margin-bottom: 13px;
+  margin-bottom: 16px;
 }
 
 .vs-popup .date-value {
   color: #202520;
-  font-size: 24px;
-  line-height: 1;
+  font-size: 33px;
+  line-height: 1.05;
   font-weight: 900;
 }
 
-/* 時間表：動態列數＋可捲動 */
+/* 時間表：動態列數＋可捲動（放大整體佔比） */
 .vs-popup .msched {
   position: absolute;
-  top: 264px;
-  left: 282px;
-  width: 525px;
-  height: 372px;
+  top: 250px;
+  left: 280px;
+  width: 548px;
+  height: 400px;
   overflow-y: auto;
   z-index: 50;
 }
@@ -1047,7 +1035,7 @@ input[type="search"]::-webkit-search-cancel-button {
   position: relative;
   display: flex;
   align-items: center;
-  height: 60px;
+  height: 74px;
   padding-left: 34px;
   gap: 22px;
 }
@@ -1063,17 +1051,17 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .vs-popup .mrow:first-child::before {
-  top: 30px;
+  top: 37px;
 }
 .vs-popup .mrow:last-child::before {
-  bottom: 30px;
+  bottom: 37px;
 }
 
 .vs-popup .mrow::after {
   content: "";
   position: absolute;
   left: 0;
-  top: 30px;
+  top: 37px;
   margin-top: -9px;
   width: 18px;
   height: 18px;
@@ -1083,8 +1071,8 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .vs-popup .mtime {
   flex: 0 0 auto;
-  width: 112px;
-  font-size: 39px;
+  width: 134px;
+  font-size: 47px;
   font-weight: 950;
   line-height: 1;
   color: #1a211e;
@@ -1098,7 +1086,7 @@ input[type="search"]::-webkit-search-cancel-button {
   display: flex;
   align-items: center;
   border-bottom: 1px dashed var(--line);
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 800;
   color: #737873;
   white-space: nowrap;
@@ -1119,7 +1107,7 @@ input[type="search"]::-webkit-search-cancel-button {
   background: #fff;
   clip-path: polygon(7% 0, 100% 0, 100% 100%, 0 100%);
   z-index: 60;
-  filter: drop-shadow(0 -3px 4px rgba(0, 0, 0, 0.32)) drop-shadow(-3px 0 3px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 -5px 6px rgba(0, 0, 0, 0.28)) drop-shadow(-4px 0 5px rgba(0, 0, 0, 0.22));
 }
 
 .vs-popup .footer-green {
@@ -1140,11 +1128,24 @@ input[type="search"]::-webkit-search-cancel-button {
   z-index: 70;
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 32px;
+  gap: 13px;
+  font-size: 26px;
   font-weight: 900;
   letter-spacing: 0.06em;
   text-decoration: none;
+}
+
+/* 滑鼠移過去：文字加底線（不含圖示與箭頭） */
+.vs-popup .entry-button:hover span:not(.arrow),
+.vs-popup .site-button:hover span:not(.arrow) {
+  text-decoration: underline;
+}
+
+/* 按鈕圖示隨字級縮小，維持比例 */
+.vs-popup .entry-button > svg,
+.vs-popup .site-button > svg {
+  width: 32px;
+  height: 32px;
 }
 
 .vs-popup .entry-button {
@@ -1167,7 +1168,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .vs-popup .arrow {
   font-weight: 300;
-  font-size: 38px;
+  font-size: 31px;
   margin-left: 6px;
 }
 
