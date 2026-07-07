@@ -140,24 +140,36 @@ function markerZIndexOffset(feature) {
   return (MAX_MARKER_SIZE - markerSize(feature)) * 1000;
 }
 
+// 對應各品牌的顏色（與 markerClass 一致），供水滴 pin 的尖端與底色使用
+function markerColor(chainName) {
+  if (/威秀|MUVIE/.test(chainName)) return "#2f6f9f";
+  if (/國賓|秀泰|新光/.test(chainName)) return "#b84c45";
+  if (/in89|喜樂|美麗新/.test(chainName)) return "#d89b24";
+  return "#1f7a5a";
+}
+
+// 水滴／氣球造型 pin：白色圓面放 logo + 下方尖端 + 陰影，錨點在尖端
 function createIcon(feature) {
   const props = feature.properties;
   const size = markerSize(feature);
   const fontSize = Math.round(clamp(size * 0.38, 11, 16));
+  const tail = Math.round(size * 0.42);
+  const totalHeight = size + tail;
   const logoUrl = markerLogo(props.chain_name);
   const markerContent = logoUrl ? "" : escapeHtml(markerLabel(props.chain_name));
   const logoClass = logoUrl ? "has-logo" : "";
   const logoStyle = logoUrl ? ` --marker-logo: url('${escapeHtml(logoUrl)}');` : "";
+  const tailColor = logoUrl ? "#ffffff" : markerColor(props.chain_name);
   return L.divIcon({
     className: "",
-    html: `<span class="cinema-marker ${markerClass(
+    html: `<span class="cinema-pin" style="--marker-size: ${size}px; --pin-tail: ${tail}px; --pin-tail-color: ${tailColor};"><span class="cinema-marker ${markerClass(
       props.chain_name,
     )} ${logoClass}" aria-label="${escapeHtml(
       props.chain_name,
-    )}" style="--marker-size: ${size}px; --marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -Math.round(size / 2)],
+    )}" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span></span>`,
+    iconSize: [size, totalHeight],
+    iconAnchor: [size / 2, totalHeight],
+    popupAnchor: [0, -totalHeight + 2],
   });
 }
 
@@ -213,89 +225,17 @@ function popupHtml(feature) {
   const officialLink = props.official_url
     ? `<a href="${escapeHtml(props.official_url)}" target="_blank" rel="noreferrer">官方網站</a>`
     : "";
+  // 方案一：品牌色帶頁首（標題＋地址反白）＋ 白底內容（場次膠囊＋連結）
   return `
-    <h2 class="popup-title">${escapeHtml(props.location_name)}</h2>
-    ${address}
-    ${showtimeBlock}
-    <div class="popup-links">${locationLink}${officialLink}</div>
+    <div class="pop-head">
+      <h2 class="popup-title">${escapeHtml(props.location_name)}</h2>
+      ${address}
+    </div>
+    <div class="pop-body">
+      ${showtimeBlock}
+      <div class="popup-links">${locationLink}${officialLink}</div>
+    </div>
   `;
-}
-
-/* ---- 威秀影城（VIESHOW）專用資訊卡：電影票造型 popup ----
-   幾何與樣式來自 design/popup-card-preview.html，只套用在威秀，
-   讓其他影城維持原本的簡潔 popup 以便並排比較視覺。 */
-function isVieshow(chainName) {
-  return /威秀|VIESHOW/i.test(chainName || "");
-}
-
-// 取品牌短標放進卡片右上角色塊（例：「威秀影城 / VIESHOW」→「VIESHOW」）
-function brandTag(chainName) {
-  const parts = String(chainName || "")
-    .split("/")
-    .map((part) => part.trim());
-  const latin = parts.find((part) => /[A-Za-z]/.test(part));
-  return (latin || parts[0] || "")
-    .replace(/影城|CINEMAS?/gi, "")
-    .trim()
-    .toUpperCase();
-}
-
-const VS_PIN =
-  '<svg viewBox="0 0 24 32" fill="none"><path d="M12 31S22 19.6 22 11.5C22 5.15 17.52 1 12 1S2 5.15 2 11.5C2 19.6 12 31 12 31Z" fill="currentColor"/><circle cx="12" cy="11.5" r="3.4" fill="#1b211d"/></svg>';
-const VS_TICKET =
-  '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M4 8.5V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>';
-const VS_GLOBE =
-  '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.1"/><path d="M3 12h18M12 3c2.25 2.45 3.25 5.45 3.25 9S14.25 18.55 12 21M12 3C9.75 5.45 8.75 8.45 8.75 12S9.75 18.55 12 21" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg>';
-const VS_X =
-  '<svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>';
-
-function scheduleDetail(showtime) {
-  const format = showtime.format || showtimeSubLabel(showtime) || "";
-  return showtime.auditorium ? `${format} ／ ${showtime.auditorium}` : format;
-}
-
-function vieshowCardHtml(feature) {
-  const props = feature.properties;
-  const date = String(props.show_date || "").replaceAll("-", "/");
-  const rows = (Array.isArray(props.showtimes) ? props.showtimes : [])
-    .map(
-      (showtime) =>
-        `<div class="mrow"><span class="mtime">${escapeHtml(
-          showtime.time || "",
-        )}</span><span class="mdetail">${escapeHtml(scheduleDetail(showtime))}</span></div>`,
-    )
-    .join("");
-  const entry = props.location_url ? escapeHtml(props.location_url) : "#";
-  const site = props.official_url ? escapeHtml(props.official_url) : "#";
-  const clipId = `vs-photo-${props.location_id}`;
-  return `<div class="scale-wrap"><article class="movie-card">
-      <div class="base-cream"></div>
-      <svg class="geometry-svg" viewBox="0 0 854 836" preserveAspectRatio="none" aria-hidden="true">
-        <defs><clipPath id="${clipId}"><polygon points="609,0 854,0 854,205 550,150"/></clipPath></defs>
-        <polygon class="shape-white-main" points="270,250 854,225 854,745 410,745 270,690"/>
-        <polygon class="shape-dark" points="0,0 609,0 550,150 0,228"/>
-        <g clip-path="url(#${clipId})"><rect class="photo-fill" x="545" y="0" width="309" height="245"/>
-          <text class="photo-label" x="790" y="135" text-anchor="end" font-size="26">${escapeHtml(
-            brandTag(props.chain_name),
-          )}</text></g>
-        <polygon class="shape-orange-line" points="0,226 550,150 0,241"/>
-      </svg>
-      <button class="close-hit" type="button" aria-label="關閉">${VS_X}</button>
-      <div class="hero-content">
-        <h2 class="hero-title">${escapeHtml(props.location_name)}</h2>
-        <div class="hero-address">${VS_PIN}<span>${escapeHtml(props.address || "")}</span></div>
-      </div>
-      <div class="date-panel"></div>
-      <div class="date-content">
-        <div class="date-label">當日,</div>
-        <div class="date-value">${escapeHtml(date)}</div>
-      </div>
-      <section class="msched">${rows}</section>
-      <div class="footer-green"></div>
-      <div class="footer-white"></div>
-      <a class="entry-button" href="${entry}" target="_blank" rel="noreferrer">${VS_TICKET}<span>場次入口</span><span class="arrow">→</span></a>
-      <a class="site-button" href="${site}" target="_blank" rel="noreferrer">${VS_GLOBE}<span>官方網站</span><span class="arrow">→</span></a>
-    </article></div>`;
 }
 
 function clamp(value, min, max) {
@@ -597,29 +537,14 @@ function renderMarkers(filtered) {
       icon: createIcon(feature),
       zIndexOffset: markerZIndexOffset(feature),
     });
-    const useCard = isVieshow(props.chain_name);
-    marker.bindPopup(
-      useCard ? vieshowCardHtml(feature) : popupHtml(feature),
-      useCard
-        ? {
-            className: "vs-popup",
-            minWidth: 0,
-            maxWidth: 460,
-            autoPan: true,
-            autoPanPadding: [18, 24],
-            // keepInView 會在 maxBounds（viscosity:1）下與 autoPan 互相觸發、無限遞迴，
-            // 這張卡較高更容易踩到；改成只在開啟時 autoPan 一次即可
-            keepInView: false,
-            closeButton: false,
-          }
-        : {
-            minWidth: 240,
-            maxWidth: 320,
-            autoPan: true,
-            autoPanPadding: [16, 16],
-            keepInView: true,
-          },
-    );
+    marker.bindPopup(popupHtml(feature), {
+      className: "band-popup",
+      minWidth: 240,
+      maxWidth: 320,
+      autoPan: true,
+      autoPanPadding: [16, 20],
+      keepInView: true,
+    });
     marker.on("click", () => toggleFeatureZoom(feature));
     marker.addTo(markerLayer);
     markerById.set(props.location_id, marker);
@@ -679,15 +604,6 @@ clearSearchButton.addEventListener("click", () => {
 });
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
-
-// 威秀資訊卡自帶關閉鈕（已停用 Leaflet 預設關閉鈕），開卡時綁上關閉行為
-map.on("popupopen", (event) => {
-  const root = event.popup.getElement();
-  const closeButton = root && root.querySelector(".close-hit");
-  if (closeButton) {
-    closeButton.addEventListener("click", () => map.closePopup(event.popup));
-  }
-});
 
 /* ---- 手機版底部抽屜：可自由拖曳，貼齊「收起／一半／展開」三個位置 ---- */
 const appShell = document.querySelector(".app-shell");
