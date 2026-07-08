@@ -1,5 +1,12 @@
 const TAIWAN_CENTER = [23.75, 121.0];
 const TAIWAN_BOUNDS = L.latLngBounds([21.5, 117.7], [26.6, 123.2]);
+// 手機底部有 40% 篩選底盤遮住地圖，南端（與北端）多留白，
+// 才能把南部影城捲到底盤上方看見；桌機維持原本較緊的範圍。
+const TAIWAN_BOUNDS_MOBILE = L.latLngBounds([20.0, 117.7], [26.9, 123.2]);
+
+function activeMaxBounds() {
+  return window.matchMedia("(max-width: 760px)").matches ? TAIWAN_BOUNDS_MOBILE : TAIWAN_BOUNDS;
+}
 const DATA_URL = "data/locations.geojson";
 const LOGO_URL = "data/chain_logos.json";
 const ZOOM_BUTTON_STEP = 0.5;
@@ -45,7 +52,7 @@ const map = L.map("map", {
   zoom: 8,
   minZoom: 7,
   maxZoom: 18,
-  maxBounds: TAIWAN_BOUNDS,
+  maxBounds: activeMaxBounds(),
   maxBoundsViscosity: 1,
   worldCopyJump: false,
   zoomControl: true,
@@ -64,11 +71,17 @@ const map = L.map("map", {
 L.control.attribution({ position: "topleft", prefix: false }).addTo(map);
 
 function updateMinZoomForBounds() {
-  const minZoom = Math.max(7, map.getBoundsZoom(TAIWAN_BOUNDS, true));
+  const minZoom = Math.max(7, map.getBoundsZoom(activeMaxBounds(), true));
   map.setMinZoom(minZoom);
   if (map.getZoom() < minZoom) {
     map.setZoom(minZoom, { animate: false });
   }
+}
+
+// 手機／桌機切換時，套用對應的地圖可視範圍
+function applyMaxBounds() {
+  map.setMaxBounds(activeMaxBounds());
+  updateMinZoomForBounds();
 }
 
 const markerLayer = L.layerGroup().addTo(map);
@@ -267,24 +280,48 @@ function countBy(featuresToCount, key) {
   return counts;
 }
 
-function sortedChains() {
-  const counts = countBy(features, "chain_name");
-  return [...counts.entries()].sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1];
-    return a[0].localeCompare(b[0], "zh-Hant");
-  });
+// 分面計數：套用「其他」所有篩選（帶入的 predicates）後再依 key 分組計數，
+// 讓地區／影城的數字會隨彼此（以及搜尋、時間）的篩選連動變化。
+function facetCounts(key, predicates) {
+  const counts = new Map();
+  for (const feature of features) {
+    if (!predicates.every((predicate) => predicate(feature))) continue;
+    const value = feature.properties[key];
+    if (!value) continue;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  }
+  return counts;
 }
 
+// 清單與排序固定用整部電影的品牌（順序不會因篩選而跳動），
+// 顯示的數字則用「排除影城本身」的分面計數。
+function sortedChains() {
+  const baseline = countBy(features, "chain_name");
+  const counts = facetCounts("chain_name", [keywordMatch, cityMatch, passesTimeFilter]);
+  return [...baseline.keys()]
+    .map((name) => [name, counts.get(name) || 0])
+    .sort((a, b) => {
+      const ac = baseline.get(a[0]);
+      const bc = baseline.get(b[0]);
+      if (bc !== ac) return bc - ac;
+      return a[0].localeCompare(b[0], "zh-Hant");
+    });
+}
+
+// 縣市固定用 CITY_ORDER 排序，數字用「排除縣市本身」的分面計數。
 function sortedCities() {
-  const counts = countBy(features, "city");
-  return [...counts.entries()].sort((a, b) => {
-    const aIndex = CITY_ORDER.indexOf(a[0]);
-    const bIndex = CITY_ORDER.indexOf(b[0]);
-    const safeA = aIndex === -1 ? 999 : aIndex;
-    const safeB = bIndex === -1 ? 999 : bIndex;
-    if (safeA !== safeB) return safeA - safeB;
-    return a[0].localeCompare(b[0], "zh-Hant");
-  });
+  const baseline = countBy(features, "city");
+  const counts = facetCounts("city", [keywordMatch, chainMatch, passesTimeFilter]);
+  return [...baseline.keys()]
+    .map((city) => [city, counts.get(city) || 0])
+    .sort((a, b) => {
+      const aIndex = CITY_ORDER.indexOf(a[0]);
+      const bIndex = CITY_ORDER.indexOf(b[0]);
+      const safeA = aIndex === -1 ? 999 : aIndex;
+      const safeB = bIndex === -1 ? 999 : bIndex;
+      if (safeA !== safeB) return safeA - safeB;
+      return a[0].localeCompare(b[0], "zh-Hant");
+    });
 }
 
 // 以該縣市所有影城座標的中心點，把地圖飛到縣市層級
@@ -321,12 +358,10 @@ function renderFilterButtons(container, items, selectedValue, onSelect) {
 function renderFilters() {
   renderFilterButtons(chainFilterList, sortedChains(), selectedChain, (value) => {
     selectedChain = selectedChain === value ? "" : value;
-    renderFilters();
     applyFilters();
   });
   renderFilterButtons(cityFilterList, sortedCities(), selectedCity, (value) => {
     selectedCity = selectedCity === value ? "" : value;
-    renderFilters();
     applyFilters();
     if (selectedCity) flyToCity(selectedCity);
   });
@@ -471,24 +506,27 @@ function passesTimeFilter(feature) {
   return true;
 }
 
-function matchesFilters(feature) {
-  const props = feature.properties;
+// 拆成各自獨立的判斷式，方便分面計數時「排除自己這一項」重新計算
+function keywordMatch(feature) {
   const keyword = normalizeSearchText(activeSearchInput().value);
-  const haystack = normalizeSearchText([
-    props.chain_name,
-    props.location_name,
-    props.map_name,
-    props.address,
-    props.city,
-  ]
-    .join(" "));
-
-  return (
-    (!keyword || haystack.includes(keyword)) &&
-    (!selectedChain || props.chain_name === selectedChain) &&
-    (!selectedCity || props.city === selectedCity) &&
-    passesTimeFilter(feature)
+  if (!keyword) return true;
+  const props = feature.properties;
+  const haystack = normalizeSearchText(
+    [props.chain_name, props.location_name, props.map_name, props.address, props.city].join(" "),
   );
+  return haystack.includes(keyword);
+}
+
+function chainMatch(feature) {
+  return !selectedChain || feature.properties.chain_name === selectedChain;
+}
+
+function cityMatch(feature) {
+  return !selectedCity || feature.properties.city === selectedCity;
+}
+
+function matchesFilters(feature) {
+  return keywordMatch(feature) && chainMatch(feature) && cityMatch(feature) && passesTimeFilter(feature);
 }
 
 function setActive(id) {
@@ -606,6 +644,8 @@ function renderMarkers(filtered) {
 }
 
 function applyFilters() {
+  // 先重繪地區／影城膠囊，讓分面數字隨當前所有篩選連動更新
+  renderFilters();
   const filtered = features.filter(matchesFilters);
   renderMarkers(filtered);
   renderSearchSuggestions(filtered);
@@ -691,12 +731,14 @@ function isMobile() {
   return mobileQuery.matches;
 }
 
+// 搜尋改為統一使用浮在地圖上方的搜尋列（手機與桌機皆是），
+// 側欄內原本的搜尋欄位改藏，位置讓給時間篩選。
 function activeSearchInput() {
-  return isMobile() ? mSearchInput : searchInput;
+  return mSearchInput;
 }
 
 function activeSuggestions() {
-  return isMobile() ? mSearchSuggestions : searchSuggestions;
+  return mSearchSuggestions;
 }
 
 // 底盤高度固定（CSS 40dvh）；換頁／旋轉時讓 Leaflet 依可視區重繪
@@ -735,11 +777,13 @@ function closeMobileSheet() {
   zoomedInId = null;
 }
 
-// 再次點同一個 logo → sheet 往下收起；點別的 logo → 換該影城並保持開啟
+// 再次點同一個 logo → sheet 往下收起、地圖縮回縣市層級；點別的 logo → 換該影城並保持開啟
 function toggleMobileSheet(feature) {
   const id = feature.properties.location_id;
   if (appShell.classList.contains("sheet-open") && zoomedInId === id) {
+    const marker = markerById.get(id);
     closeMobileSheet();
+    if (marker) map.flyTo(marker.getLatLng(), CITY_ZOOM, { duration: 0.45 });
   } else {
     openMobileSheet(feature);
   }
@@ -862,11 +906,11 @@ window.addEventListener("resize", () => {
   updateMinZoomForBounds();
 });
 
-// 切換手機／桌機時重繪
+// 切換手機／桌機時重繪，並套用對應的地圖可視範圍（手機南端多留白）
 mobileQuery.addEventListener("change", () => {
   if (!isMobile()) closeMobileSheet();
   map.invalidateSize({ animate: false });
-  updateMinZoomForBounds();
+  applyMaxBounds();
 });
 
 updateMinZoomForBounds();

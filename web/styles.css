@@ -768,6 +768,92 @@ input[type="search"]::-webkit-search-cancel-button {
   text-decoration: underline;
 }
 
+/* ---- 時間面板：時間軸滑桿＋快速時段（基本層，手機分頁與桌機側欄共用） ---- */
+.m-time-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8a857c;
+}
+
+.m-time-cap {
+  color: var(--flame-deep);
+}
+
+.m-slider {
+  /* 左右留出把手半徑的空間，避免「不限／23:30」兩端把手被裁切 */
+  padding: 12px 34px 6px;
+  touch-action: none;
+}
+
+.m-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: #e7e3db;
+}
+
+.m-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--flame);
+}
+
+.m-knob {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  height: 30px;
+  padding: 0 12px;
+  border: 2px solid var(--flame);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 4px 11px -2px rgba(20, 20, 30, 0.28);
+  cursor: grab;
+  touch-action: none;
+}
+
+.m-period {
+  display: flex;
+  gap: 6px;
+}
+
+.m-period button {
+  flex: 1 1 0;
+  border: 1.5px solid #e6e2da;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #57544e;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 7px 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.m-period button.is-selected {
+  border-color: var(--flame);
+  background: var(--peach-tint);
+  color: var(--flame-deep);
+  font-weight: 750;
+}
+
 /* 手機專用元件，桌機一律隱藏（不影響網頁版） */
 .m-seg,
 .m-panel,
@@ -1172,94 +1258,9 @@ input[type="search"]::-webkit-search-cancel-button {
     background: #ffffff;
   }
 
-  /* ---- 時間面板：時間軸滑桿＋快速時段 ---- */
+  /* 時間面板在手機的間距（元件樣式已移到基本層，桌機側欄也共用） */
   #mTimePanel {
     gap: 8px;
-  }
-
-  .m-time-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 12px;
-    font-weight: 700;
-    color: #8a857c;
-  }
-
-  .m-time-cap {
-    color: var(--flame-deep);
-  }
-
-  .m-slider {
-    /* 左右留出把手半徑的空間，避免「不限／23:30」兩端把手被裁切 */
-    padding: 12px 34px 6px;
-    touch-action: none;
-  }
-
-  .m-track {
-    position: relative;
-    height: 6px;
-    border-radius: 999px;
-    background: #e7e3db;
-  }
-
-  .m-fill {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    border-radius: 999px;
-    background: var(--flame);
-  }
-
-  .m-knob {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 60px;
-    height: 30px;
-    padding: 0 12px;
-    border: 2px solid var(--flame);
-    border-radius: 999px;
-    background: #ffffff;
-    color: #1a1a1a;
-    font-size: 13px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    box-shadow: 0 4px 11px -2px rgba(20, 20, 30, 0.28);
-    cursor: grab;
-    touch-action: none;
-  }
-
-  .m-period {
-    display: flex;
-    gap: 6px;
-  }
-
-  .m-period button {
-    flex: 1 1 0;
-    border: 1.5px solid #e6e2da;
-    border-radius: 999px;
-    background: #ffffff;
-    color: #57544e;
-    font-size: 13px;
-    font-weight: 650;
-    padding: 7px 0;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-
-  .m-period button.is-selected {
-    border-color: var(--flame);
-    background: var(--peach-tint);
-    color: var(--flame-deep);
-    font-weight: 750;
   }
 
   /* ---- 影城資訊底部 sheet（點 logo 開啟；sheet 70% / 地圖 30%） ---- */
@@ -1453,4 +1454,114 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .band-popup .leaflet-popup-close-button:hover {
   color: #fff;
+}
+
+/* ============================================================
+   網頁版（≥761px）：搜尋列浮到地圖上方、時間篩選加進側欄篩選表
+   （放在原本搜尋元素的位置）。手機版完全不受影響。
+   ============================================================ */
+@media (min-width: 761px) {
+  /* 側欄原本的搜尋欄位與候選改藏，位置讓給時間篩選 */
+  #searchField,
+  #searchSuggestions {
+    display: none;
+  }
+
+  /* 搜尋列浮在地圖左上（往右讓開左上角的縮放鈕） */
+  .m-search {
+    display: flex;
+    position: absolute;
+    z-index: 950;
+    top: 12px;
+    left: 54px;
+    width: min(380px, calc(100% - 70px));
+    height: 42px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 13px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid var(--card-line);
+    box-shadow: var(--card-shadow);
+  }
+
+  .m-search svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: var(--flame);
+  }
+
+  .m-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 14.5px;
+    padding: 0;
+  }
+
+  .m-search input:focus {
+    outline: none;
+  }
+
+  .m-search input::placeholder {
+    color: #9d9a94;
+  }
+
+  .m-search-clear {
+    flex: 0 0 auto;
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #cfccd4;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .m-search-clear[hidden] {
+    display: none;
+  }
+
+  /* 搜尋候選：白卡落在搜尋列下方 */
+  .m-suggestions {
+    display: block;
+    position: absolute;
+    z-index: 940;
+    top: 60px;
+    left: 54px;
+    width: min(380px, calc(100% - 70px));
+    max-height: 60vh;
+    overflow: hidden auto;
+    border: 1px solid var(--card-line);
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: var(--card-shadow);
+  }
+
+  .m-suggestions[hidden] {
+    display: none;
+  }
+
+  /* 時間篩選顯示在側欄（原搜尋位置）；元件樣式已在基本層 */
+  #mTimePanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 桌機側欄把「最早場次」標題調成和其他篩選一致的橘色粗體 */
+  #mTimePanel .m-time-head span:first-child {
+    color: var(--flame);
+    font-size: 15px;
+    font-weight: 800;
+  }
 }
