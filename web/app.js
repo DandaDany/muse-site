@@ -544,7 +544,6 @@ function renderSearchSuggestions(filtered) {
     button.addEventListener("click", () => {
       focusFeature(feature);
       container.hidden = true;
-      if (isMobile()) applySnap("rest");
     });
     fragment.appendChild(button);
   }
@@ -584,7 +583,6 @@ function applyFilters() {
   const totalShowtimes = filtered.reduce((sum, feature) => sum + showtimeCount(feature), 0);
   const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";
   summaryText.textContent = `${moviePrefix}${filtered.length} 影城上映中，共 ${totalShowtimes} 場次`;
-  if (!isDragging) refreshSheetLayout();
 }
 
 function resetView() {
@@ -632,13 +630,11 @@ resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
 /* ============================================================
-   手機版：分段控制、上方搜尋、時間軸滑桿、可拖曳底盤
-   全部以 isMobile() 或 max-width:760px 為界，桌機不受影響。
+   手機版：分段控制、上方搜尋、時間軸滑桿、固定 4:6 底盤
+   底盤高度由 CSS 固定成 40dvh（地圖 60 / 底盤 4），不可拖曳調整；
+   各分頁內容在固定高度內各自捲動。桌機完全不受影響。
    ============================================================ */
 const appShell = document.querySelector(".app-shell");
-const sidebar = document.querySelector(".sidebar");
-const grabber = document.querySelector(".grabber");
-const panelHead = document.querySelector(".panel-head");
 const mobileQuery = window.matchMedia("(max-width: 760px)");
 
 // 手機專用元件
@@ -655,16 +651,6 @@ const mSearchClear = document.querySelector("#mSearchClear");
 const mSearchSuggestions = document.querySelector("#mSearchSuggestions");
 const mHome = document.querySelector("#mHome");
 
-const SHEET_HEIGHT_RATIO = 0.9; // 抽屜總高度佔螢幕高度
-const REST_VISIBLE_RATIO = 0.4; // 收合時露出的抽屜高度（＝底盤 4／地圖 6）
-const DRAG_CLICK_THRESHOLD = 6; // 移動小於此距離視為點擊
-
-let snapPoints = { full: 0, rest: 0 };
-let currentSnap = "rest";
-let dragPointerId = null;
-let dragStartY = 0;
-let dragStartTranslate = 0;
-let isDragging = false;
 let mTab = "movie";
 
 function isMobile() {
@@ -679,55 +665,9 @@ function activeSuggestions() {
   return isMobile() ? mSearchSuggestions : searchSuggestions;
 }
 
-function viewportHeight() {
-  return window.visualViewport ? window.visualViewport.height : window.innerHeight;
-}
-
-function setTranslate(px, animate) {
-  appShell.classList.toggle("sheet-dragging", !animate);
-  sidebar.style.setProperty("--sheet-translate", `${px}px`);
-}
-
-// 收合時露出底盤 40%（地圖 60%）；展開時幾乎滿版
-function computeSnapPoints() {
-  if (!isMobile()) return;
-  const vh = viewportHeight();
-  const sheetHeight = Math.round(vh * SHEET_HEIGHT_RATIO);
-  sidebar.style.setProperty("--sheet-height", `${sheetHeight}px`);
-  const restVisible = Math.round(vh * REST_VISIBLE_RATIO);
-  snapPoints = { full: 0, rest: Math.max(0, sheetHeight - restVisible) };
-}
-
-function currentTranslate() {
-  const raw = getComputedStyle(sidebar).getPropertyValue("--sheet-translate");
-  const value = parseFloat(raw);
-  return Number.isFinite(value) ? value : snapPoints[currentSnap];
-}
-
-function nearestSnapName(px) {
-  let best = "rest";
-  let bestDistance = Infinity;
-  for (const [name, value] of Object.entries(snapPoints)) {
-    const distance = Math.abs(value - px);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = name;
-    }
-  }
-  return best;
-}
-
-function applySnap(name, animate = true) {
-  if (!snapPoints[name] && name !== "full") name = "rest";
-  currentSnap = name;
-  appShell.classList.toggle("sheet-open", name !== "rest");
-  setTranslate(snapPoints[name], animate);
-}
-
+// 底盤高度固定（CSS 40dvh）；換頁／旋轉時讓 Leaflet 依可視區重繪
 function refreshSheetLayout() {
-  if (!isMobile()) return;
-  computeSnapPoints();
-  setTranslate(snapPoints[currentSnap], false);
+  if (isMobile()) map.invalidateSize({ animate: false });
 }
 
 /* ---- 分段控制：電影／地區／時間／影城 ---- */
@@ -793,7 +733,6 @@ function sliderFromClientX(clientX) {
 }
 
 mKnob.addEventListener("pointerdown", (event) => {
-  event.stopPropagation();
   sliderDragging = true;
   mKnob.setPointerCapture?.(event.pointerId);
 });
@@ -804,7 +743,6 @@ mKnob.addEventListener("pointerup", (event) => {
   sliderDragging = false;
   mKnob.releasePointerCapture?.(event.pointerId);
 });
-mKnob.addEventListener("click", (event) => event.stopPropagation());
 mSlider.addEventListener("pointerdown", (event) => {
   if (event.target === mKnob) return;
   sliderFromClientX(event.clientX);
@@ -834,75 +772,14 @@ mSearchClear.addEventListener("click", () => {
 });
 mHome.addEventListener("click", resetView);
 
-/* ---- 抽屜拖曳 ---- */
-function onSheetPointerDown(event) {
-  if (!isMobile()) return;
-  if (event.target.closest("button")) return;
-  isDragging = true;
-  dragPointerId = event.pointerId;
-  dragStartY = event.clientY;
-  dragStartTranslate = currentTranslate();
-  event.currentTarget.setPointerCapture?.(dragPointerId);
-}
-
-function onSheetPointerMove(event) {
-  if (!isDragging || event.pointerId !== dragPointerId) return;
-  const delta = event.clientY - dragStartY;
-  const next = clamp(dragStartTranslate + delta, snapPoints.full, snapPoints.rest);
-  setTranslate(next, false);
-}
-
-function onSheetPointerUp(event) {
-  if (!isDragging || event.pointerId !== dragPointerId) return;
-  isDragging = false;
-  dragPointerId = null;
-  const moved = Math.abs(event.clientY - dragStartY);
-  if (moved < DRAG_CLICK_THRESHOLD) {
-    // 幾乎沒移動＝視為點擊：在收合（4:6）與展開之間切換
-    applySnap(currentSnap === "rest" ? "full" : "rest");
-    return;
-  }
-  applySnap(nearestSnapName(currentTranslate()));
-}
-
-grabber.addEventListener("pointerdown", onSheetPointerDown);
-panelHead.addEventListener("pointerdown", onSheetPointerDown);
-window.addEventListener("pointermove", onSheetPointerMove);
-window.addEventListener("pointerup", onSheetPointerUp);
-window.addEventListener("pointercancel", onSheetPointerUp);
-
-// 抽屜內容取得焦點時至少展開，避免鍵盤蓋住
-sidebar.addEventListener("focusin", () => {
-  if (!isMobile() || currentSnap !== "rest") return;
-  applySnap("full");
-});
-
-// 抽屜轉場結束後讓 Leaflet 依新尺寸重繪
-sidebar.addEventListener("transitionend", (event) => {
-  if (event.propertyName === "transform") map.invalidateSize({ animate: false });
-});
-
-// 點地圖即收合回 4:6，把版面還給地圖
-map.on("click", () => {
-  if (isMobile()) applySnap("rest");
-});
-
 window.addEventListener("resize", () => {
   refreshSheetLayout();
   map.invalidateSize({ animate: false });
   updateMinZoomForBounds();
 });
 
-// 切換手機／桌機時重置抽屜狀態
+// 切換手機／桌機時重繪
 mobileQuery.addEventListener("change", () => {
-  if (isMobile()) {
-    currentSnap = "rest";
-    refreshSheetLayout();
-  } else {
-    appShell.classList.remove("sheet-open", "sheet-dragging");
-    sidebar.style.removeProperty("--sheet-translate");
-    sidebar.style.removeProperty("--sheet-height");
-  }
   map.invalidateSize({ animate: false });
   updateMinZoomForBounds();
 });
