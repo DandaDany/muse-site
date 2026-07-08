@@ -294,12 +294,14 @@ function facetCounts(key, predicates) {
 }
 
 // 清單與排序固定用整部電影的品牌（順序不會因篩選而跳動），
-// 顯示的數字則用「排除影城本身」的分面計數。
+// 顯示的數字則用「排除影城本身」的分面計數；數字為 0 者不顯示
+//（已選取的仍保留，才能再點一下取消）。
 function sortedChains() {
   const baseline = countBy(features, "chain_name");
   const counts = facetCounts("chain_name", [keywordMatch, cityMatch, passesTimeFilter]);
   return [...baseline.keys()]
     .map((name) => [name, counts.get(name) || 0])
+    .filter(([name, count]) => count > 0 || name === selectedChain)
     .sort((a, b) => {
       const ac = baseline.get(a[0]);
       const bc = baseline.get(b[0]);
@@ -308,12 +310,14 @@ function sortedChains() {
     });
 }
 
-// 縣市固定用 CITY_ORDER 排序，數字用「排除縣市本身」的分面計數。
+// 縣市固定用 CITY_ORDER 排序，數字用「排除縣市本身」的分面計數；
+// 數字為 0 者不顯示（已選取的仍保留，才能再點一下取消）。
 function sortedCities() {
   const baseline = countBy(features, "city");
   const counts = facetCounts("city", [keywordMatch, chainMatch, passesTimeFilter]);
   return [...baseline.keys()]
     .map((city) => [city, counts.get(city) || 0])
+    .filter(([city, count]) => count > 0 || city === selectedCity)
     .sort((a, b) => {
       const aIndex = CITY_ORDER.indexOf(a[0]);
       const bIndex = CITY_ORDER.indexOf(b[0]);
@@ -552,8 +556,27 @@ function focusFeature(feature) {
   if (!marker) return;
   setActive(props.location_id);
   zoomedInId = props.location_id;
-  map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), { duration: 0.45 });
+  const zoom = Math.max(map.getZoom(), FOCUS_ZOOM);
+  // 先開 popup（已關 autoPan，不會自行平移），待其排版完成後量出
+  // 「popup 卡片中心 → logo 錨點」的像素位移（與縮放無關），
+  // 直接把該卡片中心當成地圖新中心，一次 flyTo 到位（不再兩段跳動）。
   marker.openPopup();
+  requestAnimationFrame(() => {
+    const popupEl = marker.getPopup()?.getElement();
+    const markerPoint = map.project(marker.getLatLng(), zoom);
+    let targetPoint = markerPoint;
+    if (popupEl) {
+      // 統一換算成「地圖容器座標」再相減：popup 用視窗座標、latLngToContainerPoint
+      // 用容器座標，桌機地圖被側欄往右推，兩者若不換算會差一個側欄寬度。
+      const mapRect = map.getContainer().getBoundingClientRect();
+      const rect = popupEl.getBoundingClientRect();
+      const anchor = map.latLngToContainerPoint(marker.getLatLng());
+      const offsetX = rect.left + rect.width / 2 - mapRect.left - anchor.x;
+      const offsetY = rect.top + rect.height / 2 - mapRect.top - anchor.y;
+      targetPoint = markerPoint.add([offsetX, offsetY]);
+    }
+    map.flyTo(map.unproject(targetPoint, zoom), zoom, { duration: 0.45 });
+  });
 }
 
 // 點地圖上的 logo：已放大在同一據點時再點一下 → 縮回縣市層級；否則放大
@@ -625,9 +648,9 @@ function renderMarkers(filtered) {
       className: "band-popup",
       minWidth: 240,
       maxWidth: 320,
-      autoPan: true,
-      autoPanPadding: [16, 20],
-      keepInView: true,
+      // 關閉 autoPan：桌機改由 focusFeature 直接以「popup 卡片中心」為目標
+      // 一次平移到位，不再先置中 logo 再 autoPan 兩段跳動。
+      autoPan: false,
     });
     // 移除 Leaflet 綁定 popup 時自動加的「點擊即開 popup」handler：
     // 桌機改由 toggleFeatureZoom 明確開啟，手機則改開底部 sheet。
