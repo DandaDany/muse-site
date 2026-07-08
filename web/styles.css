@@ -773,7 +773,8 @@ input[type="search"]::-webkit-search-cancel-button {
 .m-panel,
 .m-search,
 .m-suggestions,
-.m-home {
+.m-home,
+.m-sheet {
   display: none;
 }
 
@@ -1259,6 +1260,125 @@ input[type="search"]::-webkit-search-cancel-button {
     background: var(--peach-tint);
     color: var(--flame-deep);
     font-weight: 750;
+  }
+
+  /* ---- 影城資訊底部 sheet（點 logo 開啟；sheet 70% / 地圖 30%） ---- */
+  .m-sheet {
+    display: flex;
+    position: fixed;
+    z-index: 960;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 70vh;
+    height: 70dvh;
+    flex-direction: column;
+    transform: translateY(101%);
+    transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .app-shell.sheet-open .m-sheet {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .m-sheet-card {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    background: #faf9f7;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -12px 36px -12px rgba(30, 25, 20, 0.36);
+    overflow: hidden;
+  }
+
+  .m-sheet-grab {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.65);
+  }
+
+  .m-sheet-close {
+    position: absolute;
+    z-index: 2;
+    top: 11px;
+    right: 13px;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .m-sheet-close:hover {
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  .m-sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 沿用 popup 的品牌色帶頁首＋白底內容，改成 sheet 尺度 */
+  .m-sheet-body .pop-head {
+    position: relative;
+    background: linear-gradient(135deg, var(--flame), var(--flame-deep));
+    color: #fff;
+    padding: 22px 18px 15px;
+  }
+
+  .m-sheet-body .pop-head .popup-title {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .m-sheet-body .pop-head .popup-address {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.93);
+    font-size: 13.5px;
+  }
+
+  .m-sheet-body .pop-head .popup-pin {
+    margin-top: -2px;
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+  }
+
+  .m-sheet-body .pop-body {
+    padding: 14px 18px calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .m-sheet-body .pop-body .popup-showtimes {
+    margin-top: 0;
+  }
+
+  /* sheet 內整體捲動即可，取消場次清單自身的高度上限與內捲動 */
+  .m-sheet-body .showtime-list {
+    max-height: none;
+    overflow: visible;
   }
 }
 

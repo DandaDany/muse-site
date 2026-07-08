@@ -10,7 +10,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="styles.css?v=20260708a" />
+    <link rel="stylesheet" href="styles.css?v=20260708b" />
   </head>
   <body>
     <main class="app-shell">
@@ -111,6 +111,15 @@
         <div id="mSearchSuggestions" class="m-suggestions" hidden></div>
         <button class="m-home" id="mHome" type="button" title="回到台灣視角" aria-label="回到台灣視角">⌂</button>
       </section>
+
+      <!-- 手機影城資訊底部 sheet（點 logo 開啟，佔畫面 70%，地圖留 30%）：只在手機顯示 -->
+      <div class="m-sheet" id="mSheet" aria-hidden="true">
+        <div class="m-sheet-card" role="dialog" aria-label="影城資訊">
+          <div class="m-sheet-grab" aria-hidden="true"></div>
+          <button class="m-sheet-close" id="mSheetClose" type="button" aria-label="關閉">✕</button>
+          <div class="m-sheet-body" id="mSheetBody"></div>
+        </div>
+      </div>
     </main>
 
     <script
@@ -118,6 +127,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20260708a"></script>
+    <script src="app.js?v=20260708b"></script>
   </body>
 </html>

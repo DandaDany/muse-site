@@ -442,17 +442,33 @@ function selectMovie(movieTitle) {
   applyFilters();
 }
 
-// 時間篩選：該影城是否有落在「快速時段 ∩ 最早場次之後」的場次
+// 時間篩選：時間軸（最早場次）與快速時段各自獨立判斷，互不牽制。
+// 只要影城有任一場次通過「時間軸門檻」，且有任一場次落在「時段區間」即可，
+// 不再把兩者夾成單一區間，避免拖曳時間軸時被時段上限卡住而整個消失。
 function passesTimeFilter(feature) {
-  if (timePeriod === "all" && timeEarliest <= 0) return true;
-  const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
-  const lower = Math.max(periodStart, timeEarliest);
   const list = feature.properties.showtimes;
-  if (!Array.isArray(list) || !list.length) return false;
-  return list.some((showtime) => {
-    const minutes = showtimeMinutes(showtime);
-    return minutes >= lower && minutes < periodEnd;
-  });
+  const hasShowtimes = Array.isArray(list) && list.length > 0;
+
+  // 時間軸：最早場次（0＝不限）
+  if (timeEarliest > 0) {
+    if (!hasShowtimes || !list.some((showtime) => showtimeMinutes(showtime) >= timeEarliest)) {
+      return false;
+    }
+  }
+
+  // 快速時段：是否有場次落在指定時段區間
+  if (timePeriod !== "all") {
+    const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
+    const inPeriod = (showtime) => {
+      const minutes = showtimeMinutes(showtime);
+      return minutes >= periodStart && minutes < periodEnd;
+    };
+    if (!hasShowtimes || !list.some(inPeriod)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function matchesFilters(feature) {
@@ -570,7 +586,15 @@ function renderMarkers(filtered) {
       autoPanPadding: [16, 20],
       keepInView: true,
     });
-    marker.on("click", () => toggleFeatureZoom(feature));
+    // 移除 Leaflet 綁定 popup 時自動加的「點擊即開 popup」handler：
+    // 桌機改由 toggleFeatureZoom 明確開啟，手機則改開底部 sheet。
+    // 若保留它，手機點 logo 時 popup 會自動開啟並 autoPan 平移地圖，
+    // 蓋掉我們把 logo 置中的 setView，導致 logo 落到 sheet 後方。
+    marker.off("click", marker._openPopup, marker);
+    marker.on("click", () => {
+      if (isMobile()) openMobileSheet(feature);
+      else toggleFeatureZoom(feature);
+    });
     marker.addTo(markerLayer);
     markerById.set(props.location_id, marker);
   }
@@ -651,6 +675,11 @@ const mSearchClear = document.querySelector("#mSearchClear");
 const mSearchSuggestions = document.querySelector("#mSearchSuggestions");
 const mHome = document.querySelector("#mHome");
 
+// 手機影城資訊底部 sheet（點 logo 開啟，佔 70dvh，地圖留 30dvh）
+const mSheet = document.querySelector("#mSheet");
+const mSheetBody = document.querySelector("#mSheetBody");
+const mSheetClose = document.querySelector("#mSheetClose");
+
 let mTab = "movie";
 
 function isMobile() {
@@ -669,6 +698,43 @@ function activeSuggestions() {
 function refreshSheetLayout() {
   if (isMobile()) map.invalidateSize({ animate: false });
 }
+
+/* ---- 手機影城資訊底部 sheet ---- */
+// sheet 開啟時地圖仍是滿版，只是下方 70% 被 sheet 蓋住，可視帶＝上方 30%
+const MAP_STRIP_RATIO = 0.3;
+
+function openMobileSheet(feature) {
+  const id = feature.properties.location_id;
+  const marker = markerById.get(id);
+  if (!marker) return;
+  setActive(id);
+  zoomedInId = id;
+  mSheetBody.innerHTML = popupHtml(feature);
+  mSheetBody.scrollTop = 0;
+  appShell.classList.add("sheet-open");
+  mSheet.setAttribute("aria-hidden", "false");
+  // 把該影城 logo 平移到可視帶（上方 30%）的中央：可視帶中心在畫面 15% 處，
+  // 地圖幾何中心固定在 50%，因此中心需落在 logo 下方 (0.5 − 0.15)·高度 的位置。
+  // 地圖維持滿版、不做 resize，避免 invalidateSize／maxBounds 回彈造成的偏移。
+  const zoom = Math.max(map.getZoom(), FOCUS_ZOOM);
+  const size = map.getSize();
+  const targetPoint = map.project(marker.getLatLng(), zoom);
+  const center = map.unproject(targetPoint.add([0, (0.5 - MAP_STRIP_RATIO / 2) * size.y]), zoom);
+  map.setView(center, zoom, { animate: true, duration: 0.4 });
+}
+
+function closeMobileSheet() {
+  if (!appShell.classList.contains("sheet-open")) return;
+  appShell.classList.remove("sheet-open");
+  mSheet.setAttribute("aria-hidden", "true");
+  zoomedInId = null;
+}
+
+mSheetClose.addEventListener("click", closeMobileSheet);
+// 點地圖空白處（非 logo）收起 sheet
+map.on("click", () => {
+  if (isMobile()) closeMobileSheet();
+});
 
 /* ---- 分段控制：電影／地區／時間／影城 ---- */
 function setMobileTab(tab) {
@@ -770,7 +836,10 @@ mSearchClear.addEventListener("click", () => {
   applyFilters();
   mSearchInput.focus();
 });
-mHome.addEventListener("click", resetView);
+mHome.addEventListener("click", () => {
+  closeMobileSheet();
+  resetView();
+});
 
 window.addEventListener("resize", () => {
   refreshSheetLayout();
@@ -780,6 +849,7 @@ window.addEventListener("resize", () => {
 
 // 切換手機／桌機時重繪
 mobileQuery.addEventListener("change", () => {
+  if (!isMobile()) closeMobileSheet();
   map.invalidateSize({ animate: false });
   updateMinZoomForBounds();
 });
