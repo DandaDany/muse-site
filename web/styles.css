@@ -768,6 +768,21 @@ input[type="search"]::-webkit-search-cancel-button {
   text-decoration: underline;
 }
 
+/* 手機專用元件，桌機一律隱藏（不影響網頁版） */
+.m-seg,
+.m-panel,
+.m-search,
+.m-suggestions,
+.m-home {
+  display: none;
+}
+
+/* ============================================================
+   手機版（≤760px）：墨黑一點橘 × 底線分頁
+   地圖 6 / 底盤 4、底盤左右留白浮起、搜尋移到地圖上方、
+   電影／地區／時間／影城 分段控制 + 時間軸滑桿。
+   全部只在此媒體查詢內，桌機（網頁版）完全不動。
+   ============================================================ */
 @media (max-width: 760px) {
   html,
   body {
@@ -778,7 +793,7 @@ input[type="search"]::-webkit-search-cancel-button {
     overflow: hidden;
   }
 
-  /* 地圖鋪滿全螢幕當底層；篩選面板改成浮在上面、可自由拖曳的底部抽屜 */
+  /* 地圖鋪滿全螢幕當底層；篩選面板改成浮在上面的底部抽屜 */
   .app-shell {
     position: relative;
     display: block;
@@ -796,57 +811,454 @@ input[type="search"]::-webkit-search-cancel-button {
     height: 100%;
   }
 
+  /* 地圖控制項（縮放／圖資）下移，讓出最上方給搜尋列 */
+  .leaflet-top.leaflet-left {
+    top: calc(62px + env(safe-area-inset-top, 0px));
+  }
+
+  /* ---- 浮在地圖上方的搜尋列 ---- */
+  .m-search {
+    display: flex;
+    position: absolute;
+    z-index: 950;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+    height: 44px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 13px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid #e4e0d8;
+    box-shadow:
+      0 8px 20px -8px rgba(20, 20, 30, 0.28),
+      0 2px 6px rgba(20, 20, 30, 0.1);
+  }
+
+  .m-search svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: var(--flame-deep);
+  }
+
+  .m-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: #1a1a1a;
+    font-size: 15px;
+    padding: 0;
+  }
+
+  .m-search input:focus {
+    outline: none;
+  }
+
+  .m-search input::placeholder {
+    color: #9d9a94;
+  }
+
+  .m-search-clear {
+    flex: 0 0 auto;
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #cfccd4;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .m-search-clear[hidden] {
+    display: none;
+  }
+
+  /* 搜尋候選：白卡，落在搜尋列下方 */
+  .m-suggestions {
+    display: block;
+    position: absolute;
+    z-index: 940;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+    max-height: 46vh;
+    overflow: hidden auto;
+    border: 1px solid #e4e0d8;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 14px 32px -10px rgba(20, 20, 30, 0.32);
+  }
+
+  .m-suggestions[hidden] {
+    display: none;
+  }
+
+  /* 回到台灣視角：地圖右上小圓鈕（取代抽屜內的 ⌂） */
+  .m-home {
+    display: grid;
+    position: absolute;
+    z-index: 945;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid #e4e0d8;
+    border-radius: 11px;
+    background: #ffffff;
+    color: #3d3a34;
+    font-size: 18px;
+    box-shadow: 0 6px 14px -6px rgba(20, 20, 30, 0.35);
+    cursor: pointer;
+  }
+
+  /* ---- 底部抽屜：墨黑一點橘、米白紙感、左右留白浮起 ---- */
   .sidebar {
+    /* 手機把主色改成「深橘」，只影響抽屜內的膠囊／標題（桌機與 popup 不變） */
+    --flame: #e05a12;
+    --flame-deep: #c44f0c;
+    --peach-tint: #f9e7d7;
+
     position: fixed;
     z-index: 900;
     top: auto;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: var(--sheet-height, 86vh);
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    /* 固定 4:6：底盤永遠 40% 高、不可調整；各分頁內容自行捲動 */
+    height: 40vh;
+    height: 40dvh;
     min-height: 0;
-    gap: 12px;
+    gap: 10px;
     margin: 0;
-    border: 0;
-    border-radius: 22px 22px 0 0;
-    box-shadow: 0 -10px 26px rgba(60, 40, 20, 0.18);
-    padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    border: 1px solid #e6e2da;
+    border-radius: 24px;
+    background: #faf9f7;
+    box-shadow:
+      0 -2px 26px -8px rgba(30, 25, 20, 0.16),
+      0 16px 34px -12px rgba(30, 25, 20, 0.26);
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
     justify-content: flex-start;
-    overflow-y: auto;
+    overflow: hidden;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    transform: translateY(var(--sheet-translate, 60vh));
-    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform;
   }
 
-  /* 拖曳中關閉轉場，讓面板即時貼著手指移動 */
-  .app-shell.sheet-dragging .sidebar {
-    transition: none;
-  }
-
-  /* 抓握條與標題列＝拖曳把手，本身不需要跟著內容捲動 */
+  /* 固定高度，不再需要抓握條 */
   .grabber {
-    display: block;
-    align-self: center;
-    width: 40px;
-    height: 5px;
-    flex: 0 0 auto;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--muted) 45%, transparent);
-    margin: 2px 0 -2px;
-    touch-action: none;
+    display: none;
   }
 
+  /* 標題列：手機只留摘要一行（固定，不可拖曳） */
   .panel-head {
-    touch-action: none;
-    cursor: grab;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
   }
 
-  .sheet-body {
+  .panel-head h1 {
+    display: none;
+  }
+
+  .panel-head > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .panel-head p {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    color: #8a857c;
+  }
+
+  .panel-head .icon-button {
+    display: none;
+  }
+
+  /* ---- 分段控制（底線分頁，樣式 C） ---- */
+  .m-seg {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    flex: 0 0 auto;
+    border-bottom: 1px solid #e6e2da;
+  }
+
+  .m-seg button {
+    position: relative;
+    border: 0;
+    background: transparent;
+    color: #8a857c;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 7px 0 11px;
+    cursor: pointer;
+  }
+
+  .m-seg button.is-active {
+    color: #1a1a1a;
+    font-weight: 800;
+  }
+
+  .m-seg button.is-active::after {
+    content: "";
+    position: absolute;
+    left: 22%;
+    right: 22%;
+    bottom: -1px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--flame);
+  }
+
+  /* 桌機用的電影下拉、搜尋欄與其候選在手機隱藏（改用上方浮動搜尋＋電影分頁） */
+  #movieField,
+  #searchField {
+    display: none;
+  }
+
+  #searchSuggestions {
+    display: none !important;
+  }
+
+  /* ---- 分頁內容切換 ---- */
+  /* sheet-body 攤平，讓縣市／品牌卡片成為抽屜的直接子項，才能各自撐滿捲動 */
+  #sheetBody {
+    display: contents;
+  }
+
+  .m-panel {
+    display: none;
+    flex-direction: column;
+    gap: 9px;
+    min-height: 0;
+  }
+
+  #cityBlock,
+  #chainBlock {
+    display: none;
+  }
+
+  /* 手機的篩選卡片改成無邊框，融入紙感底盤 */
+  .filter-block {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    gap: 9px;
+  }
+
+  .filter-head {
+    flex: 0 0 auto;
+  }
+
+  .filter-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: flex-start;
+  }
+
+  .app-shell.mtab-movie #mMoviePanel {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .app-shell.mtab-time #mTimePanel {
+    display: flex;
+    flex: 0 0 auto;
+  }
+
+  .app-shell.mtab-city #cityBlock,
+  .app-shell.mtab-chain #chainBlock {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* ---- 電影清單（片名＋場次，單選） ---- */
+  .m-movie-list {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+    gap: 7px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .m-movie-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    background: #f2efeb;
+    padding: 11px 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .m-movie-row.is-selected {
+    border-color: var(--flame);
+    background: var(--peach-tint);
+  }
+
+  .mm-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .m-movie-row.is-selected .mm-name {
+    color: var(--flame-deep);
+  }
+
+  .mm-count {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--peach-tint);
+    color: var(--flame-deep);
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    padding: 3px 9px;
+  }
+
+  .m-movie-row.is-selected .mm-count {
+    background: #ffffff;
+  }
+
+  .mm-radio {
+    position: relative;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d6d1c8;
+    border-radius: 50%;
+  }
+
+  .m-movie-row.is-selected .mm-radio {
+    border-color: var(--flame);
+    background: var(--flame);
+  }
+
+  .m-movie-row.is-selected .mm-radio::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #ffffff;
+  }
+
+  /* ---- 時間面板：時間軸滑桿＋快速時段 ---- */
+  #mTimePanel {
+    gap: 8px;
+  }
+
+  .m-time-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a857c;
+  }
+
+  .m-time-cap {
+    color: var(--flame-deep);
+  }
+
+  .m-slider {
+    /* 左右留出把手半徑的空間，避免「不限／23:30」兩端把手被裁切 */
+    padding: 12px 34px 6px;
+    touch-action: none;
+  }
+
+  .m-track {
+    position: relative;
+    height: 6px;
+    border-radius: 999px;
+    background: #e7e3db;
+  }
+
+  .m-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-radius: 999px;
+    background: var(--flame);
+  }
+
+  .m-knob {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    height: 30px;
+    padding: 0 12px;
+    border: 2px solid var(--flame);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    box-shadow: 0 4px 11px -2px rgba(20, 20, 30, 0.28);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .m-period {
+    display: flex;
+    gap: 6px;
+  }
+
+  .m-period button {
+    flex: 1 1 0;
+    border: 1.5px solid #e6e2da;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #57544e;
+    font-size: 13px;
+    font-weight: 650;
+    padding: 7px 0;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .m-period button.is-selected {
+    border-color: var(--flame);
+    background: var(--peach-tint);
+    color: var(--flame-deep);
+    font-weight: 750;
   }
 }
 

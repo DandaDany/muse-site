@@ -120,12 +120,18 @@ This file records technical choices that are considered confirmed for this proje
 
 ## Mobile Sheet (≤760px)
 
-- Sidebar becomes a rounded (18px) floating bottom sheet that peeks over the map.
-- Collapsed by default: only 標題 + 摘要 + 電影選單 show; map takes 64vh.
-- Search + filters live inside `.sheet-body` and are hidden (max-height/visibility) until expanded.
-- Expanding (tap the handle, or focus anything inside) restores the ~44vh map / larger sheet split; tapping the map collapses it again.
-- After the height transition, JS calls `map.invalidateSize()` so Leaflet re-renders tiles at the new container size.
-- Desktop is untouched — all sheet behaviour is scoped to the `max-width: 760px` media query and mobile-only JS guards.
+- Mobile uses a distinct "墨黑一點橘" theme (paper `#faf9f7` sheet, deep-orange `#e05a12` accent, underline tab bar). The accent is set by overriding `--flame`/`--flame-deep`/`--peach-tint` **only on `.sidebar` inside the media query**, so desktop and the map popups keep the original flame orange.
+- Fixed **map 6 / sheet 4** split: the sheet rests showing `40vh` (`REST_VISIBLE_RATIO`), map takes the top `60vh`. Total sheet height is `90vh`; dragging the handle (or tapping it) expands to near-full and snaps back. Only two snap points: `full` / `rest`.
+- The sheet floats with left/right/bottom margins (10px) and is fully rounded (24px), not edge-to-edge.
+- Search moves **out of the sheet onto the map** (`.m-search`, white pill, top of map). The zoom/attribution controls are pushed down (`.leaflet-top.leaflet-left { top: 62px }`) and a `⌂` reset button floats top-right (`.m-home`). Search suggestions render in `.m-suggestions` over the map.
+- A **segmented control** (`.m-seg`, tabs 電影／地區／時間／影城) switches the sheet body via `mtab-*` classes on `.app-shell`:
+  - 電影 → `#mMovieList` (片名＋場次, single-select, mirrors the desktop `<select>` through `selectMovie`).
+  - 地區 → reuses `#cityFilterList` (縣市 chips).
+  - 時間 → `#mTimePanel`: a time-axis slider (`最早場次 HH:MM 之後`, `timeEarliest`) plus quick-period chips 全天／上午／下午／晚上 (`timePeriod`). A cinema passes when it has a showtime in `[max(periodStart, earliest), periodEnd)`; both default to no-op so desktop is unaffected.
+  - 影城 → reuses `#chainFilterList` (品牌 chips).
+- Search state routes through `activeSearchInput()` / `activeSuggestions()` so the same filter/suggestion code serves the desktop input or the mobile map search depending on `isMobile()`.
+- After the transform transition, JS calls `map.invalidateSize()` so Leaflet re-renders tiles at the new container size.
+- Desktop is untouched — all of the above is scoped to the `max-width: 760px` media query (mobile-only elements are `display:none` by default) and mobile-only JS guards.
 
 ## Location Popup
 
