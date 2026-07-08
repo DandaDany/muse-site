@@ -399,57 +399,96 @@ input[type="search"]::-webkit-search-cancel-button {
   background: #eef6f1;
 }
 
+/* 時刻表＝資訊卡中的一張子卡片（暖米底＋細框），把場次匡在一起 */
 .popup-showtimes {
-  margin: 7px 0;
-  border-top: 1px solid #dbe4de;
-  border-bottom: 1px solid #dbe4de;
-  padding: 7px 0;
+  margin: 2px 0 0;
+  border: 1px solid #ecdfc9;
+  border-radius: 14px;
+  background: #f8f1e6;
+  padding: 11px 11px 12px;
 }
 
 .popup-showtimes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0 0 10px;
-  color: var(--text);
-  font-weight: 800;
-  font-size: 17px;
 }
 
-.showtime-list {
-  display: flex;
-  flex-direction: column;
-  /* 一次顯示約 6 筆，其餘往下滑（壓緊高度，小螢幕也裝得下） */
-  max-height: 240px;
-  gap: 8px;
+.pst-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: #7a6a54;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.pst-date svg {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  color: var(--flame);
+}
+
+.pst-count {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--peach-tint);
+  color: var(--flame-deep);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 9px;
+}
+
+/* 場次＝白底小晶片方格：時間為主、規格標籤為輔 */
+.showtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 7px;
+  /* 一次顯示約 3 排，其餘往下滑（壓緊高度，小螢幕也裝得下） */
+  max-height: 214px;
   margin: 0;
-  padding: 0 2px 0 0;
+  padding: 1px;
   overflow-y: auto;
   list-style: none;
 }
 
-/* 每場＝長條圓角小卡（時間＋補充包在同一顆卡內），底色用淡米色 */
-.showtime-list li {
+.st-chip {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  line-height: 1.2;
-  border-radius: 12px;
-  background: #f3ece2;
-  padding: 9px 13px;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid #eee1cd;
+  background: #ffffff;
+  padding: 7px 6px;
+  text-align: center;
 }
 
-.showtime-list li b {
-  flex: 0 0 auto;
-  min-width: auto;
+.st-chip b {
   color: #2a2620;
   font-size: 15px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+  line-height: 1.1;
 }
 
-.showtime-list li span {
-  color: #8b8177;
-  font-size: 12px;
-  line-height: 1.4;
+.st-chip small {
+  max-width: 100%;
+  overflow: hidden;
+  color: #a68f74;
+  font-size: 10.5px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-wrap,
@@ -751,21 +790,59 @@ input[type="search"]::-webkit-search-cancel-button {
   font-size: 13px;
 }
 
+/* 連結改成一組按鈕：場次入口（主要，填色）＋官方網站（次要，外框） */
 .popup-links {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 9px;
+  margin-top: 11px;
 }
 
-.popup-links a {
-  color: var(--green);
-  font-weight: 700;
+.popup-link {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  border-radius: 11px;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   text-decoration: none;
+  white-space: nowrap;
+  transition:
+    filter 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.popup-links a:hover {
-  text-decoration: underline;
+.popup-link svg {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+}
+
+/* 提高詳細度蓋過 Leaflet 內建的 .leaflet-container a 連結色（否則按鈕字與圖示會變成青色） */
+.popup-links .popup-link-primary {
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg, var(--flame), var(--flame-deep));
+  color: #ffffff;
+  box-shadow: 0 4px 12px -4px rgba(245, 100, 30, 0.55);
+}
+
+.popup-links .popup-link-primary:hover {
+  filter: brightness(1.05);
+}
+
+.popup-links .popup-link-ghost {
+  border: 1.5px solid color-mix(in srgb, var(--flame) 42%, #ffffff);
+  background: #ffffff;
+  color: var(--flame-deep);
+}
+
+.popup-links .popup-link-ghost:hover {
+  border-color: var(--flame);
+  background: var(--peach-tint);
 }
 
 /* ---- 時間面板：時間軸滑桿＋快速時段（基本層，手機分頁與桌機側欄共用） ---- */
@@ -1381,8 +1458,8 @@ input[type="search"]::-webkit-search-cancel-button {
     margin-top: 0;
   }
 
-  /* sheet 內整體捲動即可，取消場次清單自身的高度上限與內捲動 */
-  .m-sheet-body .showtime-list {
+  /* sheet 內整體捲動即可，取消場次方格自身的高度上限與內捲動 */
+  .m-sheet-body .showtime-grid {
     max-height: none;
     overflow: visible;
   }

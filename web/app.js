@@ -197,6 +197,17 @@ const ARROW_SVG =
   '<svg class="suggestion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<path d="M7 17L17 7M17 7H8M17 7v9"/></svg>';
 
+// 資訊卡：日期／場次入口／官方網站的小圖示
+const CAL_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>';
+const TICKET_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M4 7.5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1V10a2 2 0 0 0 0 4v2.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V14a2 2 0 0 0 0-4Z"/><path d="M15 6.5v11" stroke-dasharray="2 2"/></svg>';
+const GLOBE_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18"/></svg>';
+
 function mapsUrl(feature) {
   const props = feature.properties || {};
   const name = props.location_name || props.map_name || "";
@@ -210,6 +221,16 @@ function showtimeSubLabel(showtime) {
   return rest || showtime.format || "";
 }
 
+// 從場次補充字取出精簡的規格標籤（片名／分級是冗字，捨去）：
+// 「(數位 國)玩具總動員5 (普遍級)」→「數位 國」、「09廳」→「09廳」
+function showtimeTag(showtime) {
+  const sub = showtimeSubLabel(showtime);
+  if (!sub) return "";
+  const paren = /^[（(]\s*([^（()）]*?)\s*[)）]/.exec(sub);
+  if (paren) return paren[1].trim();
+  return sub.split(/\s+/)[0] || "";
+}
+
 function popupHtml(feature) {
   const props = feature.properties;
   const gmap = mapsUrl(feature);
@@ -219,26 +240,31 @@ function popupHtml(feature) {
   const address = props.address
     ? `<p class="popup-address"><span>${escapeHtml(props.address)}</span>${pin}</p>`
     : "";
-  const dateText = props.show_date ? `當日, ${escapeHtml(props.show_date).replaceAll("-", "/")}` : "當日";
-  const showtimeBlock =
-    Array.isArray(props.showtimes) && props.showtimes.length
-      ? `
+  const dateText = props.show_date ? `當日 ${escapeHtml(props.show_date).replaceAll("-", "/")}` : "當日場次";
+  const showtimes = Array.isArray(props.showtimes) ? props.showtimes : [];
+  const showtimeBlock = showtimes.length
+    ? `
         <div class="popup-showtimes">
-          <p class="popup-showtimes-head">${dateText}</p>
-          <ul class="showtime-list">${props.showtimes
-            .map(
-              (showtime) =>
-                `<li><b>${escapeHtml(showtime.time || "")}</b><span>${escapeHtml(showtimeSubLabel(showtime))}</span></li>`,
-            )
-            .join("")}</ul>
+          <div class="popup-showtimes-head">
+            <span class="pst-date">${CAL_SVG}${dateText}</span>
+            <span class="pst-count">${showtimes.length} 場</span>
+          </div>
+          <div class="showtime-grid">${showtimes
+            .map((showtime) => {
+              const tag = showtimeTag(showtime);
+              return `<span class="st-chip"><b>${escapeHtml(showtime.time || "")}</b>${
+                tag ? `<small>${escapeHtml(tag)}</small>` : ""
+              }</span>`;
+            })
+            .join("")}</div>
         </div>
       `
-      : "";
+    : "";
   const locationLink = props.location_url
-    ? `<a href="${escapeHtml(props.location_url)}" target="_blank" rel="noreferrer">場次入口</a>`
+    ? `<a class="popup-link popup-link-primary" href="${escapeHtml(props.location_url)}" target="_blank" rel="noreferrer">${TICKET_SVG}場次入口</a>`
     : "";
   const officialLink = props.official_url
-    ? `<a href="${escapeHtml(props.official_url)}" target="_blank" rel="noreferrer">官方網站</a>`
+    ? `<a class="popup-link popup-link-ghost" href="${escapeHtml(props.official_url)}" target="_blank" rel="noreferrer">${GLOBE_SVG}官方網站</a>`
     : "";
   // 方案一：品牌色帶頁首（標題＋地址反白）＋ 白底內容（場次膠囊＋連結）
   return `
