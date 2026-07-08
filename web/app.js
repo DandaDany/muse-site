@@ -91,6 +91,16 @@ let activeId = null;
 let selectedChain = "";
 let selectedCity = "";
 
+// 手機「時間」分頁的篩選狀態（桌機沒有 UI，預設不篩選）
+let timeEarliest = 0; // 最早場次（分鐘，0＝不限）
+let timePeriod = "all"; // 快速時段
+const PERIOD_RANGES = {
+  all: [0, 1440],
+  morning: [0, 720], // 上午（中午前）
+  afternoon: [720, 1080], // 下午（12:00–18:00）
+  evening: [1080, 1440], // 晚上（18:00 後）
+};
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -379,28 +389,27 @@ function normalizeMovieData(data) {
   movieSummaries = [];
   movieFeaturesByTitle = new Map();
 
+  const summarize = (title, showDate, movieFeatures) => {
+    const showtimeTotal = movieFeatures.reduce((sum, feature) => sum + showtimeCount(feature), 0);
+    movieSummaries.push({
+      title,
+      showDate,
+      featureCount: movieFeatures.length,
+      showtimeTotal,
+    });
+    movieFeaturesByTitle.set(title, movieFeatures);
+  };
+
   if (Array.isArray(data.movies) && data.movies.length && data.movie_features) {
     for (const movie of data.movies) {
       const title = movie.title;
       if (!title) continue;
       const rawFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
-      const movieFeatures = mergeFeatures(rawFeatures);
-      movieSummaries.push({
-        title,
-        showDate: movie.show_date || data.show_date || "",
-        featureCount: movieFeatures.length,
-      });
-      movieFeaturesByTitle.set(title, movieFeatures);
+      summarize(title, movie.show_date || data.show_date || "", mergeFeatures(rawFeatures));
     }
   } else {
     const title = data.movie_title || data.name || "目前資料";
-    const fallbackFeatures = mergeFeatures(Array.isArray(data.features) ? data.features : []);
-    movieSummaries.push({
-      title,
-      showDate: data.show_date || "",
-      featureCount: fallbackFeatures.length,
-    });
-    movieFeaturesByTitle.set(title, fallbackFeatures);
+    summarize(title, data.show_date || "", mergeFeatures(Array.isArray(data.features) ? data.features : []));
   }
 
   selectedMovieTitle = movieSummaries[0]?.title || "";
@@ -418,6 +427,7 @@ function renderMovieOptions() {
   }
   movieSelect.replaceChildren(fragment);
   movieSelect.disabled = movieSummaries.length <= 1;
+  renderMobileMovies();
 }
 
 function selectMovie(movieTitle) {
@@ -432,9 +442,22 @@ function selectMovie(movieTitle) {
   applyFilters();
 }
 
+// 時間篩選：該影城是否有落在「快速時段 ∩ 最早場次之後」的場次
+function passesTimeFilter(feature) {
+  if (timePeriod === "all" && timeEarliest <= 0) return true;
+  const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
+  const lower = Math.max(periodStart, timeEarliest);
+  const list = feature.properties.showtimes;
+  if (!Array.isArray(list) || !list.length) return false;
+  return list.some((showtime) => {
+    const minutes = showtimeMinutes(showtime);
+    return minutes >= lower && minutes < periodEnd;
+  });
+}
+
 function matchesFilters(feature) {
   const props = feature.properties;
-  const keyword = normalizeSearchText(searchInput.value);
+  const keyword = normalizeSearchText(activeSearchInput().value);
   const haystack = normalizeSearchText([
     props.chain_name,
     props.location_name,
@@ -447,7 +470,8 @@ function matchesFilters(feature) {
   return (
     (!keyword || haystack.includes(keyword)) &&
     (!selectedChain || props.chain_name === selectedChain) &&
-    (!selectedCity || props.city === selectedCity)
+    (!selectedCity || props.city === selectedCity) &&
+    passesTimeFilter(feature)
   );
 }
 
@@ -489,10 +513,19 @@ function toggleFeatureZoom(feature) {
 }
 
 function renderSearchSuggestions(filtered) {
-  const keyword = normalizeSearchText(searchInput.value);
+  const input = activeSearchInput();
+  const container = activeSuggestions();
+  // 另一個（非作用中）容器清空收起，避免桌機／手機兩份候選同時殘留
+  const other = container === searchSuggestions ? mSearchSuggestions : searchSuggestions;
+  if (other) {
+    other.replaceChildren();
+    other.hidden = true;
+  }
+
+  const keyword = normalizeSearchText(input.value);
   if (!keyword) {
-    searchSuggestions.replaceChildren();
-    searchSuggestions.hidden = true;
+    container.replaceChildren();
+    container.hidden = true;
     return;
   }
 
@@ -510,12 +543,13 @@ function renderSearchSuggestions(filtered) {
     `;
     button.addEventListener("click", () => {
       focusFeature(feature);
-      searchSuggestions.hidden = true;
+      container.hidden = true;
+      if (isMobile()) applySnap("rest");
     });
     fragment.appendChild(button);
   }
-  searchSuggestions.replaceChildren(fragment);
-  searchSuggestions.hidden = filtered.length === 0;
+  container.replaceChildren(fragment);
+  container.hidden = filtered.length === 0;
   setActive(activeId);
 }
 
@@ -597,26 +631,52 @@ clearSearchButton.addEventListener("click", () => {
 resetViewButton.addEventListener("click", resetView);
 map.on("resize", updateMinZoomForBounds);
 
-/* ---- 手機版底部抽屜：可自由拖曳，貼齊「收起／一半／展開」三個位置 ---- */
+/* ============================================================
+   手機版：分段控制、上方搜尋、時間軸滑桿、可拖曳底盤
+   全部以 isMobile() 或 max-width:760px 為界，桌機不受影響。
+   ============================================================ */
 const appShell = document.querySelector(".app-shell");
 const sidebar = document.querySelector(".sidebar");
 const grabber = document.querySelector(".grabber");
 const panelHead = document.querySelector(".panel-head");
-const searchField = document.querySelector("#searchField");
 const mobileQuery = window.matchMedia("(max-width: 760px)");
 
-const SHEET_HEIGHT_RATIO = 0.86; // 抽屜總高度佔螢幕高度的比例（展開時最上緣露出的地圖比例反之）
-const DRAG_CLICK_THRESHOLD = 6; // 移動小於這個距離視為點擊，不是拖曳
+// 手機專用元件
+const mSeg = document.querySelector("#mSeg");
+const mMovieList = document.querySelector("#mMovieList");
+const mSlider = document.querySelector("#mSlider");
+const mTrack = mSlider.querySelector(".m-track");
+const mFill = document.querySelector("#mFill");
+const mKnob = document.querySelector("#mKnob");
+const mTimeCap = document.querySelector("#mTimeCap");
+const mPeriod = document.querySelector("#mPeriod");
+const mSearchInput = document.querySelector("#mSearchInput");
+const mSearchClear = document.querySelector("#mSearchClear");
+const mSearchSuggestions = document.querySelector("#mSearchSuggestions");
+const mHome = document.querySelector("#mHome");
 
-let snapPoints = { full: 0, half: 0, peek: 0 };
-let currentSnap = "peek";
+const SHEET_HEIGHT_RATIO = 0.9; // 抽屜總高度佔螢幕高度
+const REST_VISIBLE_RATIO = 0.4; // 收合時露出的抽屜高度（＝底盤 4／地圖 6）
+const DRAG_CLICK_THRESHOLD = 6; // 移動小於此距離視為點擊
+
+let snapPoints = { full: 0, rest: 0 };
+let currentSnap = "rest";
 let dragPointerId = null;
 let dragStartY = 0;
 let dragStartTranslate = 0;
 let isDragging = false;
+let mTab = "movie";
 
 function isMobile() {
   return mobileQuery.matches;
+}
+
+function activeSearchInput() {
+  return isMobile() ? mSearchInput : searchInput;
+}
+
+function activeSuggestions() {
+  return isMobile() ? mSearchSuggestions : searchSuggestions;
 }
 
 function viewportHeight() {
@@ -628,19 +688,14 @@ function setTranslate(px, animate) {
   sidebar.style.setProperty("--sheet-translate", `${px}px`);
 }
 
-// 依螢幕高度與「抓握條＋標題／電影／搜尋」實際內容高度，算出收起時該露出多少
+// 收合時露出底盤 40%（地圖 60%）；展開時幾乎滿版
 function computeSnapPoints() {
   if (!isMobile()) return;
-  const sheetHeight = Math.round(viewportHeight() * SHEET_HEIGHT_RATIO);
+  const vh = viewportHeight();
+  const sheetHeight = Math.round(vh * SHEET_HEIGHT_RATIO);
   sidebar.style.setProperty("--sheet-height", `${sheetHeight}px`);
-
-  const paddingBottom = parseFloat(getComputedStyle(sidebar).paddingBottom) || 0;
-  const contentHeight = searchField.offsetTop + searchField.offsetHeight;
-  const peekVisible = clamp(contentHeight + paddingBottom, 160, sheetHeight - 40);
-
-  const peek = sheetHeight - peekVisible;
-  const half = clamp(sheetHeight * 0.45, 0, peek);
-  snapPoints = { full: 0, half, peek };
+  const restVisible = Math.round(vh * REST_VISIBLE_RATIO);
+  snapPoints = { full: 0, rest: Math.max(0, sheetHeight - restVisible) };
 }
 
 function currentTranslate() {
@@ -650,7 +705,7 @@ function currentTranslate() {
 }
 
 function nearestSnapName(px) {
-  let best = "peek";
+  let best = "rest";
   let bestDistance = Infinity;
   for (const [name, value] of Object.entries(snapPoints)) {
     const distance = Math.abs(value - px);
@@ -663,8 +718,9 @@ function nearestSnapName(px) {
 }
 
 function applySnap(name, animate = true) {
+  if (!snapPoints[name] && name !== "full") name = "rest";
   currentSnap = name;
-  appShell.classList.toggle("sheet-open", name !== "peek");
+  appShell.classList.toggle("sheet-open", name !== "rest");
   setTranslate(snapPoints[name], animate);
 }
 
@@ -674,9 +730,114 @@ function refreshSheetLayout() {
   setTranslate(snapPoints[currentSnap], false);
 }
 
+/* ---- 分段控制：電影／地區／時間／影城 ---- */
+function setMobileTab(tab) {
+  mTab = tab;
+  for (const button of mSeg.children) {
+    button.classList.toggle("is-active", button.dataset.tab === tab);
+  }
+  appShell.classList.remove("mtab-movie", "mtab-city", "mtab-time", "mtab-chain");
+  appShell.classList.add(`mtab-${tab}`);
+}
+
+mSeg.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-tab]");
+  if (!button) return;
+  setMobileTab(button.dataset.tab);
+});
+
+/* ---- 手機電影清單（片名＋場次，單選） ---- */
+function renderMobileMovies() {
+  const fragment = document.createDocumentFragment();
+  for (const movie of movieSummaries) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "m-movie-row";
+    button.classList.toggle("is-selected", movie.title === selectedMovieTitle);
+    button.innerHTML = `
+      <span class="mm-name">${escapeHtml(movie.title)}</span>
+      <span class="mm-count">${movie.showtimeTotal} 場</span>
+      <span class="mm-radio" aria-hidden="true"></span>
+    `;
+    button.addEventListener("click", () => selectMovie(movie.title));
+    fragment.appendChild(button);
+  }
+  mMovieList.replaceChildren(fragment);
+}
+
+/* ---- 時間軸滑桿 ---- */
+function formatMinutes(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function setEarliest(minutes, apply = true) {
+  timeEarliest = clamp(Math.round(minutes / 30) * 30, 0, 1410);
+  const frac = timeEarliest / 1440;
+  mFill.style.width = `${frac * 100}%`;
+  mKnob.style.left = `${frac * 100}%`;
+  const noLimit = timeEarliest <= 0;
+  mKnob.textContent = noLimit ? "不限" : formatMinutes(timeEarliest);
+  mTimeCap.textContent = noLimit ? "全部場次" : `${formatMinutes(timeEarliest)} 之後`;
+  if (apply) applyFilters();
+}
+
+let sliderDragging = false;
+
+function sliderFromClientX(clientX) {
+  const rect = mTrack.getBoundingClientRect();
+  if (!rect.width) return;
+  const frac = clamp((clientX - rect.left) / rect.width, 0, 1);
+  setEarliest(frac * 1440);
+}
+
+mKnob.addEventListener("pointerdown", (event) => {
+  event.stopPropagation();
+  sliderDragging = true;
+  mKnob.setPointerCapture?.(event.pointerId);
+});
+mKnob.addEventListener("pointermove", (event) => {
+  if (sliderDragging) sliderFromClientX(event.clientX);
+});
+mKnob.addEventListener("pointerup", (event) => {
+  sliderDragging = false;
+  mKnob.releasePointerCapture?.(event.pointerId);
+});
+mKnob.addEventListener("click", (event) => event.stopPropagation());
+mSlider.addEventListener("pointerdown", (event) => {
+  if (event.target === mKnob) return;
+  sliderFromClientX(event.clientX);
+});
+
+/* ---- 快速時段 ---- */
+mPeriod.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-period]");
+  if (!button) return;
+  timePeriod = button.dataset.period;
+  for (const child of mPeriod.children) {
+    child.classList.toggle("is-selected", child === button);
+  }
+  applyFilters();
+});
+
+/* ---- 手機搜尋（浮在地圖上方） ---- */
+mSearchInput.addEventListener("input", () => {
+  mSearchClear.hidden = !mSearchInput.value;
+  applyFilters();
+});
+mSearchClear.addEventListener("click", () => {
+  mSearchInput.value = "";
+  mSearchClear.hidden = true;
+  applyFilters();
+  mSearchInput.focus();
+});
+mHome.addEventListener("click", resetView);
+
+/* ---- 抽屜拖曳 ---- */
 function onSheetPointerDown(event) {
   if (!isMobile()) return;
-  if (event.target.closest("#resetViewButton")) return;
+  if (event.target.closest("button")) return;
   isDragging = true;
   dragPointerId = event.pointerId;
   dragStartY = event.clientY;
@@ -687,7 +848,7 @@ function onSheetPointerDown(event) {
 function onSheetPointerMove(event) {
   if (!isDragging || event.pointerId !== dragPointerId) return;
   const delta = event.clientY - dragStartY;
-  const next = clamp(dragStartTranslate + delta, snapPoints.full, snapPoints.peek);
+  const next = clamp(dragStartTranslate + delta, snapPoints.full, snapPoints.rest);
   setTranslate(next, false);
 }
 
@@ -697,8 +858,8 @@ function onSheetPointerUp(event) {
   dragPointerId = null;
   const moved = Math.abs(event.clientY - dragStartY);
   if (moved < DRAG_CLICK_THRESHOLD) {
-    // 幾乎沒移動＝視為點擊：在收起與一半之間切換
-    applySnap(currentSnap === "peek" ? "half" : "peek");
+    // 幾乎沒移動＝視為點擊：在收合（4:6）與展開之間切換
+    applySnap(currentSnap === "rest" ? "full" : "rest");
     return;
   }
   applySnap(nearestSnapName(currentTranslate()));
@@ -710,15 +871,20 @@ window.addEventListener("pointermove", onSheetPointerMove);
 window.addEventListener("pointerup", onSheetPointerUp);
 window.addEventListener("pointercancel", onSheetPointerUp);
 
-// 聚焦搜尋或篩選內容時，至少展開到一半，避免鍵盤把內容蓋住
+// 抽屜內容取得焦點時至少展開，避免鍵盤蓋住
 sidebar.addEventListener("focusin", () => {
-  if (!isMobile() || currentSnap !== "peek") return;
-  applySnap("half");
+  if (!isMobile() || currentSnap !== "rest") return;
+  applySnap("full");
 });
 
-// 點地圖即收合，把版面還給地圖
+// 抽屜轉場結束後讓 Leaflet 依新尺寸重繪
+sidebar.addEventListener("transitionend", (event) => {
+  if (event.propertyName === "transform") map.invalidateSize({ animate: false });
+});
+
+// 點地圖即收合回 4:6，把版面還給地圖
 map.on("click", () => {
-  if (isMobile()) applySnap("peek");
+  if (isMobile()) applySnap("rest");
 });
 
 window.addEventListener("resize", () => {
@@ -730,7 +896,7 @@ window.addEventListener("resize", () => {
 // 切換手機／桌機時重置抽屜狀態
 mobileQuery.addEventListener("change", () => {
   if (isMobile()) {
-    currentSnap = "peek";
+    currentSnap = "rest";
     refreshSheetLayout();
   } else {
     appShell.classList.remove("sheet-open", "sheet-dragging");
@@ -743,6 +909,8 @@ mobileQuery.addEventListener("change", () => {
 
 updateMinZoomForBounds();
 createTileLayer(BASEMAP).addTo(map).bringToBack();
+setMobileTab("movie");
+setEarliest(0, false);
 refreshSheetLayout();
 
 loadData()

@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>木棉花電影全台上映地圖</title>
     <link
       rel="stylesheet"
@@ -10,7 +10,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="styles.css?v=20260707e" />
+    <link rel="stylesheet" href="styles.css?v=20260708a" />
   </head>
   <body>
     <main class="app-shell">
@@ -26,10 +26,24 @@
           </button>
         </header>
 
-        <label class="field">
+        <!-- 手機分段控制（電影／地區／時間／影城）：只在手機顯示 -->
+        <div class="m-seg" id="mSeg" role="tablist" aria-label="篩選分類">
+          <button type="button" role="tab" data-tab="movie">電影</button>
+          <button type="button" role="tab" data-tab="city">地區</button>
+          <button type="button" role="tab" data-tab="time">時間</button>
+          <button type="button" role="tab" data-tab="chain">影城</button>
+        </div>
+
+        <label class="field" id="movieField">
           <span>電影</span>
           <select id="movieSelect" aria-label="選擇電影"></select>
         </label>
+
+        <!-- 手機電影清單（片名＋場次，單選）：只在手機的「電影」分頁顯示 -->
+        <section class="m-panel" id="mMoviePanel" aria-label="選擇電影">
+          <div class="filter-head"><span>電影</span></div>
+          <div class="m-movie-list" id="mMovieList"></div>
+        </section>
 
         <label class="field" id="searchField">
           <span>搜尋</span>
@@ -44,15 +58,36 @@
         </label>
         <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
+        <!-- 手機時間面板（時間軸滑桿＋快速時段）：只在手機的「時間」分頁顯示 -->
+        <section class="m-panel" id="mTimePanel" aria-label="時間篩選">
+          <div class="m-time-head">
+            <span>最早場次</span>
+            <span class="m-time-cap" id="mTimeCap">全部場次</span>
+          </div>
+          <div class="m-slider" id="mSlider">
+            <div class="m-track">
+              <div class="m-fill" id="mFill"></div>
+              <button class="m-knob" id="mKnob" type="button" aria-label="拖曳選擇最早場次時間">不限</button>
+            </div>
+          </div>
+          <div class="filter-head"><span>快速時段</span></div>
+          <div class="m-period" id="mPeriod">
+            <button type="button" data-period="all" class="is-selected">全天</button>
+            <button type="button" data-period="morning">上午</button>
+            <button type="button" data-period="afternoon">下午</button>
+            <button type="button" data-period="evening">晚上</button>
+          </div>
+        </section>
+
         <div class="sheet-body" id="sheetBody">
-          <section class="filter-block" aria-label="縣市篩選">
+          <section class="filter-block" id="cityBlock" aria-label="縣市篩選">
             <div class="filter-head">
               <span>縣市</span>
             </div>
             <div class="filter-scroll" id="cityFilterList"></div>
           </section>
 
-          <section class="filter-block" aria-label="品牌篩選">
+          <section class="filter-block" id="chainBlock" aria-label="品牌篩選">
             <div class="filter-head">
               <span>品牌</span>
             </div>
@@ -63,6 +98,18 @@
 
       <section class="map-wrap" aria-label="台灣影城地圖">
         <div id="map"></div>
+
+        <!-- 手機搜尋列（浮在地圖上方）：只在手機顯示 -->
+        <div class="m-search" id="mSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.5" y2="16.5" />
+          </svg>
+          <input id="mSearchInput" type="search" autocomplete="off" placeholder="搜尋影城、品牌、縣市" aria-controls="mSearchSuggestions" />
+          <button class="m-search-clear" id="mSearchClear" type="button" aria-label="清除搜尋" hidden>✕</button>
+        </div>
+        <div id="mSearchSuggestions" class="m-suggestions" hidden></div>
+        <button class="m-home" id="mHome" type="button" title="回到台灣視角" aria-label="回到台灣視角">⌂</button>
       </section>
     </main>
 
@@ -71,6 +118,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20260707e"></script>
+    <script src="app.js?v=20260708a"></script>
   </body>
 </html>
