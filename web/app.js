@@ -503,7 +503,12 @@ const CITY_ZOOM = 11; // 再點一下縮回的縣市層級
 let zoomedInId = null;
 
 // 放大聚焦某據點並開啟資訊卡片（搜尋清單與第一次點 logo 都走這條）
+// 手機一律改開底部 sheet（含搜尋推薦），桌機維持 popup。
 function focusFeature(feature) {
+  if (isMobile()) {
+    openMobileSheet(feature);
+    return;
+  }
   const props = feature.properties;
   const marker = markerById.get(props.location_id);
   if (!marker) return;
@@ -592,7 +597,7 @@ function renderMarkers(filtered) {
     // 蓋掉我們把 logo 置中的 setView，導致 logo 落到 sheet 後方。
     marker.off("click", marker._openPopup, marker);
     marker.on("click", () => {
-      if (isMobile()) openMobileSheet(feature);
+      if (isMobile()) toggleMobileSheet(feature);
       else toggleFeatureZoom(feature);
     });
     marker.addTo(markerLayer);
@@ -728,6 +733,16 @@ function closeMobileSheet() {
   appShell.classList.remove("sheet-open");
   mSheet.setAttribute("aria-hidden", "true");
   zoomedInId = null;
+}
+
+// 再次點同一個 logo → sheet 往下收起；點別的 logo → 換該影城並保持開啟
+function toggleMobileSheet(feature) {
+  const id = feature.properties.location_id;
+  if (appShell.classList.contains("sheet-open") && zoomedInId === id) {
+    closeMobileSheet();
+  } else {
+    openMobileSheet(feature);
+  }
 }
 
 mSheetClose.addEventListener("click", closeMobileSheet);
