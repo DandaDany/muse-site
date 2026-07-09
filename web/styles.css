@@ -29,13 +29,15 @@
   --card: #ffffff;
   --card-line: #eae7ec;
   --card-shadow: 0 4px 14px rgba(60, 40, 20, 0.1);
-  --panel-gradient: linear-gradient(
-    180deg,
-    var(--peach-top) 0%,
-    var(--peach-mid) 20%,
-    var(--ground) 46%,
-    var(--ground) 100%
-  );
+  --panel-gradient:
+    radial-gradient(130% 100% at 100% 0%, #ffd479 0%, rgba(255, 212, 121, 0) 55%),
+    linear-gradient(
+      180deg,
+      var(--peach-top) 0%,
+      var(--peach-mid) 20%,
+      var(--ground) 46%,
+      var(--ground) 100%
+    );
 }
 
 * {
@@ -1559,14 +1561,15 @@ input[type="search"]::-webkit-search-cancel-button {
     display: none;
   }
 
-  /* 搜尋列浮在地圖左上（往右讓開左上角的縮放鈕） */
+  /* 搜尋列浮在地圖上方置中，避開左上角的縮放鈕與圖資標示 */
   .m-search {
     display: flex;
     position: absolute;
     z-index: 950;
     top: 12px;
-    left: 54px;
-    width: min(380px, calc(100% - 70px));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, calc(100% - 160px));
     height: 42px;
     align-items: center;
     gap: 9px;
@@ -1623,14 +1626,15 @@ input[type="search"]::-webkit-search-cancel-button {
     display: none;
   }
 
-  /* 搜尋候選：白卡落在搜尋列下方 */
+  /* 搜尋候選：白卡落在搜尋列下方，跟著置中 */
   .m-suggestions {
     display: block;
     position: absolute;
     z-index: 940;
     top: 60px;
-    left: 54px;
-    width: min(380px, calc(100% - 70px));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(420px, calc(100% - 160px));
     max-height: 60vh;
     overflow: hidden auto;
     border: 1px solid var(--card-line);
