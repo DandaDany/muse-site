@@ -1529,10 +1529,10 @@ input[type="search"]::-webkit-search-cancel-button {
 /* 關閉鈕：與手機 sheet 同款——橘色頁首上的半透明白色圓鈕、白色 ✕
    （選擇器詳細度需蓋過 Leaflet 的 .leaflet-container a.leaflet-popup-close-button） */
 .leaflet-popup.band-popup a.leaflet-popup-close-button {
-  top: 11px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 6px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
