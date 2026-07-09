@@ -295,6 +295,39 @@ function showtimeTag(showtime) {
   return [...formats.slice(0, 2), lang].filter(Boolean).join(" ");
 }
 
+// 保險機制：白名單是「認得才留」，若日後資料出現沒收錄的新規格關鍵字會被靜默丟掉。
+// 這裡在載入後掃一遍，把「算不出任何版本／語言、但看起來可能藏著新規格」的補充字
+// 收集起來提醒（全大寫拉丁字串通常就是規格品牌，如 IMAX／SCREENX／未知的 XLAND…），
+// 方便你發現後補進 FORMAT_RULES；純廳號、純片名不會誤報。
+const AUDIT_IGNORE_CAPS = new Set(["ENG", "JPN", "CHT"]);
+function suspiciousSpecTokens(rawLabel, tag) {
+  if (tag) return []; // 已擷取到版本／語言就沒問題
+  const cleaned = rawLabel.replace(/[（(][^（()）]*[)）]/g, " "); // 去掉括號內附註（分級／英文片名）
+  const caps = cleaned.match(/[A-Z][A-Z.+-]{2,}/g) || []; // 全大寫拉丁 ≥3
+  return caps.filter((word) => !AUDIT_IGNORE_CAPS.has(word.replace(/[.+-]/g, "").toUpperCase()));
+}
+
+function auditShowtimeSpecs() {
+  const flagged = new Map(); // 原文 -> 可疑 token
+  for (const list of movieFeaturesByTitle.values()) {
+    for (const feature of list) {
+      for (const showtime of feature.properties.showtimes || []) {
+        const raw = showtimeSubLabel(showtime);
+        if (!raw || flagged.has(raw)) continue;
+        const tokens = suspiciousSpecTokens(raw, showtimeTag(showtime));
+        if (tokens.length) flagged.set(raw, tokens);
+      }
+    }
+  }
+  if (flagged.size) {
+    console.warn(
+      `[場次規格白名單] 有 ${flagged.size} 種補充字可能含未收錄的版本／規格，` +
+        `確認後可補進 app.js 的 FORMAT_RULES：\n` +
+        [...flagged].map(([raw, tokens]) => `  • ${raw}   → 可疑: ${tokens.join(", ")}`).join("\n"),
+    );
+  }
+}
+
 function popupHtml(feature) {
   const props = feature.properties;
   const gmap = mapsUrl(feature);
@@ -736,7 +769,8 @@ function renderMarkers(filtered) {
     });
     marker.bindPopup(popupHtml(feature), {
       className: "band-popup",
-      minWidth: 240,
+      // 網頁版固定卡片寬度（CSS 也以 !important 固定 320，比例 4:5）
+      minWidth: 320,
       maxWidth: 320,
       // 關閉 autoPan：桌機改由 focusFeature 直接以「popup 卡片中心」為目標
       // 一次平移到位，不再先置中 logo 再 autoPan 兩段跳動。
@@ -792,6 +826,7 @@ async function loadData() {
   }
   const data = await response.json();
   normalizeMovieData(data);
+  auditShowtimeSpecs();
   renderMovieOptions();
   renderFilters();
   applyFilters();
