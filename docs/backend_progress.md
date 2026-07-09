@@ -2,7 +2,7 @@
 
 > 這份文件是「續接錨點」。任何人（或下一個 session）接手時，先讀這份，就能知道**做到哪、為什麼這樣決定、下一步做什麼**。每完成一個階段請更新本檔。
 
-最後更新：2026-07-09（Phase 1 進行中）
+最後更新：2026-07-09（Phase 1 完成，已 push）
 開發分支：`claude/theater-backend-system-y7wdl0`
 
 ---
@@ -70,8 +70,8 @@
 | 階段 | 內容 | 狀態 |
 |------|------|------|
 | **Phase 0** | 產出 `backend_current_flow.md`（現況盤點）＋ `backend_architecture.md`（架構設計）＋ 本進度文件 | ✅ 完成（已 push） |
-| **Phase 1** | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | 🟡 進行中 |
-| Phase 2 | Admin 顯示優化：各表篩選/搜尋、儀表板（今日各來源成功/失敗、總場次、上次更新） | ⬜ 未開始 |
+| **Phase 1** | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | ✅ 完成（已 push，commit 見下） |
+| **Phase 2** | Admin 顯示優化：各表篩選/搜尋、儀表板（今日各來源成功/失敗、總場次、上次更新） | ⬜ 下一個 |
 | Phase 3 | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ⬜ 未開始 |
 | Phase 4 | 一鍵更新按鈕 → 觸發 GitHub Actions `workflow_dispatch` + 即時 log/狀態 | ⬜ 未開始 |
 | Phase 5 | 更新結果頁：各來源 found/saved、回寫 crawl_runs、GeoJSON/KML 是否更新 | ⬜ 未開始 |
@@ -120,12 +120,25 @@ backend/
 2. **失敗被吞掉（仍 exit 0、照 push）** → 不改各家 parser；Phase 4/5 在外層加：(a) crawler 多吐機器可讀執行摘要（additive）、(b) Actions workflow 加 publish guard（失敗過多/場次暴跌就先不 push）。
 3. **重跑=全覆蓋（來源當掉會清掉舊場次）** → 需使用者先決策 A/B：A 保留舊場次（可能顯示過期）／B 標記「資料暫缺」。定案後才把 DELETE 從「整片全刪」改「只刪本次成功來源」。排 Phase 6，**待使用者拍板**。
 
-## 5. 下一步（接手者從這裡繼續）
+## 5. Phase 1 驗證結果（已完成）
 
-1. 確認 Phase 0 三份文件內容正確、與現況一致。
-2. 開始 **Phase 1**：建立 `backend/` Django 專案骨架
-   - `backend/manage.py`、`backend/movie_map_admin/{settings,urls}.py`、`backend/mapdata/{models,admin}.py`
-   - settings 一開始就設計成可 hosted（環境變數讀 DB 連線、`ALLOWED_HOSTS`、`SECRET_KEY` 走 env）
-   - 先用 unmanaged models（`managed = False`）對應現有 8 張表，Admin 能查看，**不動 schema、不搬資料庫**
-   - 建立管理員/編輯者兩個群組與權限
-3. 每完成一階段回來更新第 3 節狀態表與第 4 節紀錄。
+在 sandbox 用一個 `scripts/init_db.py` 產生的空 schema SQLite 實測通過：
+- `manage.py check` → 0 問題（models/admin/settings 全部正確載入）。
+- `manage.py migrate` → 只新增 Django 自身表（auth_*, django_*），**8 張業務表完好未動**。
+- `manage.py seed_roles` → 管理員 36 權限、編輯者 16 權限。
+- 塞假資料 + Django test client 登入：8 個 admin 列表頁 + 8 個編輯頁全部 200；admin 首頁 200、`/healthz/` 回 ok、根路徑 302 導向 `/admin/`。
+- 編輯者權限實測：可改影城品牌✅、不可刪除✅、場次只能看不能改✅、不能管使用者✅。
+
+本機啟動方式見 `backend/README.md`。
+
+## 6. 下一步（接手者從這裡繼續）— Phase 2
+
+目標：讓後台不只是「能看表」，而是「好查、好判斷」。
+1. **儀表板首頁**：自訂 admin index 或加一個 `/admin-tools/dashboard/`，顯示——今日各爬蟲來源成功/失敗（讀 `crawl_runs`）、總場次數、有場次影城數、上次更新時間。
+2. **CrawlRun 列表強化**：讓「今天哪些來源成功/失敗、哪家沒抓到」一眼可見（可加彩色狀態標籤、彙總）。
+3. **Showtime 查詢優化**：依電影/日期/品牌/縣市過濾（跨表 filter）。
+4. Admin 中文化細節、list_per_page、常用欄位排序。
+
+之後 Phase 3（電影清單 txt→DB）、Phase 4/5（一鍵更新觸發 GitHub Actions + 結果頁）、Phase 6（人工/爬蟲資料分層，含前述三個待處理發現）。
+
+> 每完成一階段，回來更新第 3 節狀態表、第 4 節紀錄與本節。
