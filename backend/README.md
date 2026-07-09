@@ -32,9 +32,27 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-啟動後可在 `http://127.0.0.1:8000/admin/` 登入後台；根路徑 `/` 會自動導向
-`/admin/`；`/healthz/` 提供一個不觸碰資料庫的健康檢查端點，供雲端平台探測
-服務存活狀態。
+啟動後可在 `http://127.0.0.1:8000/dashboard/` 看到營運儀表板；根路徑 `/`
+會自動導向 `/dashboard/`；`/admin/` 是原本的資料管理後台；`/healthz/`
+提供一個不觸碰資料庫的健康檢查端點，供雲端平台探測服務存活狀態。
+
+### 營運儀表板
+
+啟動後首頁（`/`，實際會導向 `/dashboard/`）是給營運人員看的儀表板，內容
+包含：
+
+- 今日各爬蟲來源（`scripts/` 下各支 `fetch_*.py`）的成功／失敗狀態
+- 今日總場次數
+- 有場次的影城數
+- 上次資料更新時間、上次 GeoJSON 更新時間
+- 頁面上方提供日期選擇器，可切換檢視其他日期的統計
+
+儀表板右上角提供捷徑，可快速跳到 `/admin/` 做資料管理，或開啟公開地圖
+頁面查看實際成果。
+
+儀表板本身以 `staff_member_required` 保護，未登入時會自動導向 `/admin/`
+的登入頁，登入後才能看到統計內容（view 實作見 `mapdata/views.py` 的
+`dashboard` 函式，模板為 `mapdata/templates/mapdata/dashboard.html`）。
 
 ### 關於 `python manage.py migrate`
 
@@ -56,6 +74,9 @@ python manage.py runserver
 - `DJANGO_CSRF_TRUSTED_ORIGINS`：填入完整 origin，例如
   `https://admin.example.com`。
 - `DJANGO_SECRET_KEY`：務必換成隨機且保密的字串，不可沿用預設值。
+- `PUBLIC_MAP_URL`（選填）：公開地圖的網址，供營運儀表板上「查看公開地圖」
+  按鈕連結使用；不設定時該按鈕會隱藏或使用預設值（實際行為以
+  `mapdata.views.dashboard` 的實作為準）。
 
 部署流程大致如下：
 

@@ -2,15 +2,20 @@
 movie_map_admin 專案的最上層 URL 設定。
 
 路由總覽：
-- /admin/    Django 內建管理後台（登入、編輯影城/電影、查爬蟲紀錄等由別的模組負責）
-- /          直接導向 /admin/，方便使用者一進站就能登入後台
-- /healthz/  健康檢查端點，供雲端平台（例如 Render / Railway / GCP）探測服務存活狀態
+- /admin/     Django 內建管理後台（登入、編輯影城/電影、查爬蟲紀錄等由別的模組負責）
+- /dashboard/ 營運儀表板，顯示今日爬蟲成功/失敗、場次統計等總覽資訊
+- /           直接導向 /dashboard/，方便使用者一進站就能看到營運總覽
+              （dashboard view 本身已用 staff_member_required 保護，未登入
+              會自動被導去 /admin/ 的登入頁，不需要在這裡另外處理）
+- /healthz/   健康檢查端點，供雲端平台（例如 Render / Railway / GCP）探測服務存活狀態
 """
 
 from django.contrib import admin
 from django.http import HttpRequest, HttpResponse
 from django.urls import path
 from django.views.generic import RedirectView
+
+from mapdata.views import dashboard
 
 
 def healthz(request: HttpRequest) -> HttpResponse:
@@ -20,7 +25,9 @@ def healthz(request: HttpRequest) -> HttpResponse:
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # 根路徑直接導向後台登入頁，方便使用者操作
-    path("", RedirectView.as_view(url="/admin/", permanent=False)),
+    # 營運儀表板：今日各爬蟲來源成功/失敗、場次統計等總覽（見 mapdata.views.dashboard）
+    path("dashboard/", dashboard, name="dashboard"),
+    # 根路徑改導向營運儀表板，方便使用者一進站就能掌握營運狀況
+    path("", RedirectView.as_view(url="/dashboard/", permanent=False)),
     path("healthz/", healthz),
 ]

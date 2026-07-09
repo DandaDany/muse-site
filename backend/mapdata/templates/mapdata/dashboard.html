@@ -1,0 +1,277 @@
+{# ================================================================== #}
+{# mapdata/dashboard.html — 營運儀表板（Phase 2）                       #}
+{#                                                                    #}
+{# 自帶 <style>、不依賴外部 CDN；響應式排版，手機不會橫向溢出。          #}
+{# 由 mapdata.views.dashboard 渲染，context 欄位見該 view 的說明。      #}
+{# ================================================================== #}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>muse-site 影城地圖 · 營運儀表板</title>
+<style>
+  /* ---------- 基礎與配色（含深色模式變數） ---------- */
+  :root {
+    --bg: #f4f5f7;          /* 頁面底色 */
+    --card-bg: #ffffff;     /* 卡片底色 */
+    --border: #e2e4e8;      /* 淡灰邊框 */
+    --text: #1f2328;        /* 主要文字 */
+    --text-muted: #6b7280;  /* 次要文字 */
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --accent: #2563eb;      /* 主色（連結、按鈕） */
+    --ok-bg: #e7f6ec;   --ok-fg: #157347;   /* 成功：綠 */
+    --bad-bg: #fdecec;  --bad-fg: #c02b2b;  /* 失敗／部分失敗：紅 */
+    --run-bg: #eef0f3;  --run-fg: #5b6470;  /* 執行中：灰 */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --card-bg: #1e2126;
+      --border: #33373e;
+      --text: #e6e8eb;
+      --text-muted: #9aa1ab;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --accent: #6ea8ff;
+      --ok-bg: #12301e;   --ok-fg: #6fd396;
+      --bad-bg: #3a1b1b;  --bad-fg: #f08a8a;
+      --run-bg: #262a30;  --run-fg: #aab2bd;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei",
+                 "Noto Sans TC", "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 48px; }
+  a { color: var(--accent); }
+
+  /* ---------- 頁首：標題 + 右側快速連結按鈕 ---------- */
+  .topbar {
+    display: flex;
+    flex-wrap: wrap;            /* 手機上按鈕自動換行，不橫向溢出 */
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .topbar h1 { font-size: 1.35rem; margin: 0; }
+  .topbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ---------- 日期切換表單 ---------- */
+  .date-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .date-form label { font-size: 0.9rem; color: var(--text-muted); }
+  .date-form input[type="date"] {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .date-form button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  /* ---------- KPI 統計卡 ---------- */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+  .kpi-card .num { font-size: 2rem; font-weight: 700; line-height: 1.2; }
+  .kpi-card .num .sub-bad { color: var(--bad-fg); }
+  .kpi-card .label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ---------- 小字資訊列（更新時間等） ---------- */
+  .meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 4px 0 24px;
+  }
+  .meta span + span { margin-left: 16px; }
+
+  /* ---------- 來源狀況表 ---------- */
+  .panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+  .panel h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  .table-scroll { overflow-x: auto; }  /* 表格過寬時只在面板內水平捲動 */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td.err {
+    white-space: normal;       /* 錯誤摘要允許換行 */
+    min-width: 200px;
+    color: var(--text-muted);
+  }
+  th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+  tr:last-child td { border-bottom: none; }
+  td.num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* 狀態徽章：成功綠、失敗/部分紅、執行中灰 */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .badge.status-success { background: var(--ok-bg);  color: var(--ok-fg); }
+  .badge.status-failed,
+  .badge.status-partial { background: var(--bad-bg); color: var(--bad-fg); }
+  .badge.status-running { background: var(--run-bg); color: var(--run-fg); }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 28px 0;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  {# ---------- 頁首 ---------- #}
+  <header class="topbar">
+    <h1>muse-site 影城地圖 · 營運儀表板</h1>
+    <nav class="actions">
+      <a class="btn" href="/admin/">資料管理後台</a>
+      <a class="btn btn-primary" href="{{ public_map_url }}" target="_blank" rel="noopener">查看公開地圖</a>
+    </nav>
+  </header>
+
+  {# ---------- 日期切換 ---------- #}
+  <form class="date-form" method="get">
+    <label for="date">檢視日期</label>
+    <input type="date" id="date" name="date" value="{{ selected_date }}">
+    <button type="submit">切換</button>
+    {% if is_today %}<span style="font-size:0.85rem;color:var(--text-muted);">（今天）</span>{% endif %}
+  </form>
+
+  {# ---------- KPI 統計卡 ---------- #}
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="num">{{ total_showtimes }}</div>
+      <div class="label">今日總場次</div>
+    </div>
+    <div class="kpi-card">
+      <div class="num">{{ cinemas_with_showtimes }}</div>
+      <div class="label">有場次影城數</div>
+    </div>
+    <div class="kpi-card">
+      <div class="num">{{ movies_with_showtimes }}</div>
+      <div class="label">有場次電影數</div>
+    </div>
+    <div class="kpi-card">
+      <div class="num">{{ success_count }} <span class="sub-bad">/ {{ failed_count }}</span></div>
+      <div class="label">來源成功 / 失敗（共 {{ total_runs }} 次執行）</div>
+    </div>
+  </section>
+
+  {# ---------- 更新時間小字 ---------- #}
+  <p class="meta">
+    <span>上次爬蟲更新：{% if last_updated %}{{ last_updated }}{% else %}尚無紀錄{% endif %}</span>
+    <span>GeoJSON 更新：{% if geojson_exists %}{{ geojson_mtime|date:"Y-m-d H:i:s" }}{% else %}尚未產生{% endif %}</span>
+  </p>
+
+  {# ---------- 今日各爬蟲來源狀況 ---------- #}
+  <section class="panel">
+    <h2>今日各爬蟲來源狀況（{{ selected_date }}）</h2>
+    {% if source_rows %}
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>來源</th>
+              <th>狀態</th>
+              <th>開始時間</th>
+              <th style="text-align:right;">found</th>
+              <th style="text-align:right;">saved</th>
+              <th>錯誤摘要</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in source_rows %}
+              <tr>
+                <td>{{ row.source_name }}</td>
+                <td>
+                  <span class="badge status-{{ row.status }}">
+                    {% if row.status == "success" %}成功
+                    {% elif row.status == "failed" %}失敗
+                    {% elif row.status == "partial" %}部分失敗
+                    {% elif row.status == "running" %}執行中
+                    {% else %}{{ row.status }}{% endif %}
+                  </span>
+                </td>
+                <td>{{ row.started_at|default:"—" }}</td>
+                <td class="num-cell">{{ row.rows_found }}</td>
+                <td class="num-cell">{{ row.rows_saved }}</td>
+                <td class="err">{{ row.error_summary|default:"—" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty">當日尚無爬蟲紀錄</div>
+    {% endif %}
+  </section>
+
+</div>
+</body>
+</html>

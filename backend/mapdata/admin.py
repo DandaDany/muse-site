@@ -7,6 +7,7 @@
 """
 
 from django.contrib import admin
+from django.utils.html import format_html
 
 from .models import (
     CinemaChain,
@@ -72,6 +73,7 @@ class CinemaLocationAdmin(admin.ModelAdmin):
     autocomplete_fields = ("chain",)
     list_select_related = ("chain",)
     readonly_fields = ("created_at", "updated_at")
+    list_per_page = 50
 
 
 @admin.register(Movie)
@@ -112,23 +114,55 @@ class ShowtimeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "language",
         "auditorium",
     )
-    list_filter = ("show_date", "format", "language")
-    search_fields = ("movie__title", "location__location_name")
+    # 跨表過濾：電影 / 日期 / 品牌 / 縣市，另加放映格式與語言。
+    #   品牌 location__chain、縣市 location__city 皆為關聯欄位，
+    #   Django admin 的 list_filter 支援以雙底線跨關聯過濾。
+    list_filter = (
+        "movie",
+        "show_date",
+        "location__chain",
+        "location__city",
+        "format",
+        "language",
+    )
+    search_fields = ("movie__title", "location__location_name", "location__city")
     # 註：show_date 等日期欄位在 model 中為 CharField（非 DateField），
     #     不能使用 date_hierarchy，否則會觸發 admin 系統檢查錯誤。
-    list_select_related = ("movie", "location")
+    # 一併預抓 location__chain，避免品牌欄位造成 N+1 查詢。
+    list_select_related = ("movie", "location", "location__chain")
     readonly_fields = ("created_at", "updated_at")
+    list_per_page = 50
 
 
 @admin.register(CrawlRun)
 class CrawlRunAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     """爬蟲執行紀錄：用來回答「今天哪些來源成功／失敗」。"""
 
+    # 各狀態對應的背景色，供 status_badge 使用
+    _STATUS_COLORS = {
+        "success": "#2e7d32",  # 綠：成功
+        "failed": "#c62828",   # 紅：失敗
+        "partial": "#ef6c00",  # 橘：部分成功
+        "running": "#616161",  # 灰：執行中
+    }
+
+    def status_badge(self, obj):
+        """以帶背景色的小標籤呈現狀態，讓列表一眼看出成功／失敗。"""
+        color = self._STATUS_COLORS.get(obj.status, "#616161")
+        return format_html(
+            '<span style="display:inline-block;padding:2px 8px;border-radius:4px;'
+            'background:{};color:#fff;font-size:12px;white-space:nowrap;">{}</span>',
+            color,
+            obj.status or "-",
+        )
+
+    status_badge.short_description = "狀態"
+
     list_display = (
         "source_name",
         "movie",
         "run_type",
-        "status",
+        "status_badge",
         "rows_found",
         "rows_saved",
         "started_at",
@@ -138,6 +172,7 @@ class CrawlRunAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     search_fields = ("source_name", "error_message")
     # 註：started_at 為 CharField，故不使用 date_hierarchy。
     list_select_related = ("movie",)
+    list_per_page = 50
 
 
 @admin.register(RawPage)
@@ -175,3 +210,5 @@ class KmlExportAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
 admin.site.site_header = "muse-site 影城地圖後台"
 admin.site.site_title = "muse-site 後台"
 admin.site.index_title = "資料管理"
+# 右上「查看網站」連到營運儀表板（由另一位同事建立於 /dashboard/）
+admin.site.site_url = "/dashboard/"
