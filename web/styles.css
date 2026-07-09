@@ -441,13 +441,15 @@ input[type="search"]::-webkit-search-cancel-button {
   padding: 2px 9px;
 }
 
-/* 場次＝白底晶片方格，用柔和陰影凸顯立體感（呼應概念圖的浮起卡塊） */
+/* 場次＝白底晶片方格，用柔和陰影凸顯立體感（呼應概念圖的浮起卡塊）。
+   固定 3 欄、列高固定，一次顯示 4 排（4×3＝12 個），其餘往下捲。 */
 .showtime-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 50px;
   gap: 9px;
-  /* 一次顯示約 3 排，其餘往下滑（壓緊高度，小螢幕也裝得下） */
-  max-height: 214px;
+  /* 4 排：4×50 + 3×9(間距) + 上下留邊 10 ＝ 237，取 240 剛好露出 4 排 */
+  max-height: 240px;
   margin: 0;
   /* 留邊避免晶片陰影被裁切 */
   padding: 4px 3px 6px;
@@ -1459,12 +1461,6 @@ input[type="search"]::-webkit-search-cancel-button {
   .m-sheet-body .pop-body .popup-showtimes {
     margin-top: 0;
   }
-
-  /* sheet 內整體捲動即可，取消場次方格自身的高度上限與內捲動 */
-  .m-sheet-body .showtime-grid {
-    max-height: none;
-    overflow: visible;
-  }
 }
 
 /* ============================================================
@@ -1478,19 +1474,11 @@ input[type="search"]::-webkit-search-cancel-button {
   border-radius: 14px;
 }
 
-/* 網頁版固定卡片長寬比：寬 320、比例 4:5（高 400），內容區彈性、場次過多時內捲 */
+/* 網頁版固定卡片寬度 320；高度隨內容（場次固定顯示 4 排、超過內捲） */
 .band-popup .leaflet-popup-content {
   margin: 0;
   line-height: 1.45;
   width: 320px !important;
-  aspect-ratio: 4 / 5;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.band-popup .pop-head {
-  flex: 0 0 auto;
 }
 
 /* 橘色品牌色帶頁首 */
@@ -1527,41 +1515,37 @@ input[type="search"]::-webkit-search-cancel-button {
   background: #fff3ea;
 }
 
-/* 白底內容區：彈性填滿卡片剩餘高度 */
+/* 白底內容區 */
 .band-popup .pop-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   padding: 12px 15px 13px;
 }
 
 .band-popup .pop-body .popup-showtimes {
   margin-top: 0;
-  flex: 1 1 auto;
-  min-height: 0;
+}
+
+/* 關閉鈕：與手機 sheet 同款——橘色頁首上的半透明白色圓鈕、白色 ✕
+   （選擇器詳細度需蓋過 Leaflet 的 .leaflet-container a.leaflet-popup-close-button） */
+.leaflet-popup.band-popup a.leaflet-popup-close-button {
+  top: 11px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1;
+  padding: 0;
 }
 
-/* 固定高度卡片內：場次方格吃掉剩餘空間、自身捲動 */
-.band-popup .showtime-grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-}
-
-.band-popup .popup-links {
-  flex: 0 0 auto;
-}
-
-/* 關閉鈕落在橘色頁首上，改成白色 */
-.band-popup .leaflet-popup-close-button {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.band-popup .leaflet-popup-close-button:hover {
-  color: #fff;
+.leaflet-popup.band-popup a.leaflet-popup-close-button:hover {
+  background: rgba(255, 255, 255, 0.34);
+  color: #ffffff;
 }
 
 /* ============================================================
