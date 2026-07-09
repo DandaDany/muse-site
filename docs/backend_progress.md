@@ -2,7 +2,7 @@
 
 > 這份文件是「續接錨點」。任何人（或下一個 session）接手時，先讀這份，就能知道**做到哪、為什麼這樣決定、下一步做什麼**。每完成一個階段請更新本檔。
 
-最後更新：2026-07-09
+最後更新：2026-07-09（Phase 1 進行中）
 開發分支：`claude/theater-backend-system-y7wdl0`
 
 ---
@@ -69,8 +69,8 @@
 
 | 階段 | 內容 | 狀態 |
 |------|------|------|
-| **Phase 0** | 產出 `backend_current_flow.md`（現況盤點）＋ `backend_architecture.md`（架構設計）＋ 本進度文件 | 🟡 進行中 |
-| Phase 1 | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | ⬜ 未開始 |
+| **Phase 0** | 產出 `backend_current_flow.md`（現況盤點）＋ `backend_architecture.md`（架構設計）＋ 本進度文件 | ✅ 完成（已 push） |
+| **Phase 1** | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | 🟡 進行中 |
 | Phase 2 | Admin 顯示優化：各表篩選/搜尋、儀表板（今日各來源成功/失敗、總場次、上次更新） | ⬜ 未開始 |
 | Phase 3 | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ⬜ 未開始 |
 | Phase 4 | 一鍵更新按鈕 → 觸發 GitHub Actions `workflow_dispatch` + 即時 log/狀態 | ⬜ 未開始 |
@@ -84,7 +84,41 @@
 
 - 讀完專案原始碼、schema、BAT、腳本流程與使用者朋友的 v2 企劃。
 - 與使用者確認 4 個關鍵架構決策（見上表）。
-- 啟動 Phase 0 三份文件的撰寫（多模型分派：Fable 寫架構書、Opus 寫盤點文件、主線寫本進度文件）。
+- 完成 Phase 0 三份文件（Fable 架構書、Opus 盤點文件、主線進度文件），已 push。
+- 討論三個爬蟲盤點發現的處置（見下方「待處理的既有程式碼調整」）。
+- 啟動 Phase 1 Django 骨架（多模型分派）。
+
+### Phase 1 實作分派與檔案歸屬（若中途中斷，依此接手）
+
+`backend/` 目錄結構：
+
+```
+backend/
+  manage.py                         (Sonnet)
+  requirements.txt                  (Sonnet) Django/dj-database-url/psycopg2/dotenv/whitenoise/gunicorn
+  .env.example                      (Sonnet)
+  README.md                         (Sonnet) 本機啟動 + 雲端部署說明
+  movie_map_admin/
+    __init__.py  urls.py  wsgi.py  asgi.py   (Sonnet)
+    settings.py                     (Fable) env 驅動 DB：本機連現有 SQLite、雲端 DATABASE_URL 切 Postgres
+  mapdata/
+    __init__.py  apps.py            (Sonnet)
+    migrations/__init__.py          (Sonnet) 只留空 __init__，models 為 unmanaged 不建 migration
+    models.py                       (Fable) 8 個 unmanaged models（managed=False）精準對映 schema
+    admin.py                        (Opus) 8 個 ModelAdmin + site_header
+    management/commands/seed_roles.py  (Opus) 建立「管理員」「編輯者」群組與權限（idempotent）
+```
+
+關鍵設計：
+- models 全部 `managed = False`，`migrate` 只會在同一個 SQLite 新增 Django 自身表（auth_*, django_*），**不動現有 8 張業務表**。
+- 角色：管理員（全權 + 管使用者）／編輯者（人工資料 view/add/change 無 delete、爬蟲產出僅 view）。
+- **主線待辦（agents 回來後我做）**：`pip install` 後端依賴 → `python scripts/init_db.py` 產空 schema SQLite → `manage.py check` / `migrate` / `seed_roles` 驗證 models 對映無誤 → 修正 → commit + push。
+
+### 待處理的既有程式碼調整（三個爬蟲盤點發現，現在不動、排入對應 Phase）
+
+1. **威秀 `headless=False`** → 非程式問題，是 runner 部署要求：self-hosted runner 要跑在「有登入桌面的互動 session」，不能裝成背景 Windows Service。排 Phase 4 runner 設定說明。
+2. **失敗被吞掉（仍 exit 0、照 push）** → 不改各家 parser；Phase 4/5 在外層加：(a) crawler 多吐機器可讀執行摘要（additive）、(b) Actions workflow 加 publish guard（失敗過多/場次暴跌就先不 push）。
+3. **重跑=全覆蓋（來源當掉會清掉舊場次）** → 需使用者先決策 A/B：A 保留舊場次（可能顯示過期）／B 標記「資料暫缺」。定案後才把 DELETE 從「整片全刪」改「只刪本次成功來源」。排 Phase 6，**待使用者拍板**。
 
 ## 5. 下一步（接手者從這裡繼續）
 
