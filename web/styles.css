@@ -29,12 +29,13 @@
   --card: #ffffff;
   --card-line: #eae7ec;
   --card-shadow: 0 4px 14px rgba(60, 40, 20, 0.1);
+  /* 側欄篩選表底色：試 logo 的橘黃漸層（僅網頁版；手機底盤另有白底覆蓋） */
   --panel-gradient: linear-gradient(
-    180deg,
-    var(--peach-top) 0%,
-    var(--peach-mid) 20%,
-    var(--ground) 46%,
-    var(--ground) 100%
+    170deg,
+    #f7941e 0%,
+    #fbb40f 42%,
+    #fdcb45 78%,
+    #fde08a 100%
   );
 }
 
@@ -1373,8 +1374,8 @@ input[type="search"]::-webkit-search-cancel-button {
     flex: 1 1 auto;
     min-height: 0;
     flex-direction: column;
-    background: #faf9f7;
-    border: 1px solid #e6e2da;
+    background: #ffffff;
+    border: 1px solid #ececf0;
     border-radius: 24px;
     box-shadow:
       0 -2px 26px -8px rgba(30, 25, 20, 0.16),
