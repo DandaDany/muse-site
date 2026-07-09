@@ -221,14 +221,78 @@ function showtimeSubLabel(showtime) {
   return rest || showtime.format || "";
 }
 
-// 從場次補充字取出精簡的規格標籤（片名／分級是冗字，捨去）：
-// 「(數位 國)玩具總動員5 (普遍級)」→「數位 國」、「09廳」→「09廳」
+// 各家影城的場次補充字格式南轅北轍（含廳號、座位數、樓層、片名、分級…），
+// 只用白名單擷取「版本（規格）＋語言」，其餘一律捨去。
+// 例：「(數位 英)玩具總動員5 (普遍級)」→「數位 英語」、「數位 國語 / 3廳」→「數位 國語」、
+//     「05廳(6樓)」→「」、「(GC 數位 英)…」→「GC 數位 英語」。
+const FORMAT_RULES = [
+  ["IMAX", /imax/i],
+  ["4DX", /4dx/i],
+  ["MX4D", /mx-?4d/i],
+  ["ScreenX", /screen\s*-?\s*x/i],
+  ["巨幕", /巨幕/],
+  ["TITAN", /titan/i],
+  ["ULTRA", /ultra/i],
+  ["LUXE", /luxe/i],
+  ["Dolby", /dolby|\bdva\b/i],
+  ["ATMOS", /atmos/i],
+  ["GC", /\bgc\b|gold\s*class/i],
+  ["MUCROWN", /mucrown/i],
+  ["A+", /a\+/i],
+  ["皇家廳", /皇家廳/],
+  ["COACH廳", /coach廳/i],
+  ["BOOM廳", /boom廳/i],
+  ["Pink Sofa", /pink\s*sofa/i],
+  ["VIP", /\bvip\b/i],
+  ["3D", /3d/i],
+  ["數位", /數位/],
+  ["2D", /2d/i],
+];
+
+const LANG_RULES = [
+  ["日語", /日語|日文|JPN|[（(]\s*日\s*[)）]/i],
+  ["英語", /英語|英文|ENG|[（(]\s*英\s*[)）]/i],
+  ["國語", /國語|中文|CHT|[（(]\s*中\s*[)）]/i],
+  ["台語", /台語|臺語/],
+  ["粵語", /粵語/],
+];
+
 function showtimeTag(showtime) {
-  const sub = showtimeSubLabel(showtime);
-  if (!sub) return "";
-  const paren = /^[（(]\s*([^（()）]*?)\s*[)）]/.exec(sub);
-  if (paren) return paren[1].trim();
-  return sub.split(/\s+/)[0] || "";
+  const raw = showtimeSubLabel(showtime);
+  if (!raw) return "";
+
+  const formats = [];
+  for (const [name, re] of FORMAT_RULES) {
+    if (re.test(raw) && !formats.includes(name)) formats.push(name);
+  }
+  // 同義／重複去除：數位＝2D 只留數位；DolbyVisionAtmos 已含 Dolby，去掉 ATMOS
+  if (formats.includes("數位")) {
+    const i = formats.indexOf("2D");
+    if (i !== -1) formats.splice(i, 1);
+  }
+  if (formats.includes("Dolby")) {
+    const i = formats.indexOf("ATMOS");
+    if (i !== -1) formats.splice(i, 1);
+  }
+
+  let lang = "";
+  for (const [name, re] of LANG_RULES) {
+    if (re.test(raw)) {
+      lang = name;
+      break;
+    }
+  }
+  // 語言 fallback：只看第一個括號內的單字（避免掃到片名而誤判）
+  if (!lang) {
+    const paren = /[（(]([^（()）]*)[)）]/.exec(raw);
+    const inside = paren ? paren[1] : "";
+    if (/日/.test(inside)) lang = "日語";
+    else if (/英/.test(inside)) lang = "英語";
+    else if (/[國中]/.test(inside)) lang = "國語";
+    else if (/台/.test(inside)) lang = "台語";
+  }
+
+  return [...formats.slice(0, 2), lang].filter(Boolean).join(" ");
 }
 
 function popupHtml(feature) {
