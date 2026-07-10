@@ -227,6 +227,7 @@
   <p class="meta">
     <span>上次爬蟲更新：{% if last_updated %}{{ last_updated }}{% else %}尚無紀錄{% endif %}</span>
     <span>GeoJSON 更新：{% if geojson_exists %}{{ geojson_mtime|date:"Y-m-d H:i:s" }}{% else %}尚未產生{% endif %}</span>
+    <span>數字來源：{% if data_from == "report" %}本機回報（run {{ report_run_id }}{% if report_worker %} · {{ report_worker }}{% endif %}）{% else %}本機即時明細{% endif %}</span>
   </p>
 
   {# ---------- 資料品質提醒 ---------- #}

@@ -91,13 +91,33 @@ def collect_sources(pre_max_id: int):
     return result
 
 
-def build_summary(sources):
+def showtime_coverage(show_date: str):
+    """當日不重複影城據點數、電影數（供雲端儀表板 KPI 顯示）。"""
+    if not DB_PATH.exists():
+        return 0, 0
+    try:
+        con = sqlite3.connect(str(DB_PATH))
+        row = con.execute(
+            "SELECT COUNT(DISTINCT location_id), COUNT(DISTINCT movie_id) "
+            "FROM showtimes WHERE show_date = ?",
+            (show_date,),
+        ).fetchone()
+        con.close()
+        return row[0] or 0, row[1] or 0
+    except sqlite3.Error:
+        return 0, 0
+
+
+def build_summary(sources, show_date):
+    cinemas, movies = showtime_coverage(show_date)
     return {
         "sources_total": len(sources),
         "sources_success": sum(1 for s in sources if s["status"] == "success"),
         "sources_failed": sum(1 for s in sources if s["status"] in ("failed", "partial")),
         "showtimes_found": sum(s["found"] for s in sources),
         "showtimes_saved": sum(s["saved"] for s in sources),
+        "cinemas_with_showtimes": cinemas,
+        "movies_with_showtimes": movies,
     }
 
 
@@ -186,7 +206,7 @@ def main() -> None:
         run([sys.executable, *export_args])
 
     sources = collect_sources(pre_max)
-    summary = build_summary(sources)
+    summary = build_summary(sources, args.date)
 
     # 3) 發佈
     git = {"push_status": "skipped", "commit_sha": None}
