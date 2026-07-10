@@ -217,13 +217,26 @@ backend/
 ### 明確「暫時不做」
 - Postgres↔SQLite 全表雙向同步、秒級監控、兩邊都能改同欄、自動判新舊、直接互傳 DB 檔。
 
-### 落地里程碑（下一步實作）
-1. Django 是片單/設定唯一來源 ✅（TrackedMovie 已是）
-2. 本機執行前自動向**雲端**取片單（+ 拉不到用快取）— **待做**（目前 daily_update 讀「本機」Django，要改讀雲端）
-3. 本機執行後回傳 crawl_runs 摘要到雲端 — **待做**
-4. 雲端斷線時本機用上次資料續跑 — 部分已有（daily_update 會退回現有 txt），改雲端來源後要保留此 fallback
+### 落地里程碑（已完成 — 改採 API 而非直連 DB，更安全）
+1. Django 是片單/設定唯一來源 ✅（TrackedMovie）
+2. 本機執行前自動向雲端取片單（+ 拉不到用快取）✅（`muse_api.pull_movie_list`）
+3. 本機執行後回傳摘要到雲端 ✅（`/api/crawl-report/` + outbox）
+4. 雲端斷線時本機用上次資料續跑 ✅（cache fallback + pending 佇列補送）
 
-實作取向（最小）：一支「雲端橋接」小程式，用 `CLOUD_DATABASE_URL`（Render 外部連線字串）直接讀 `tracked_movie`、寫 `crawl_runs` 摘要；不動本機 SQLite 的 showtimes。之後要更嚴謹再升級成 Django API + token。
+### Phase 7（雲端橋接 API）已完成（2026-07-10）
+- **雲端**：`CrawlReport` managed 表（run_id 唯一，摘要）；`mapdata/api.py` 兩端點
+  `GET /api/tracked-movies/`（回片單 + version）、`POST /api/crawl-report/`（run_id 冪等 upsert）；
+  Bearer token（`CRAWLER_API_TOKEN`，未設→503）；admin 唯讀查看報告；seed_roles 給 view_crawlreport。
+- **本機**：`scripts/muse_api.py`（拉片單→驗證→原子寫 JSON 快取 + txt；outbox 報告）、
+  `scripts/daily_update.py` 重寫（run_id、分階段、從 crawl_runs 彙總、git 狀態、先落地再上傳）。
+- 採納 review 三大補強：**快取原子替換+驗證、run_id 冪等、報告先落地再上傳（outbox）**。
+- 已端到端驗證：API 正常 source=api/上傳成功/雲端收到；API 關閉 source=cache/報告留佇列補送。
+- 環境變數：雲端 `CRAWLER_API_TOKEN`；本機 `MUSE_API_BASE_URL`/`MUSE_API_TOKEN`/`MUSE_WORKER_NAME`。
+
+### Phase 7 待補（小）
+- **雲端儀表板顯示 CrawlReport 數字**：目前 dashboard 讀 showtimes（雲端為空 → KPI 顯示 0）；
+  應改讀當日最新 `CrawlReport` 的 summary（場次數/來源成功失敗），同事才看得到真實數字。
+- v1 來源指標僅 found/saved；`inserted/updated/skipped/deleted` 需改爬蟲寫入層 instrumentation，之後再補。
 
 > 提醒：subagent 會受 session 額度限制（本階段起改由主線直接實作較穩）。
 

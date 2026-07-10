@@ -22,7 +22,26 @@
 2. 已安裝後台相依套件（`backend/requirements.txt`），且本機 `data/movie_map.sqlite` 是後台在用的同一顆（`daily_update.py` 會呼叫後台的 `export_movie_list` 取得最新片單）。
 3. **Git 推送憑證已快取**（例如已用 PAT 或 Git Credential Manager 登入過），這樣無人值守時 `git push` 才不會卡在輸入密碼。
 
-> 若後台尚未設定，`daily_update.py` 會自動略過匯出步驟、改用現有《電影清單.txt》，不會讓整個排程失敗。
+> 若未設定雲端 API（下節），`daily_update.py` 會直接用現有《電影清單.txt》，不會讓整個排程失敗。
+
+## 連接雲端後台（API）
+
+要讓本機**自動向雲端 Django 拉最新片單、並把執行摘要回傳**，在本機設定環境變數：
+
+```
+MUSE_API_BASE_URL=https://muse-backend-xxxx.onrender.com
+MUSE_API_TOKEN=<與雲端 CRAWLER_API_TOKEN 相同的字串>
+MUSE_WORKER_NAME=company-desktop-01   # 選填，預設本機電腦名稱
+```
+
+雲端 Render 端也要設一個對應的環境變數 `CRAWLER_API_TOKEN`（同一組隨機字串）。
+
+行為：
+- **執行前**：`daily_update.py` 向 `/api/tracked-movies/` 拉啟用片單，驗證後**原子寫入** `cache/tracked_movies.json` 與《電影清單.txt》。
+- **雲端斷線/逾時**：自動改用上次快取的片單繼續跑，不中斷。
+- **執行後**：把本次摘要（唯一 `run_id`、各來源成功/失敗、場次數、git 狀態）POST 到 `/api/crawl-report/`；上傳失敗會留在 `data/output/pending_reports/`，**下次執行自動補送**（以 run_id 冪等，不會重複）。
+
+> 未設定這些變數時 = 純本機模式：只用本機《電影清單.txt》，不連雲端。
 
 ## 手動測試
 
