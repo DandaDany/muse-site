@@ -2,7 +2,7 @@
 
 > 這份文件是「續接錨點」。任何人（或下一個 session）接手時，先讀這份，就能知道**做到哪、為什麼這樣決定、下一步做什麼**。每完成一個階段請更新本檔。
 
-最後更新：2026-07-09（Phase 2 完成，已 push）
+最後更新：2026-07-09（Phase 3 完成，已 push）
 開發分支：`claude/theater-backend-system-y7wdl0`
 
 ---
@@ -72,7 +72,7 @@
 | **Phase 0** | 產出 `backend_current_flow.md`（現況盤點）＋ `backend_architecture.md`（架構設計）＋ 本進度文件 | ✅ 完成（已 push） |
 | **Phase 1** | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | ✅ 完成（已 push，commit 見下） |
 | **Phase 2** | Admin 顯示優化：各表篩選/搜尋、儀表板（今日各來源成功/失敗、總場次、上次更新） | ✅ 完成（已 push） |
-| **Phase 3** | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ⬜ 下一個 |
+| **Phase 3** | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ✅ 完成（已 push） |
 | Phase 4 | 一鍵更新按鈕 → 觸發 GitHub Actions `workflow_dispatch` + 即時 log/狀態 | ⬜ 未開始 |
 | Phase 5 | 更新結果頁：各來源 found/saved、回寫 crawl_runs、GeoJSON/KML 是否更新 | ⬜ 未開始 |
 | Phase 6 | 人工/爬蟲資料分層落實「人工永遠贏」；地圖預覽連結 | ⬜ 未開始 |
@@ -138,16 +138,23 @@ backend/
 - 根路徑 `/` 改導向 `/dashboard/`。
 - 實測：`check` 0 問題；`/dashboard/`、強化後 admin 頁、縣市跨表過濾全部 200。
 
-## 7. 下一步（接手者從這裡繼續）— Phase 3
+## 6.5 Phase 3 驗證結果與重要提醒（已完成）
 
-目標：把 `電影清單.txt` 升級為 DB 表，成為「追蹤電影」的真相來源，txt 降級為匯出/相容層。
-1. **新增 managed 資料表**（這是第一個由 Django **managed** 的新表，不動現有 8 張 unmanaged 表）：建議 `tracked_movie`，欄位參考架構書：`title`、`aliases`、`target_date`、`is_active`、`created_by`/`updated_by`（FK auth.User）、`updated_at`、`notes`。
-   - 做法：在 mapdata 建一個 managed model + 正式 migration（只建這張新表）。
-   - 注意：這會是 `backend/mapdata/migrations/` 下第一個真正的 migration 檔（Phase 1 那裡只有空 `__init__.py`）。
-2. **Admin 頁**：讓編輯者能新增/停用追蹤電影、填別名與上映日；記錄 created_by/updated_by（override `save_model`）。
-3. **相容匯出**：提供一個 management command（如 `export_movie_list`）把 `is_active` 的追蹤電影寫回 `電影清單.txt`（給現有 BAT/爬蟲繼續讀），確保過渡期兩邊一致。
-4. 更新 `update_map.py` 的讀取來源策略留待 Phase 4/5 再一起處理（先不動爬蟲）。
+- 新增第一張 managed 表 `tracked_movie`（`TrackedMovie` model）+ migration `0001_initial`。
+- 實測：`makemigrations`/`migrate` 只建 `tracked_movie`，8 張 unmanaged 業務表未被建/改、資料無損；`import_movie_list` 冪等（第二次 0 新建 2 更新）；`export_movie_list` 往返格式與現有解析器相容且覆寫前備份到 `data/backup/`；admin 稽核 `created_by/updated_by` 自動填入；`seed_roles` 管理員 40／編輯者 19；`check` 0 問題；儀表板與既有 admin 全部仍 200。
+- 過程插曲：三個 Phase 3 subagent 因 session 額度用盡中途失敗（Fable 已寫入 model、Opus 已寫入 admin，但 seed_roles/兩個 command/README/.gitignore 未完成）；由主線接手補完並驗證。
 
-之後：Phase 4/5（一鍵更新觸發 GitHub Actions + 結果頁）、Phase 6（人工/爬蟲資料分層「人工永遠贏」，含第 4 節末三個待處理發現）。
+> ⚠️ **雲端部署重要提醒（Phase 4/6 要處理）**：因 8 張業務表是 `managed=False`，在**全新的雲端 Postgres** 上跑 `migrate` **不會**建立這 8 張表——只會建 `tracked_movie` 與 Django 自身表。因此控制面 Postgres 的那 8 張表需要另外建立（用 `sql/schema.sql`，或由爬蟲面同步）。本機 SQLite 因表已存在故無此問題。此點已列入架構書風險 R，Phase 6「雙 DB 同步」會正式解決。
+
+## 7. 下一步（接手者從這裡繼續）— Phase 4
+
+目標：後台一顆「一鍵更新」按鈕 → 觸發 GitHub Actions（self-hosted runner）跑爬蟲 → 回寫狀態。
+1. **GitHub Actions workflow**（`.github/workflows/crawl.yml`，`workflow_dispatch` 可帶參數 date）：在 self-hosted runner 上跑 `export_movie_list`（讓 txt = 最新追蹤片單）→ `scripts/update_map.py` → commit/push `web/data/locations.geojson`。runner 需求：互動桌面 session（威秀 headless=False）。
+2. **後台觸發頁**（`/admin-tools/run-update/` 或 dashboard 按鈕）：透過 GitHub API `POST .../actions/workflows/crawl.yml/dispatches` 觸發；需要一組 GitHub token（存 env，勿進 repo）。建一筆 `crawl_runs`（或新表）記 run_token 供回寫對應。
+3. **狀態呈現**：先用 GitHub Actions API 查最近一次 run 狀態顯示於後台；log 連結。
+4. **publish guard（對應待辦 #2）**：workflow 內爬完先看成功來源數/場次數，異常則不 push、標記待確認。
+5. 防重複點擊（concurrency 鎖）。
+
+之後：Phase 5（更新結果頁：各來源 found/saved、GeoJSON/KML 是否更新）、Phase 6（人工/爬蟲資料分層「人工永遠贏」+ 雙 DB 同步 + 第 4 節末三個待處理發現的 #3 決策）。
 
 > 每完成一階段，回來更新第 3 節狀態表、第 4 節紀錄與本節。
