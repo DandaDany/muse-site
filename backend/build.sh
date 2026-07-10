@@ -12,3 +12,11 @@ python manage.py migrate --no-input          # Django 自身表 + tracked_movie
 python manage.py init_business_schema         # 在 Postgres 建 8 張業務表
 python manage.py seed_roles                   # 管理員 / 編輯者 群組權限
 python manage.py ensure_admin                 # 依環境變數建初始管理員帳號
+
+# 選用：初次開帳時把 web/data/locations.geojson 的影城主檔匯入雲端。
+# 設定環境變數 SEED_FROM_GEOJSON=1 → 本次部署會匯入；匯完建議移除該變數，
+# 避免每次部署都覆寫（會蓋掉你在後台手動修過的地址/經緯度）。
+if [ "$SEED_FROM_GEOJSON" = "1" ]; then
+  echo "SEED_FROM_GEOJSON=1 → 匯入影城主檔"
+  python manage.py import_from_geojson
+fi
