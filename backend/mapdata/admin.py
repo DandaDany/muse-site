@@ -1,7 +1,8 @@
 """mapdata 後台設定。
 
 資料分兩種性質：
-1. 人工權威資料（CinemaChain, CinemaLocation, Movie, MovieTarget）：可在後台編輯。
+1. 人工權威資料（CinemaChain, CinemaLocation, TrackedMovie）：可在後台編輯。
+   （Movie 由爬蟲維護、於選單隱藏；MovieTarget 已從後台移除。）
 2. 爬蟲產出（Showtime, CrawlRun, RawPage, KmlExport）：後台原則上唯讀，
    僅供人查閱，不手動修改，避免與爬蟲流程衝突。
 """
@@ -15,7 +16,6 @@ from .models import (
     CrawlRun,
     KmlExport,
     Movie,
-    MovieTarget,
     RawPage,
     Showtime,
     TrackedMovie,
@@ -79,24 +79,21 @@ class CinemaLocationAdmin(admin.ModelAdmin):
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    """電影。被 MovieTarget / Showtime / CrawlRun / KmlExport 參照，需 search_fields。"""
+    """電影（爬蟲自動產生的主檔，場次掛在其下）。
+
+    刻意從後台選單隱藏（get_model_perms 回傳空 dict）：使用者只需操作「追蹤電影」，
+    這張表由爬蟲維護、不需人工編輯。仍保留登錄與 search_fields，供程式與
+    autocomplete 使用。
+    """
 
     list_display = ("title", "original_title", "release_date", "active", "created_at")
     list_filter = ("active",)
     search_fields = ("title", "original_title")
     readonly_fields = ("created_at", "updated_at")
 
-
-@admin.register(MovieTarget)
-class MovieTargetAdmin(admin.ModelAdmin):
-    """追蹤目標：某電影要在哪些品牌／據點追場次。"""
-
-    list_display = ("movie", "chain", "location", "target_scope", "status")
-    list_filter = ("target_scope", "status")
-    search_fields = ("movie__title", "chain__chain_name", "location__location_name")
-    autocomplete_fields = ("movie", "chain", "location")
-    list_select_related = ("movie", "chain", "location")
-    readonly_fields = ("created_at", "updated_at")
+    def get_model_perms(self, request):
+        # 回傳空權限 → 不出現在後台首頁選單（但仍可被 autocomplete/程式使用）。
+        return {}
 
 
 @admin.register(TrackedMovie)

@@ -20,7 +20,8 @@ from django.core.management.base import BaseCommand
 
 # mapdata 的 model（以 model_name 小寫表示，用於組出 codename）
 # 人工權威資料：可編輯（trackedmovie 為 Phase 3 新增的追蹤片單 managed 表）
-EDITABLE_MODELS = ["cinemachain", "cinemalocation", "movie", "movietarget", "trackedmovie"]
+# 註：movietarget 已從後台移除，不再指派權限；movie 雖保留登錄但於後台選單隱藏。
+EDITABLE_MODELS = ["cinemachain", "cinemalocation", "movie", "trackedmovie"]
 # 爬蟲產出：後台唯讀
 READONLY_MODELS = ["showtime", "crawlrun", "rawpage", "kmlexport"]
 ALL_MAPDATA_MODELS = EDITABLE_MODELS + READONLY_MODELS
