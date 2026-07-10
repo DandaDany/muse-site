@@ -181,6 +181,50 @@ backend/
 - **人工/爬蟲資料分層「人工永遠贏」**：目前使用者的每日流程只寫 showtimes、不動 cinema_locations 的人工欄位（address/lat/lng），所以此風險在現行流程已自然避開；僅在重跑「據點爬蟲/geocode」時才需處理，屆時再做。
 - **上線（可選）**：雲端多人用 Render（`docs/deploy_render.md`）；或 HTML+Supabase（需重寫前端）。
 
+## 8. 雲端 Django ↔ 本機爬蟲：資料流與同步原則（定案 2026-07-10）
+
+> 前提：只有在「雲端 Django（Render Postgres）＋ 本機爬蟲（SQLite）」同時存在時才有兩個 DB。
+> 純本機路線（Django 也跑本機、同一顆 SQLite）只有一個 DB，不需要同步。
+
+**核心原則：有方向的資料流，不是雙向鏡像；每種資料只有一個主來源；每次執行同步一次（不做即時）。**
+
+### 主來源（唯一真相）
+| 資料 | 主來源 |
+|---|---|
+| 追蹤片單、人工修改、啟用狀態、影城品牌/據點/經緯度 | **雲端 Django（Postgres）** |
+| 爬到的場次 showtimes、原始結果 raw_pages | **本機 SQLite** |
+| 執行成功/失敗紀錄 crawl_runs | 本機先寫，**回傳雲端**供查看 |
+| 公開地圖 GeoJSON | 本機產出 → GitHub Pages |
+
+### 每次執行的流程（sync-per-run）
+```
+[執行前] 向雲端 Django 拉最新「啟用中的追蹤片單」→ 寫 電影清單.txt
+         （拉不到 → 用上次快取的 電影清單.txt，不中斷）
+[執行]   本機爬蟲 → 寫本機 SQLite → 產 GeoJSON → 推 Pages
+[執行後] 把本次 crawl_runs 摘要（來源/狀態/found/saved/時間/錯誤）回傳雲端
+         （回傳失敗 → 留待下次再送，不中斷）
+```
+
+### 衝突規則
+- 本機**只讀片單、只寫場次**，不改片名/片單 → 與雲端不會改到同一欄，設計上無衝突。
+- 片名以雲端 Django 為準；場次以本機為準。
+
+### 容錯（雲端斷線仍可運作）
+- 拉片單失敗 → 用上次快取 txt 繼續。
+- 本機 SQLite 永遠在本機，不依賴雲端。
+- 回傳失敗 → 本機保留、下次重送。
+
+### 明確「暫時不做」
+- Postgres↔SQLite 全表雙向同步、秒級監控、兩邊都能改同欄、自動判新舊、直接互傳 DB 檔。
+
+### 落地里程碑（下一步實作）
+1. Django 是片單/設定唯一來源 ✅（TrackedMovie 已是）
+2. 本機執行前自動向**雲端**取片單（+ 拉不到用快取）— **待做**（目前 daily_update 讀「本機」Django，要改讀雲端）
+3. 本機執行後回傳 crawl_runs 摘要到雲端 — **待做**
+4. 雲端斷線時本機用上次資料續跑 — 部分已有（daily_update 會退回現有 txt），改雲端來源後要保留此 fallback
+
+實作取向（最小）：一支「雲端橋接」小程式，用 `CLOUD_DATABASE_URL`（Render 外部連線字串）直接讀 `tracked_movie`、寫 `crawl_runs` 摘要；不動本機 SQLite 的 showtimes。之後要更嚴謹再升級成 Django API + token。
+
 > 提醒：subagent 會受 session 額度限制（本階段起改由主線直接實作較穩）。
 
 > 每完成一階段，回來更新第 3 節狀態表、第 4 節紀錄與本節。
