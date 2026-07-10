@@ -6,7 +6,8 @@ cd /d "%~dp0"
 set "GIT_EXE=%LOCALAPPDATA%\Programs\Git\cmd\git.exe"
 if not exist "%GIT_EXE%" set "GIT_EXE=git"
 
-py -3 scripts\update_map.py
+rem 先從後台匯出追蹤電影 -> 電影清單.txt，再爬蟲、匯出 GeoJSON（git 交給下方處理）
+py -3 scripts\daily_update.py --no-git
 if errorlevel 1 (
   echo.
   echo [ERROR] Update failed.
