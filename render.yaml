@@ -29,7 +29,8 @@ services:
     plan: free
     rootDir: backend
     buildCommand: "./build.sh"
-    startCommand: "gunicorn movie_map_admin.wsgi:application"
+    # 必須綁定 Render 指定的 $PORT，否則 Render 連不到服務、部署會逾時失敗。
+    startCommand: "gunicorn movie_map_admin.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       # 自動注入 Postgres 連線字串
       - key: DATABASE_URL
