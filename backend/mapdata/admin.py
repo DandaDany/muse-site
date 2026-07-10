@@ -13,6 +13,7 @@ from django.utils.html import format_html
 from .models import (
     CinemaChain,
     CinemaLocation,
+    CrawlReport,
     CrawlRun,
     KmlExport,
     Movie,
@@ -232,6 +233,25 @@ class KmlExportAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     search_fields = ("movie__title", "file_path")
     # 註：export_date 為 CharField，故不使用 date_hierarchy。
     list_select_related = ("movie",)
+
+
+@admin.register(CrawlReport)
+class CrawlReportAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    """執行報告：本機每日執行的摘要（由 API 回傳），純查閱。"""
+
+    list_display = (
+        "run_id",
+        "show_date",
+        "status",
+        "sources_success",
+        "sources_failed",
+        "showtimes_saved",
+        "git_push_status",
+        "worker_name",
+        "created_at",
+    )
+    list_filter = ("status", "show_date", "git_push_status", "movie_list_source")
+    search_fields = ("run_id", "worker_name", "commit_sha")
 
 
 # ---------------------------------------------------------------------------

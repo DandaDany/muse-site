@@ -61,6 +61,9 @@ if _render_host:
     ALLOWED_HOSTS.append(_render_host)
     CSRF_TRUSTED_ORIGINS.append(f"https://{_render_host}")
 
+# 機器對機器 API 的 Bearer token（本機 Worker 用）。未設定時 API 一律回 503。
+CRAWLER_API_TOKEN = os.environ.get("CRAWLER_API_TOKEN", "")
+
 # ---------------------------------------------------------------------------
 # 應用程式定義
 # ---------------------------------------------------------------------------

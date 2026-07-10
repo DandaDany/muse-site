@@ -342,3 +342,49 @@ class TrackedMovie(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CrawlReport(models.Model):
+    """每日執行摘要（crawl_report）— 由本機 daily_update 透過 API 回傳。
+
+    這是「雲端可見的摘要」，與本機 crawl_runs（明細）分工：本機保留每個來源的
+    細節，雲端只收一份摘要供同事在儀表板查看。以 run_id 唯一鍵做冪等：同一次執行
+    重送時 update（不會重複新增）。managed=True，由 Django migration 建立。
+    """
+
+    run_id = models.CharField("執行編號", max_length=64, unique=True)
+    worker_name = models.CharField("執行機器", max_length=128, null=True, blank=True)
+    started_at = models.CharField("開始時間", max_length=64, null=True, blank=True)
+    finished_at = models.CharField("結束時間", max_length=64, null=True, blank=True)
+    show_date = models.CharField("場次日期", max_length=32, null=True, blank=True)
+    status = models.CharField("整體狀態", max_length=32, default="unknown")
+
+    # 片單來源（api / cache）與版本
+    movie_list_source = models.CharField("片單來源", max_length=16, null=True, blank=True)
+    movie_list_version = models.BigIntegerField("片單版本", null=True, blank=True)
+    movie_list_count = models.IntegerField("片單數量", null=True, blank=True)
+    cache_age_seconds = models.IntegerField("快取秒數", null=True, blank=True)
+
+    # 彙總
+    sources_total = models.IntegerField("來源總數", default=0)
+    sources_success = models.IntegerField("成功來源", default=0)
+    sources_failed = models.IntegerField("失敗來源", default=0)
+    showtimes_found = models.IntegerField("解析場次", default=0)
+    showtimes_saved = models.IntegerField("寫入場次", default=0)
+
+    # 發佈
+    git_push_status = models.CharField("Git 推送", max_length=32, null=True, blank=True)
+    commit_sha = models.CharField("Commit", max_length=64, null=True, blank=True)
+
+    # 完整原始報告（含各來源明細），供除錯／未來擴充
+    payload = models.TextField("原始報告 JSON", null=True, blank=True)
+    created_at = models.DateTimeField("收到時間", auto_now_add=True)
+
+    class Meta:
+        db_table = "crawl_report"
+        ordering = ["-created_at"]
+        verbose_name = "執行報告"
+        verbose_name_plural = "執行報告"
+
+    def __str__(self):
+        return f"{self.run_id}（{self.status}）"

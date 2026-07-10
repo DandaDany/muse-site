@@ -15,6 +15,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import path
 from django.views.generic import RedirectView
 
+from mapdata import api
 from mapdata.views import dashboard
 
 
@@ -27,6 +28,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # 營運儀表板：今日各爬蟲來源成功/失敗、場次統計等總覽（見 mapdata.views.dashboard）
     path("dashboard/", dashboard, name="dashboard"),
+    # 機器對機器 API（本機 Worker 用，Bearer token 驗證）
+    path("api/tracked-movies/", api.tracked_movies, name="api_tracked_movies"),
+    path("api/crawl-report/", api.crawl_report, name="api_crawl_report"),
     # 根路徑改導向營運儀表板，方便使用者一進站就能掌握營運狀況
     path("", RedirectView.as_view(url="/dashboard/", permanent=False)),
     path("healthz/", healthz),
