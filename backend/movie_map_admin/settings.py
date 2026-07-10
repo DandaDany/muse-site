@@ -55,6 +55,12 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+# Render 部署：平台會提供服務的外部網域，這裡自動信任，免手動填 hostname。
+_render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if _render_host:
+    ALLOWED_HOSTS.append(_render_host)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_render_host}")
+
 # ---------------------------------------------------------------------------
 # 應用程式定義
 # ---------------------------------------------------------------------------
