@@ -138,6 +138,16 @@ backend/
 - 根路徑 `/` 改導向 `/dashboard/`。
 - 實測：`check` 0 問題；`/dashboard/`、強化後 admin 頁、縣市跨表過濾全部 200。
 
+## 6.4 上線部署（Render，已備妥設定）
+
+使用者要求「後台要能線上」。已備妥 Render 一鍵部署（見 `docs/deploy_render.md`）：
+- `render.yaml`（Blueprint：Web 服務 + Postgres）、`backend/build.sh`（build 階段做 pip/collectstatic/migrate/init_business_schema/seed_roles/ensure_admin，因免費方案無 preDeployCommand）。
+- `sql/schema_postgres.sql`：8 張業務表的 Postgres DDL（解決前述「managed=False 表不會被 migrate 建立」的雲端問題）。
+- `init_business_schema`（Postgres 建表、SQLite no-op）、`ensure_admin`（env 建初始管理員、冪等）兩個部署指令。
+- settings 自動信任 `RENDER_EXTERNAL_HOSTNAME`。
+- 已本機驗證整條 build 鏈（check/collectstatic/init_business_schema/ensure_admin 冪等）。
+- **狀態**：設定就緒，等使用者在 Render 連接此分支、填 `DJANGO_SUPERUSER_*` 後即上線。上線初期業務表資料為空（本機 SQLite → 雲端 Postgres 的資料同步屬 Phase 6）。
+
 ## 6.5 Phase 3 驗證結果與重要提醒（已完成）
 
 - 新增第一張 managed 表 `tracked_movie`（`TrackedMovie` model）+ migration `0001_initial`。
