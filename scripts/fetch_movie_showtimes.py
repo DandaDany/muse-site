@@ -1487,6 +1487,28 @@ def clear_existing(conn: sqlite3.Connection, movie_id: int, show_date: str) -> N
     )
 
 
+def clear_source_showtimes(
+    conn: sqlite3.Connection, movie_id: int, show_date: str, source_name: str
+) -> None:
+    """只清除「此來源」上次為該電影/日期寫入的場次。
+
+    透過 showtimes.crawl_run_id → crawl_runs.source_name 對應到來源。這樣某來源
+    失敗時，不會動到它上次成功的資料，也不會誤傷其他來源——只有成功重抓的來源
+    會先清掉自己的舊資料再寫入新的。沒抓到的影城自然就沒有場次、地圖上不顯示。
+    """
+    conn.execute(
+        """
+        DELETE FROM showtimes
+        WHERE movie_id = ?
+          AND show_date = ?
+          AND crawl_run_id IN (
+              SELECT id FROM crawl_runs WHERE source_name = ?
+          )
+        """,
+        (movie_id, show_date, source_name),
+    )
+
+
 def run_source(
     conn: sqlite3.Connection,
     movie_id: int,
@@ -1495,10 +1517,15 @@ def run_source(
     fetcher,
     aliases: list[str],
     show_date: str,
+    keep_existing: bool = False,
 ) -> tuple[int, int, str | None]:
     run_id = start_run(conn, movie_id, source_name, source_url)
     try:
         records = fetcher(conn, aliases, show_date)
+        # 只有成功抓到（未拋例外）才清掉此來源的舊資料，再寫入新資料。
+        # 失敗的來源會直接跳到 except，保留其上次的場次不動。
+        if not keep_existing:
+            clear_source_showtimes(conn, movie_id, show_date, source_name)
         saved = save_showtimes(conn, movie_id, run_id, records)
         finish_run(conn, run_id, "success", len(records), saved)
         conn.commit()
@@ -1515,7 +1542,8 @@ def main() -> None:
     parser.add_argument("--date", default=date.today().isoformat(), help="Show date, defaults to today.")
     parser.add_argument("--alias", action="append", default=[], help="Additional movie title alias. Can be repeated.")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH, help="SQLite database path.")
-    parser.add_argument("--keep-existing", action="store_true", help="Do not delete existing showtimes for this movie/date before saving.")
+    parser.add_argument("--keep-existing", action="store_true", help="完全不刪任何舊場次（各來源都用 upsert 疊加）。")
+    parser.add_argument("--wipe-all", action="store_true", help="舊行為：開頭把該電影/日期所有場次全刪再重抓（一次失敗會誤傷好資料，不建議）。預設改為各來源成功時才清自己的舊資料。")
     args = parser.parse_args()
 
     aliases = [args.movie_title, *args.alias]
@@ -1547,15 +1575,19 @@ def main() -> None:
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         movie_id = get_movie_id(conn, args.movie_title)
-        if not args.keep_existing:
+        if args.wipe_all and not args.keep_existing:
+            # 舊行為（可選）：開頭把整個電影/日期全刪，再重抓所有來源。
             clear_existing(conn, movie_id, args.date)
-        conn.commit()
+            conn.commit()
 
         total_found = 0
         total_saved = 0
         failures: list[tuple[str, str]] = []
         for source_name, source_url, fetcher in sources:
-            found, saved, error = run_source(conn, movie_id, source_name, source_url, fetcher, aliases, args.date)
+            found, saved, error = run_source(
+                conn, movie_id, source_name, source_url, fetcher, aliases, args.date,
+                keep_existing=args.keep_existing,
+            )
             total_found += found
             total_saved += saved
             if error:

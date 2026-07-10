@@ -229,6 +229,17 @@
     <span>GeoJSON 更新：{% if geojson_exists %}{{ geojson_mtime|date:"Y-m-d H:i:s" }}{% else %}尚未產生{% endif %}</span>
   </p>
 
+  {# ---------- 資料品質提醒 ---------- #}
+  {% if failed_count %}
+  <div style="margin:0 0 1rem;padding:0.75rem 1rem;border-radius:10px;
+              background:rgba(230,90,18,0.10);border:1px solid rgba(230,90,18,0.35);
+              color:var(--bad-fg);font-size:0.9rem;line-height:1.5;">
+    ⚠️ 今日有 <strong>{{ failed_count }}</strong> 個來源失敗；這些來源對應的影城今天
+    <strong>不會出現在地圖上</strong>（沒抓到就不顯示，屬正常設計）。若判斷是暫時性失敗，
+    可稍後重跑更新——各來源只會在成功時覆蓋自己的資料，不會影響其他已成功的來源。
+  </div>
+  {% endif %}
+
   {# ---------- 今日各爬蟲來源狀況 ---------- #}
   <section class="panel">
     <h2>今日各爬蟲來源狀況（{{ selected_date }}）</h2>
