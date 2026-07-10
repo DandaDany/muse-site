@@ -181,12 +181,16 @@ def dashboard(request):
         "PUBLIC_MAP_URL", "https://dandadany.github.io/muse-site/"
     )
 
+    # 網站流量（GA4）：防禦式，未設定/失敗都回傳可安全渲染的結果。
+    from . import ga4
+
     context = {
         "selected_date": selected_date,
         "is_today": selected == datetime.now(TAIPEI_TZ).date(),
         "geojson_exists": geojson_exists,
         "geojson_mtime": geojson_mtime,
         "public_map_url": public_map_url,
+        "ga4": ga4.fetch_metrics(),
         **stats,  # source_rows / 各項 KPI / last_updated / data_from / report_run_id / report_worker
     }
     return render(request, "mapdata/dashboard.html", context)

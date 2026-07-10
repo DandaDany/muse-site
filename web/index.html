@@ -11,6 +11,23 @@
       crossorigin=""
     />
     <link rel="stylesheet" href="styles.css?v=20260708j" />
+
+    <!-- Google Analytics 4（GA4）— 免費網站流量分析。
+         啟用步驟：到 https://analytics.google.com 建立 GA4 資源，取得「評估 ID」
+         （格式 G-XXXXXXXXXX），把下面兩處的 G-XXXXXXXXXX 換成你的 ID 即可。
+         （評估 ID 是公開資訊，放在前端原始碼是正常且必要的做法。） -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+      gtag('js', new Date());
+      gtag('config', window.GA4_MEASUREMENT_ID);
+      // 安全的自訂事件 helper：GA 未載入（或被擋）時也不會報錯。
+      window.trackEvent = function (name, params) {
+        try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {}
+      };
+    </script>
   </head>
   <body>
     <main class="app-shell">

@@ -284,6 +284,42 @@
     {% endif %}
   </section>
 
+  {# ---------- 網站流量（GA4） ---------- #}
+  <section class="panel">
+    <h2 style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
+      <span>網站流量（GA4）{% if ga4.range %} · {{ ga4.range }}{% endif %}</span>
+      <a class="btn" href="{{ ga4.property_url }}" target="_blank" rel="noopener" style="font-size:.85rem;">開啟 GA4 完整報表 ↗</a>
+    </h2>
+
+    {% if not ga4.configured %}
+      <div class="empty">
+        尚未連接 GA4 Data API。地圖啟用 GA4 後，依 <code>docs/ga4_setup.md</code> 設定
+        <code>GA4_PROPERTY_ID</code> 與服務帳號憑證，即可在此顯示近 7 日流量。
+      </div>
+    {% elif ga4.error %}
+      <div class="empty">GA4 連線失敗：{{ ga4.error }}（請檢查憑證與資源 ID；設定見 docs/ga4_setup.md）</div>
+    {% else %}
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="num">{{ ga4.active_users }}</div>
+          <div class="label">活躍使用者</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num">{{ ga4.page_views }}</div>
+          <div class="label">瀏覽次數</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num">{{ ga4.select_movie }}</div>
+          <div class="label">選擇電影次數</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num">{{ ga4.select_cinema }}</div>
+          <div class="label">點擊影城次數</div>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
 </div>
 </body>
 </html>

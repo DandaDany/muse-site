@@ -594,6 +594,7 @@ function renderMovieOptions() {
 
 function selectMovie(movieTitle) {
   if (!movieFeaturesByTitle.has(movieTitle)) return;
+  if (window.trackEvent) window.trackEvent("select_movie", { movie_title: movieTitle });
   selectedMovieTitle = movieTitle;
   features = movieFeaturesByTitle.get(movieTitle) || [];
   activeId = null;
@@ -782,6 +783,13 @@ function renderMarkers(filtered) {
     // 蓋掉我們把 logo 置中的 setView，導致 logo 落到 sheet 後方。
     marker.off("click", marker._openPopup, marker);
     marker.on("click", () => {
+      if (window.trackEvent)
+        window.trackEvent("select_cinema", {
+          cinema: props.map_name || props.location_name || "",
+          chain: props.chain_name || "",
+          city: props.city || "",
+          movie_title: selectedMovieTitle || "",
+        });
       if (isMobile()) toggleMobileSheet(feature);
       else toggleFeatureZoom(feature);
     });
