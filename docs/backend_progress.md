@@ -81,7 +81,8 @@
 | **Phase 3** | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ✅ 完成（已 push） |
 | **Phase 4（本機排程版）** | `scripts/daily_update.py`：後台匯出電影→爬蟲→GeoJSON→git push；`更新地圖.bat` 改走它；排程文件 | ✅ 完成（已 push） |
 | ~~Phase 4（Actions 版）~~ | GitHub Actions + self-hosted runner + token 觸發 | ⏸ 暫緩（改走本機排程） |
-| Phase 5 | 更新結果頁：各來源 found/saved、回寫 crawl_runs、GeoJSON/KML 是否更新 | ⬜ 未開始 |
+| **Phase 5** | 後台看更新結果：儀表板各來源成功/失敗 + 資料品質提醒（失敗來源的影城今天不顯示） | ✅ 完成（已 push） |
+| **Phase 6** | 「沒抓到=不顯示 pin」確認為現有邏輯；爬蟲改 per-source 清除，避免重跑誤傷好資料 | ✅ 完成（已 push） |
 | Phase 6 | 人工/爬蟲資料分層落實「人工永遠贏」；地圖預覽連結 | ⬜ 未開始 |
 | Phase 7+ | 稽核強化、API 化（/api/map/showtimes 等）、對外整合三出口 | ⬜ 未開始 |
 
@@ -125,7 +126,7 @@ backend/
 
 1. **威秀 `headless=False`** → 非程式問題，是 runner 部署要求：self-hosted runner 要跑在「有登入桌面的互動 session」，不能裝成背景 Windows Service。排 Phase 4 runner 設定說明。
 2. **失敗被吞掉（仍 exit 0、照 push）** → 不改各家 parser；Phase 4/5 在外層加：(a) crawler 多吐機器可讀執行摘要（additive）、(b) Actions workflow 加 publish guard（失敗過多/場次暴跌就先不 push）。
-3. **重跑=全覆蓋（來源當掉會清掉舊場次）** → 需使用者先決策 A/B：A 保留舊場次（可能顯示過期）／B 標記「資料暫缺」。定案後才把 DELETE 從「整片全刪」改「只刪本次成功來源」。排 Phase 6，**待使用者拍板**。
+3. **重跑=全覆蓋（來源當掉會清掉舊場次）** → ✅ **已於 Phase 6 解決**。使用者拍板：「沒抓到就不顯示 pin」（本來就是地圖邏輯：`export_geojson` 只顯示有 showtimes 的影城）。爬蟲已從「開頭全刪」改為「各來源成功時才清自己上次資料」（`clear_source_showtimes`），失敗來源保留好資料、不誤傷別家；舊行為留在 `--wipe-all`。
 
 ## 5. Phase 1 驗證結果（已完成）
 
@@ -172,10 +173,13 @@ backend/
 - `docs/scheduled_update.md`：Windows 工作排程器 / cron 設定；注意威秀等 headful 來源需「使用者登入時執行」、git push 憑證要先快取。
 - 驗證：dry-run 計畫正確；`--no-crawl` 離線路徑正確重出 GeoJSON（實際網路爬蟲需在使用者本機驗證）。
 
-### 下一步可選（依使用者意願）
-- **Phase 5（後台看更新結果）**：讓後台儀表板/結果頁讀 `crawl_runs` 呈現每日各來源 found/saved、失敗來源、GeoJSON 更新時間（部分已在 Phase 2 儀表板做到，可再強化）。
-- **Phase 6（資料正確性）**：人工/爬蟲資料分層「人工永遠贏」；第 4 節末三個待處理發現（#3 缺料時 A 保留舊場次 / B 標記暫缺，**待使用者拍板**）。
-- **上線（可選）**：若日後要雲端多人，Render 設定已備妥（`docs/deploy_render.md`）；或走 HTML+Supabase（需重寫前端）。
+### Phase 5+6 已完成（2026-07-10）
+- **Phase 6**：確認「沒抓到=不顯示 pin」本來就是地圖邏輯；爬蟲 `fetch_movie_showtimes.py` 改為 per-source 清除（`clear_source_showtimes`，靠 `showtimes.crawl_run_id→crawl_runs.source_name`），重跑不再誤傷已成功來源。已用臨時 DB 驗證只清該來源、別家保留。
+- **Phase 5**：儀表板加「資料品質提醒」橫幅（`failed_count>0` 時），明講失敗來源的影城今天不顯示、可安全重跑。已驗證 200 + 提醒/失敗來源正確顯示。
+
+### 之後可選
+- **人工/爬蟲資料分層「人工永遠贏」**：目前使用者的每日流程只寫 showtimes、不動 cinema_locations 的人工欄位（address/lat/lng），所以此風險在現行流程已自然避開；僅在重跑「據點爬蟲/geocode」時才需處理，屆時再做。
+- **上線（可選）**：雲端多人用 Render（`docs/deploy_render.md`）；或 HTML+Supabase（需重寫前端）。
 
 > 提醒：subagent 會受 session 額度限制（本階段起改由主線直接實作較穩）。
 
