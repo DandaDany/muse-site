@@ -2,8 +2,14 @@
 
 > 這份文件是「續接錨點」。任何人（或下一個 session）接手時，先讀這份，就能知道**做到哪、為什麼這樣決定、下一步做什麼**。每完成一個階段請更新本檔。
 
-最後更新：2026-07-09（Phase 3 完成，已 push）
+最後更新：2026-07-10（Phase 4 本機排程版完成，已 push）
 開發分支：`claude/theater-backend-system-y7wdl0`
+
+> 🧭 **路線調整（2026-07-10）**：使用者決定走「**免費本機路線**」，不追求一步到位的雲端多人。
+> 形式＝**後台管電影資料（可本機跑）→ 本機每日排程自動爬蟲 → 推送 GitHub Pages**。
+> 原 Phase 4（GitHub Actions + self-hosted runner + token）改為更簡單的**本機排程版**（見下）。
+> 雲端 Render 部署設定仍保留在 repo（`render.yaml` 等），日後若要線上多人可直接用；
+> 若要「完全免費且線上多人」，另一條路是 HTML + Supabase（需重寫前端，暫不做）。
 
 ---
 
@@ -73,7 +79,8 @@
 | **Phase 1** | Django 骨架：可啟動、可登入 `/admin/`、管理員/編輯者兩角色、unmanaged models 對應 8 張表可查看（不動 schema） | ✅ 完成（已 push，commit 見下） |
 | **Phase 2** | Admin 顯示優化：各表篩選/搜尋、儀表板（今日各來源成功/失敗、總場次、上次更新） | ✅ 完成（已 push） |
 | **Phase 3** | 追蹤電影清單升級為 DB 表（取代 `電影清單.txt` 當真相來源，txt 降級為匯出） | ✅ 完成（已 push） |
-| Phase 4 | 一鍵更新按鈕 → 觸發 GitHub Actions `workflow_dispatch` + 即時 log/狀態 | ⬜ 未開始 |
+| **Phase 4（本機排程版）** | `scripts/daily_update.py`：後台匯出電影→爬蟲→GeoJSON→git push；`更新地圖.bat` 改走它；排程文件 | ✅ 完成（已 push） |
+| ~~Phase 4（Actions 版）~~ | GitHub Actions + self-hosted runner + token 觸發 | ⏸ 暫緩（改走本機排程） |
 | Phase 5 | 更新結果頁：各來源 found/saved、回寫 crawl_runs、GeoJSON/KML 是否更新 | ⬜ 未開始 |
 | Phase 6 | 人工/爬蟲資料分層落實「人工永遠贏」；地圖預覽連結 | ⬜ 未開始 |
 | Phase 7+ | 稽核強化、API 化（/api/map/showtimes 等）、對外整合三出口 | ⬜ 未開始 |
@@ -157,15 +164,19 @@ backend/
 
 > ⚠️ **雲端部署重要提醒（Phase 4/6 要處理）**：因 8 張業務表是 `managed=False`，在**全新的雲端 Postgres** 上跑 `migrate` **不會**建立這 8 張表——只會建 `tracked_movie` 與 Django 自身表。因此控制面 Postgres 的那 8 張表需要另外建立（用 `sql/schema.sql`，或由爬蟲面同步）。本機 SQLite 因表已存在故無此問題。此點已列入架構書風險 R，Phase 6「雙 DB 同步」會正式解決。
 
-## 7. 下一步（接手者從這裡繼續）— Phase 4
+## 7. Phase 4（本機排程版）成果與下一步
 
-目標：後台一顆「一鍵更新」按鈕 → 觸發 GitHub Actions（self-hosted runner）跑爬蟲 → 回寫狀態。
-1. **GitHub Actions workflow**（`.github/workflows/crawl.yml`，`workflow_dispatch` 可帶參數 date）：在 self-hosted runner 上跑 `export_movie_list`（讓 txt = 最新追蹤片單）→ `scripts/update_map.py` → commit/push `web/data/locations.geojson`。runner 需求：互動桌面 session（威秀 headless=False）。
-2. **後台觸發頁**（`/admin-tools/run-update/` 或 dashboard 按鈕）：透過 GitHub API `POST .../actions/workflows/crawl.yml/dispatches` 觸發；需要一組 GitHub token（存 env，勿進 repo）。建一筆 `crawl_runs`（或新表）記 run_token 供回寫對應。
-3. **狀態呈現**：先用 GitHub Actions API 查最近一次 run 狀態顯示於後台；log 連結。
-4. **publish guard（對應待辦 #2）**：workflow 內爬完先看成功來源數/場次數，異常則不 push、標記待確認。
-5. 防重複點擊（concurrency 鎖）。
+### 已完成（本機排程路線）
+- `scripts/daily_update.py`：單一進入點。`export_movie_list`（後台→txt，best-effort，後台不可用則退回現有 txt）→ `update_map.py`（爬蟲+GeoJSON）→ git commit/push。旗標：`--date/--skip-export/--no-crawl/--no-push/--no-git/--dry-run`。
+- `更新地圖.bat`：改走 `daily_update.py --no-git`，保留原 git 路徑處理與一鍵行為。
+- `docs/scheduled_update.md`：Windows 工作排程器 / cron 設定；注意威秀等 headful 來源需「使用者登入時執行」、git push 憑證要先快取。
+- 驗證：dry-run 計畫正確；`--no-crawl` 離線路徑正確重出 GeoJSON（實際網路爬蟲需在使用者本機驗證）。
 
-之後：Phase 5（更新結果頁：各來源 found/saved、GeoJSON/KML 是否更新）、Phase 6（人工/爬蟲資料分層「人工永遠贏」+ 雙 DB 同步 + 第 4 節末三個待處理發現的 #3 決策）。
+### 下一步可選（依使用者意願）
+- **Phase 5（後台看更新結果）**：讓後台儀表板/結果頁讀 `crawl_runs` 呈現每日各來源 found/saved、失敗來源、GeoJSON 更新時間（部分已在 Phase 2 儀表板做到，可再強化）。
+- **Phase 6（資料正確性）**：人工/爬蟲資料分層「人工永遠贏」；第 4 節末三個待處理發現（#3 缺料時 A 保留舊場次 / B 標記暫缺，**待使用者拍板**）。
+- **上線（可選）**：若日後要雲端多人，Render 設定已備妥（`docs/deploy_render.md`）；或走 HTML+Supabase（需重寫前端）。
+
+> 提醒：subagent 會受 session 額度限制（本階段起改由主線直接實作較穩）。
 
 > 每完成一階段，回來更新第 3 節狀態表、第 4 節紀錄與本節。
