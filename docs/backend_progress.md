@@ -233,9 +233,13 @@ backend/
 - 已端到端驗證：API 正常 source=api/上傳成功/雲端收到；API 關閉 source=cache/報告留佇列補送。
 - 環境變數：雲端 `CRAWLER_API_TOKEN`；本機 `MUSE_API_BASE_URL`/`MUSE_API_TOKEN`/`MUSE_WORKER_NAME`。
 
-### Phase 7 待補（小）
-- **雲端儀表板顯示 CrawlReport 數字**：目前 dashboard 讀 showtimes（雲端為空 → KPI 顯示 0）；
-  應改讀當日最新 `CrawlReport` 的 summary（場次數/來源成功失敗），同事才看得到真實數字。
+### Phase 7 收尾（已完成）
+- **雲端儀表板顯示 CrawlReport 數字** ✅：dashboard 當日有 `CrawlReport` 時改讀其 summary
+  （場次數、有場次影城/電影數、各來源成功/失敗、來源表），無報告則退回本機明細；
+  worker 報告 summary 補 `cinemas_with_showtimes`/`movies_with_showtimes`；模板加「數字來源」註記。
+  已驗證有/無報告兩條路徑。已合併 main。
+
+### Phase 7 待補（小，未做）
 - v1 來源指標僅 found/saved；`inserted/updated/skipped/deleted` 需改爬蟲寫入層 instrumentation，之後再補。
 
 > 提醒：subagent 會受 session 額度限制（本階段起改由主線直接實作較穩）。
