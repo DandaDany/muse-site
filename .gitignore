@@ -11,3 +11,6 @@ __pycache__/
 .agents/
 .codex/
 工作日誌.txt
+
+# 本機 API 片單快取（scripts/muse_api.py）
+cache/
