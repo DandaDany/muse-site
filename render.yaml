@@ -4,13 +4,16 @@
 # 會建立：一個 Web 服務（Django + gunicorn）＋ 一個 Postgres 資料庫。
 #
 # 部署流程（Render 依此自動執行）：
-#   build       ：backend/build.sh（pip install + collectstatic）
-#   preDeploy   ：migrate（建 Django 自身表 + tracked_movie）
-#                 → init_business_schema（在 Postgres 建 8 張業務表）
-#                 → seed_roles（建管理員/編輯者群組）
-#                 → ensure_admin（依環境變數建初始管理員帳號）
-#   start       ：gunicorn 起服務
+#   build ：backend/build.sh
+#           pip install + collectstatic
+#           → migrate（建 Django 自身表 + tracked_movie）
+#           → init_business_schema（在 Postgres 建 8 張業務表）
+#           → seed_roles（建管理員/編輯者群組）
+#           → ensure_admin（依環境變數建初始管理員帳號）
+#   start ：gunicorn 起服務
 #
+# 說明：資料庫初始化放在 build.sh 而非 preDeployCommand，因為 Render 免費方案
+# 不支援 preDeployCommand；build 階段已可存取 DATABASE_URL。
 # 注意：Render 免費 Postgres 約 30 天到期，正式使用請升級付費方案。
 
 databases:
@@ -26,7 +29,6 @@ services:
     plan: free
     rootDir: backend
     buildCommand: "./build.sh"
-    preDeployCommand: "python manage.py migrate --no-input && python manage.py init_business_schema && python manage.py seed_roles && python manage.py ensure_admin"
     startCommand: "gunicorn movie_map_admin.wsgi:application"
     envVars:
       # 自動注入 Postgres 連線字串
