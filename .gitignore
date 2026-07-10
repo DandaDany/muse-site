@@ -3,6 +3,8 @@ data/*.sqlite-shm
 data/*.sqlite-wal
 data/output/*
 !data/output/.gitkeep
+# export_movie_list 匯出前自動備份的《電影清單.txt》舊檔
+data/backup/
 __pycache__/
 *.pyc
 .env

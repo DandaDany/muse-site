@@ -19,8 +19,8 @@ from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 
 # mapdata 的 model（以 model_name 小寫表示，用於組出 codename）
-# 人工權威資料：可編輯
-EDITABLE_MODELS = ["cinemachain", "cinemalocation", "movie", "movietarget"]
+# 人工權威資料：可編輯（trackedmovie 為 Phase 3 新增的追蹤片單 managed 表）
+EDITABLE_MODELS = ["cinemachain", "cinemalocation", "movie", "movietarget", "trackedmovie"]
 # 爬蟲產出：後台唯讀
 READONLY_MODELS = ["showtime", "crawlrun", "rawpage", "kmlexport"]
 ALL_MAPDATA_MODELS = EDITABLE_MODELS + READONLY_MODELS

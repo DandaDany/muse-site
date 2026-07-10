@@ -18,6 +18,7 @@ from .models import (
     MovieTarget,
     RawPage,
     Showtime,
+    TrackedMovie,
 )
 
 
@@ -96,6 +97,38 @@ class MovieTargetAdmin(admin.ModelAdmin):
     autocomplete_fields = ("movie", "chain", "location")
     list_select_related = ("movie", "chain", "location")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(TrackedMovie)
+class TrackedMovieAdmin(admin.ModelAdmin):
+    """追蹤片單：人工維護的可編輯資料表（非唯讀）。
+
+    稽核欄位（created_by / created_at / updated_by / updated_at）不可手改，
+    改由 save_model 自動填入。
+    """
+
+    list_display = (
+        "title",
+        "target_date",
+        "is_active",
+        "sort_order",
+        "updated_by",
+        "updated_at",
+    )
+    list_filter = ("is_active",)
+    search_fields = ("title", "aliases")
+    # 允許直接在列表頁調整啟用狀態與排序。
+    list_editable = ("is_active", "sort_order")
+    ordering = ("sort_order", "title")
+    # 稽核欄位唯讀，由 save_model 自動維護。
+    readonly_fields = ("created_by", "created_at", "updated_by", "updated_at")
+
+    def save_model(self, request, obj, form, change):
+        """自動填入稽核欄位：新建時記錄建立者，每次儲存都記錄更新者。"""
+        if not change or obj.pk is None:
+            obj.created_by = request.user
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
 
 
 # ---------------------------------------------------------------------------

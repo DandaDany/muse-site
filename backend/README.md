@@ -26,8 +26,9 @@ cp .env.example .env   # 視需要編輯
 
 # 確保專案根已有 data/movie_map.sqlite（用專案根的 python scripts/init_db.py 產生）
 
-python manage.py migrate            # 只建 Django 自身的 auth/session/admin 表，不動現有 8 張表
+python manage.py migrate            # 建 Django 自身表 + tracked_movie 新表，不動現有 8 張 unmanaged 業務表
 python manage.py seed_roles         # 建立「管理員」「編輯者」兩個群組與權限
+python manage.py import_movie_list  # （選用）把現有《電影清單.txt》匯入追蹤片單開帳
 python manage.py createsuperuser
 python manage.py runserver
 ```
@@ -54,14 +55,35 @@ python manage.py runserver
 的登入頁，登入後才能看到統計內容（view 實作見 `mapdata/views.py` 的
 `dashboard` 函式，模板為 `mapdata/templates/mapdata/dashboard.html`）。
 
+### 追蹤電影管理（Phase 3）
+
+`tracked_movie` 是後台**自己擁有的 managed 新表**（有正式 migration），用來
+取代專案根的《電影清單.txt》成為「追蹤電影」的真相來源。它**不影響**現有
+8 張 unmanaged 業務表。
+
+首次啟用流程：
+
+1. `python manage.py migrate` 會建立 `tracked_movie` 表。
+2. `python manage.py import_movie_list` 把現有《電影清單.txt》匯入開帳
+   （可加 `--dry-run` 先預覽）。
+
+日常使用：
+
+- 編輯者在 `/admin/` 的「追蹤電影」新增／停用電影、填別名（一行一個）與
+  上映日；每筆會自動記錄 `created_by` / `updated_by` 稽核欄位。
+- 要讓現有爬蟲吃到最新清單時，執行 `python manage.py export_movie_list`
+  把 `is_active=True` 的追蹤電影寫回《電影清單.txt》（供現有 `scripts/` 爬蟲
+  讀取）。覆寫前會自動備份舊檔到 `data/backup/movie_title_YYYYMMDD_HHMMSS.txt`
+  （可加 `--dry-run` 先預覽）。這是過渡相容手段；之後 Phase 4/5 會改由後台
+  直接觸發更新，不再經過 txt。
+
 ### 關於 `python manage.py migrate`
 
-這個指令**只會**在 `data/movie_map.sqlite` 裡新增 Django 內建需要的表
-（`auth_user`、`auth_group`、`django_session`、`django_admin_log` 等），
-**不會**動到現有的 8 張業務表，因為 `mapdata` app 底下對映這些表的 models
-都設定為 `managed = False`（該行為由負責 models.py 的人維護，本後台骨架不
-包含 models 本身）。也因為如此，`mapdata` 底下故意只保留一個空的
-`migrations/__init__.py`，不會、也不應該產生任何 migration 檔。
+這個指令會在 `data/movie_map.sqlite` 裡新增 Django 內建需要的表
+（`auth_user`、`auth_group`、`django_session`、`django_admin_log` 等）**與
+`tracked_movie` 這張後台自有的新表**。它**不會**動到現有的 8 張 unmanaged
+業務表，因為 `mapdata` app 底下對映那些表的 models 都設定為
+`managed = False`；只有 `TrackedMovie` 是 managed，會由 migration 建立與維護。
 
 ## 雲端部署備註
 
