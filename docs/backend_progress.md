@@ -146,7 +146,8 @@ backend/
 - `init_business_schema`（Postgres 建表、SQLite no-op）、`ensure_admin`（env 建初始管理員、冪等）兩個部署指令。
 - settings 自動信任 `RENDER_EXTERNAL_HOSTNAME`。
 - 已本機驗證整條 build 鏈（check/collectstatic/init_business_schema/ensure_admin 冪等）。
-- **狀態**：設定就緒，等使用者在 Render 連接此分支、填 `DJANGO_SUPERUSER_*` 後即上線。上線初期業務表資料為空（本機 SQLite → 雲端 Postgres 的資料同步屬 Phase 6）。
+- **狀態**：設定就緒，等使用者在 Render 連接此分支、填 `DJANGO_SUPERUSER_*` 後即上線。
+- **SQLite→雲端資料匯入（已做，Phase 6 初次匯入提前）**：`import_from_sqlite` 指令把本機人工資料（品牌/據點/電影/追蹤目標，可選場次）以自然鍵 upsert 匯入目前 DB；本機把 `DATABASE_URL` 指向 Render 外部連線字串即可灌上雲端。已驗證跨 DB 匯入筆數一致、地址/經緯度保留、冪等。用法見 `docs/deploy_render.md`。
 
 ## 6.5 Phase 3 驗證結果與重要提醒（已完成）
 

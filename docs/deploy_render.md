@@ -29,9 +29,31 @@
 
 `backend/build.sh` 依序執行：`pip install` → `collectstatic` → `migrate`（建 Django 自身表 + `tracked_movie`）→ `init_business_schema`（在 Postgres 建 8 張業務表）→ `seed_roles`（建管理員/編輯者群組）→ `ensure_admin`（建初始管理員）。全部冪等，可重複部署。
 
+## 把本機影城資料灌進雲端（可選，但建議）
+
+上線後雲端 Postgres 是空的。用 `import_from_sqlite` 指令把本機
+`data/movie_map.sqlite` 的人工資料（品牌／據點／電影／追蹤目標）推上雲端：
+
+1. 到 Render 的 Postgres 頁面複製 **External Database URL**（外部連線字串）。
+2. 在本機專案 `backend/` 底下執行（先 `--dry-run` 預覽）：
+
+   ```bash
+   # Windows PowerShell
+   $env:DATABASE_URL="postgres://...(External URL)..."
+   python manage.py import_from_sqlite ../data/movie_map.sqlite --dry-run
+   python manage.py import_from_sqlite ../data/movie_map.sqlite
+
+   # Mac/Linux
+   DATABASE_URL="postgres://...(External URL)..." python manage.py import_from_sqlite ../data/movie_map.sqlite
+   ```
+
+3. 指令冪等，可重複執行；預設不含場次（場次由爬蟲產生），需要時加
+   `--with-showtimes`。地址／經緯度等人工欄位會完整保留。
+
 ## 上線初期須知
 
-- **影城/場次資料是空的**：雲端用的是全新 Postgres，你本機 SQLite 的資料尚未同步過去。你可以立即在 `/admin/` 的「追蹤電影」新增資料；影城/場次資料的同步是後續步驟（Phase 6 雙 DB 同步，或一次性匯入）。
+- **影城/場次資料一開始是空的**：用上面的 `import_from_sqlite` 灌入即可；也可先在
+  `/admin/` 的「追蹤電影」直接新增。完整的雙向自動同步屬 Phase 6。
 - **免費方案會休眠**：閒置一段時間後首次連線會慢約 30~50 秒喚醒；每月有時數上限。
 - **免費 Postgres 約 30 天到期**：正式使用請升級付費方案（約 $7/月）。
 
