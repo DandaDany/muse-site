@@ -108,6 +108,7 @@ class TrackedMovieAdmin(admin.ModelAdmin):
     list_display = (
         "title",
         "target_date",
+        "collect_status",
         "is_active",
         "sort_order",
         "updated_by",
@@ -120,6 +121,19 @@ class TrackedMovieAdmin(admin.ModelAdmin):
     ordering = ("sort_order", "title")
     # 稽核欄位唯讀，由 save_model 自動維護。
     readonly_fields = ("created_by", "created_at", "updated_by", "updated_at")
+
+    @admin.display(description="收集狀態")
+    def collect_status(self, obj):
+        """依上映日期 vs 台北今天，顯示這部是否會被爬蟲收集。"""
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        today = datetime.now(ZoneInfo("Asia/Taipei")).date()
+        if not obj.is_active:
+            return format_html('<span style="color:#8a8a8a">已停用</span>')
+        if obj.target_date and obj.target_date > today:
+            return format_html('<span style="color:#b26a00">未上映 · 跳過</span>')
+        return format_html('<span style="color:#1a7f37">上映中 · 收集</span>')
 
     def save_model(self, request, obj, form, change):
         """自動填入稽核欄位：新建時記錄建立者，每次儲存都記錄更新者。"""

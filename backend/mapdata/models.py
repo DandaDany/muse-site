@@ -307,8 +307,14 @@ class TrackedMovie(models.Model):
     title = models.CharField("片名", max_length=255)
     # 別名：一行一個，DB-only（不寫進 txt），供日後場次比對用；本階段僅儲存
     aliases = models.TextField("別名（一行一個）", blank=True, default="")
-    # 鎖定追蹤日期；留空 = 依爬蟲執行當天
-    target_date = models.DateField("追蹤日期", null=True, blank=True)
+    # 上映日期：走流程時只收集「今天 >= 上映日期」的電影；未到日期先跳過。
+    # 留空 = 不設限，一律收集。（欄位在 DB 仍為 target_date）
+    target_date = models.DateField(
+        "上映日期",
+        null=True,
+        blank=True,
+        help_text="只有今天（台北時間）不早於此日期，才會被納入爬蟲收集；留空＝一律收集。",
+    )
     # 是否納入更新（匯出 txt 時只輸出 is_active=True 者）
     is_active = models.BooleanField("啟用追蹤", default=True)
     # 清單排序（匯出 txt 用；數字小者在前）

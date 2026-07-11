@@ -11,15 +11,19 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .models import CrawlReport, TrackedMovie
+
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
 def _check_token(request) -> JsonResponse | None:
@@ -49,8 +53,16 @@ def tracked_movies(request):
     if denied:
         return denied
 
-    qs = TrackedMovie.objects.filter(is_active=True).order_by("sort_order", "title")
-    latest = TrackedMovie.objects.aggregate(m=Max("updated_at"))["m"]
+    # 上映日期閘門：只回「今天（台北）不早於上映日期」的電影；未到日期者跳過。
+    # 上映日期留空（target_date is null）= 不設限，一律納入。
+    today = datetime.now(TAIPEI_TZ).date()
+    qs = (
+        TrackedMovie.objects.filter(is_active=True)
+        .filter(Q(target_date__isnull=True) | Q(target_date__lte=today))
+        .order_by("sort_order", "title")
+    )
+    # version 仍以「所有啟用片單」的 updated_at 最大值計，讓後台任何調整都會改版本。
+    latest = TrackedMovie.objects.filter(is_active=True).aggregate(m=Max("updated_at"))["m"]
     version = int(latest.timestamp()) if latest else 0
 
     movies = [
