@@ -41,6 +41,19 @@ LUNA_URL = "https://www.lunacinemax.com.tw/time_schedule.aspx"
 ILANMOVIE_URL = "https://ilanmovie.com/index.php"
 WINDLION_URL = "https://cinemax.windlion.com.tw/movies.php"
 PTCINEMA_URL = "https://ptcinema.movie.com.tw/time?date={show_date}"
+HALAR_URL = "https://halarcity.com.tw/browsing/Cinemas/Details/0000000001"
+MIRAMAR_URL = "https://www.miramarcinemas.tw/timetable"
+NANTAI_URL = "https://www.nt-movie.com.tw/showtime.php"
+LUX_URL = "https://www.luxcinema.com.tw/web/2020.php?type=ShowTimes"
+MLD_URL = "https://mldcinema.com.tw/TimeList.php"
+MACHI_URL = "https://fmmfilmmate.tixi.com.tw/"
+SPOT_HS_URL = "https://spot-hs.tixi.com.tw/"
+BREEZE_URL = "https://breezecinemas.tixi.com.tw/"
+GOVERNOR_URL = "https://governor.tixi.com.tw/"
+ESLITE_URL = "https://meet.eslite.com/tw/tc/gallery/movieschedule/201803020001"
+NANTOU_URL = "https://www.nantoutheater.com/movie_order?search_movie_id=&search_date={show_date}&search_time=0"
+SHANMING_URL = "https://www.shanmingcinema.com.tw/showtimes.php"
+TIMES_URL = "https://www.timescinema.com.tw/times.php"
 
 
 @dataclass(frozen=True)
@@ -971,6 +984,644 @@ def fetch_tmovies(conn: sqlite3.Connection, aliases: list[str], show_date: str) 
     return records
 
 
+def fetch_halar(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析哈拉影城單館時刻表；每部電影區塊會依日期列出場次。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '哈拉影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    # 哈拉站的憑證缺少 Subject Key Identifier，Python 的嚴格 TLS 驗證會拒絕；
+    # 僅此官方來源沿用其他既有來源的相容處理。
+    raw = request_bytes(HALAR_URL, verify_ssl=False)
+    save_raw("halar_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    records: list[ShowtimeRecord] = []
+    for film in soup.select(".film-item"):
+        title_node = film.select_one(".film-title")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for session in film.select(".session"):
+            date_node = session.select_one(".session-date")
+            if not date_node or normalize_show_date(date_node.get_text(" ", strip=True)) != show_date:
+                continue
+            for time_link in session.select("a.session-time"):
+                time_node = time_link.select_one("time")
+                if not time_node:
+                    continue
+                start_time = time_node.get_text(strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                href = time_link.get("href") or HALAR_URL
+                booking_url = urllib.parse.urljoin(HALAR_URL, href)
+                attributes = [image.get("alt", "").strip() for image in time_link.select("img[alt]")]
+                auditorium = " / ".join(value for value in attributes if value) or None
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=auditorium,
+                        format=title,
+                        language=infer_language(title),
+                        booking_url=booking_url,
+                        source_url=HALAR_URL,
+                        raw_text=f"{title} | {date_node.get_text(' ', strip=True)} | {start_time}",
+                    )
+                )
+    return records
+
+
+def fetch_miramar(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析美麗華影城時刻表；每部電影以場次日期與影廳/語言分組。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '美麗華影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(MIRAMAR_URL)
+    save_raw("miramar_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    wanted_month_day = tuple(int(value) for value in show_date.split("-")[1:])
+    records: list[ShowtimeRecord] = []
+
+    for movie in soup.select(".timetable_list"):
+        title_node = movie.select_one(".movie_info .title")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for block in movie.select(".time_list_right > .block"):
+            classes = " ".join(block.get("class", []))
+            date_match = re.search(r"(\d{1,2})月(\d{1,2})日", classes)
+            if not date_match or (int(date_match.group(1)), int(date_match.group(2))) != wanted_month_day:
+                continue
+            room_node = block.select_one(".room")
+            room = room_node.get_text(" ", strip=True).replace("watch_later", "").strip() if room_node else None
+            for time_link in block.select("a.booking_time"):
+                start_time = time_link.get_text(strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                booking_url = urllib.parse.urljoin(MIRAMAR_URL, time_link.get("href") or MIRAMAR_URL)
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=None,
+                        format=room,
+                        language=infer_language(room),
+                        booking_url=booking_url,
+                        source_url=MIRAMAR_URL,
+                        raw_text=f"{title} | {classes} | {room or ''} | {start_time}",
+                    )
+                )
+    return records
+
+
+def fetch_nantai(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析南台影城依日期選單切換的單館時刻表。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '南台影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    source_url = NANTAI_URL
+    raw = request_bytes(source_url)
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    # 選單 value 是站內日期索引；先由首頁找出指定日期，再抓取該日頁面。
+    target_option = next(
+        (option for option in soup.select("#showtime_search option") if show_date in option.get_text(" ", strip=True)),
+        None,
+    )
+    if target_option is None:
+        return []
+    day_value = (target_option.get("value") or "").strip()
+    if day_value:
+        source_url = f"{NANTAI_URL}?day={urllib.parse.quote(day_value)}"
+        raw = request_bytes(source_url)
+        soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    save_raw("nantai_showtimes", raw, "html")
+
+    records: list[ShowtimeRecord] = []
+    for movie in soup.select("#movieList > li"):
+        title_node = movie.select_one(".movieTitle")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for time_node in movie.select("ul.times > li"):
+            start_time = time_node.get_text(strip=True)
+            if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                continue
+            records.append(
+                ShowtimeRecord(
+                    location_id=int(row["id"]),
+                    show_date=show_date,
+                    start_time=start_time.zfill(5),
+                    auditorium=None,
+                    format=title,
+                    language=infer_language(title),
+                    booking_url=source_url,
+                    source_url=source_url,
+                    raw_text=f"{title} | {start_time}",
+                )
+            )
+    return records
+
+
+def fetch_lux(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析樂聲影城單館時刻表，保留電影版本與 L/XL 廳別。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '樂聲影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(LUX_URL)
+    save_raw("lux_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    wanted_month_day = tuple(int(value) for value in show_date.split("-")[1:])
+    records: list[ShowtimeRecord] = []
+
+    for movie in soup.select(".movie_list_box"):
+        title_node = movie.select_one("h1")
+        if not title_node:
+            continue
+        title = title_node.get_text(" ", strip=True).replace("立即訂票", "").strip()
+        if not movie_matches(title, aliases):
+            continue
+        movie_link = movie.find_parent("a", href=True)
+        booking_url = urllib.parse.urljoin(LUX_URL, movie_link["href"]) if movie_link else LUX_URL
+        for date_node in movie.select("h3"):
+            date_match = re.search(r"(\d{1,2})/(\d{1,2})", date_node.get_text(" ", strip=True))
+            if not date_match or (int(date_match.group(1)), int(date_match.group(2))) != wanted_month_day:
+                continue
+            times_node = date_node.find_next_sibling("ul")
+            if not times_node:
+                continue
+            for item in times_node.select("li"):
+                match = re.search(r"(\d{1,2}:\d{2})(?:\s*\|\s*([A-Za-z0-9]+))?", item.get_text(" ", strip=True))
+                if not match:
+                    continue
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=match.group(1).zfill(5),
+                        auditorium=match.group(2),
+                        format=title,
+                        language=infer_language(title),
+                        booking_url=booking_url,
+                        source_url=LUX_URL,
+                        raw_text=f"{title} | {date_node.get_text(' ', strip=True)} | {item.get_text(' ', strip=True)}",
+                    )
+                )
+    return records
+
+
+def fetch_mld(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析台鋁影城時刻表，保留電影版本與個別訂票連結。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '台鋁影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(MLD_URL)
+    save_raw("mld_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    records: list[ShowtimeRecord] = []
+    for movie in soup.select(".timesList .showingBox"):
+        title_node = movie.select_one(".photoBox .title")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for day in movie.select(".dateBox .item dl"):
+            date_node = day.find("dt")
+            if not date_node or normalize_show_date(date_node.get_text(" ", strip=True)) != show_date:
+                continue
+            for time_link in day.select("dd a"):
+                start_time = time_link.get_text(strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                onclick = time_link.get("onclick") or ""
+                booking_match = re.search(r"LinkAlert\('([^']+)'", onclick)
+                booking_url = urllib.parse.urljoin(MLD_URL, booking_match.group(1) if booking_match else time_link.get("href") or MLD_URL)
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=None,
+                        format=title,
+                        language=infer_language(title),
+                        booking_url=booking_url,
+                        source_url=MLD_URL,
+                        raw_text=f"{title} | {date_node.get_text(' ', strip=True)} | {start_time}",
+                    )
+                )
+    return records
+
+
+def fetch_tixi(
+    conn: sqlite3.Connection,
+    aliases: list[str],
+    show_date: str,
+    *,
+    chain_name: str,
+    source_url: str,
+) -> list[ShowtimeRecord]:
+    """解析 TIXI 票務頁，依場次參數的完整日期過濾。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = ? AND cl.active = 1
+        LIMIT 1
+        """
+        ,
+        (chain_name,),
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(source_url)
+    save_raw(f"tixi_showtimes_{row['id']}", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    records: list[ShowtimeRecord] = []
+    for movie in soup.select("#selMovie .card"):
+        title_node = movie.select_one(".movie_info .movie_title")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for room in movie.select(".movie_times .room"):
+            room_text = room.get_text(" ", strip=True)
+            times = room.find_next_sibling("ul", class_="btn_time")
+            if not times:
+                continue
+            hall_match = re.search(r"((?:A\s+)?(?:One|Two)\s*廳|[A-Za-z]\s*廳|\d+\s*廳)", room_text, re.IGNORECASE)
+            auditorium = hall_match.group(1).replace(" ", "") if hall_match else None
+            language = "國語" if re.search(r"(?:-|\s)國(?:\s|$)", room_text) else infer_language(room_text)
+            for time_link in times.select("a"):
+                onclick = time_link.get("onclick") or ""
+                match = re.search(r"SetCorp\('([0-9]{4}/[0-9]{2}/[0-9]{2})\s+(\d{1,2}:\d{2}):\d{2}_[^']+'\)", onclick)
+                if not match or match.group(1).replace("/", "-") != show_date:
+                    continue
+                start_time = match.group(2)
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=auditorium,
+                        format=room_text,
+                        language=language,
+                        booking_url=source_url,
+                        source_url=source_url,
+                        raw_text=f"{title} | {room_text} | {start_time}",
+                    )
+                )
+    return records
+
+
+def fetch_machi(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    return fetch_tixi(
+        conn,
+        aliases,
+        show_date,
+        chain_name="鴻金寶麻吉影城",
+        source_url=MACHI_URL,
+    )
+
+
+def fetch_spot_hs(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    return fetch_tixi(
+        conn,
+        aliases,
+        show_date,
+        chain_name="光點華山電影館",
+        source_url=SPOT_HS_URL,
+    )
+
+
+def fetch_breeze(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    return fetch_tixi(
+        conn,
+        aliases,
+        show_date,
+        chain_name="微風影城",
+        source_url=BREEZE_URL,
+    )
+
+
+def fetch_governor(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    return fetch_tixi(
+        conn,
+        aliases,
+        show_date,
+        chain_name="總督數位影城",
+        source_url=GOVERNOR_URL,
+    )
+
+
+def fetch_eslite(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析誠品電影院依電影卡片列出的多日場次。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '誠品電影院' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(ESLITE_URL)
+    save_raw("eslite_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    booking_node = next((node for node in soup.find_all("a", href=True) if node.get_text(" ", strip=True) == "訂票"), None)
+    booking_url = booking_node.get("href") if booking_node else ESLITE_URL
+    wanted_month_day = tuple(int(value) for value in show_date.split("-")[1:])
+    records: list[ShowtimeRecord] = []
+
+    for movie in soup.select(".film_list > .box"):
+        title_node = movie.select_one(".intro .left > p")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        if not movie_matches(title, aliases):
+            continue
+        for day in movie.select(".time-swiper .swiper-slide"):
+            date_node = day.find("p")
+            if not date_node:
+                continue
+            date_match = re.search(r"(\d{1,2})/(\d{1,2})", date_node.get_text(" ", strip=True))
+            if not date_match or (int(date_match.group(1)), int(date_match.group(2))) != wanted_month_day:
+                continue
+            for item in day.select("ul > li"):
+                start_time = item.get_text(" ", strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=None,
+                        format=title,
+                        language=infer_language(title),
+                        booking_url=booking_url,
+                        source_url=ESLITE_URL,
+                        raw_text=f"{title} | {date_node.get_text(' ', strip=True)} | {start_time}",
+                    )
+                )
+    return records
+
+
+def fetch_nantou(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析南投戲院依 search_date 切換的每日場次與個別訂票連結。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '南投戲院' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    source_url = NANTOU_URL.format(show_date=show_date)
+    raw = request_bytes(source_url)
+    save_raw("nantou_showtimes", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    records: list[ShowtimeRecord] = []
+    for title_node in soup.select("h4"):
+        title = title_node.get_text(" ", strip=True)
+        if not movie_matches(title, aliases):
+            continue
+        auditorium = None
+        for sibling in title_node.next_siblings:
+            if getattr(sibling, "name", None) == "h4":
+                break
+            text = sibling.get_text(" ", strip=True) if getattr(sibling, "get_text", None) else str(sibling).strip()
+            hall_match = re.search(r"廳別：\s*([^\s]+\s*廳)", text)
+            if hall_match:
+                auditorium = hall_match.group(1).replace(" ", "")
+            if not getattr(sibling, "name", None) == "a":
+                continue
+            start_time = sibling.get_text(" ", strip=True)
+            if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                continue
+            booking_url = urllib.parse.urljoin(source_url, sibling.get("href") or source_url)
+            records.append(
+                ShowtimeRecord(
+                    location_id=int(row["id"]),
+                    show_date=show_date,
+                    start_time=start_time.zfill(5),
+                    auditorium=auditorium,
+                    format=title,
+                    language=infer_language(title),
+                    booking_url=booking_url,
+                    source_url=source_url,
+                    raw_text=f"{title} | {auditorium or ''} | {start_time}",
+                )
+            )
+    return records
+
+
+def fetch_shanming(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """先找電影 id，再解析埔里山明影城時刻頁的有效日期範圍與場次。"""
+    row = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '埔里山明影城' AND cl.active = 1
+        LIMIT 1
+        """
+    ).fetchone()
+    if not row:
+        return []
+
+    raw = request_bytes(SHANMING_URL)
+    save_raw("shanming_movies", raw, "html")
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    records: list[ShowtimeRecord] = []
+    wanted_date = datetime.strptime(show_date, "%Y-%m-%d").date()
+
+    for movie_link in soup.select("ul.all-movies a.list[href]"):
+        title = movie_link.get_text(" ", strip=True)
+        if not movie_matches(title, aliases):
+            continue
+        detail_url = urllib.parse.urljoin(SHANMING_URL, movie_link["href"])
+        detail = request_bytes(detail_url)
+        save_raw("shanming_showtimes", detail, "html")
+        detail_soup = BeautifulSoup(detail, "html.parser", from_encoding="utf-8")
+        range_node = detail_soup.select_one(".showtimes-list .title")
+        if not range_node:
+            continue
+        date_parts = re.findall(r"(\d{1,2})月(\d{1,2})日", range_node.get_text(" ", strip=True))
+        if len(date_parts) < 2:
+            continue
+        start_month, start_day = (int(value) for value in date_parts[0])
+        end_month, end_day = (int(value) for value in date_parts[1])
+        start_date = date(wanted_date.year, start_month, start_day)
+        end_date = date(wanted_date.year, end_month, end_day)
+        if end_date < start_date:
+            end_date = date(wanted_date.year + 1, end_month, end_day)
+        if not start_date <= wanted_date <= end_date:
+            continue
+
+        for item in detail_soup.select(".showtimes-list i.item"):
+            match = re.search(r"(\d{1,2}:\d{2})\s*([中英日韓]?)(?:\(([^)]+)\))?", item.get_text(" ", strip=True))
+            if not match:
+                continue
+            language = {"中": "國語", "英": "英語", "日": "日語", "韓": "韓語"}.get(match.group(2))
+            records.append(
+                ShowtimeRecord(
+                    location_id=int(row["id"]),
+                    show_date=show_date,
+                    start_time=match.group(1).zfill(5),
+                    auditorium=match.group(3),
+                    format=title,
+                    language=language or infer_language(title),
+                    booking_url=detail_url,
+                    source_url=detail_url,
+                    raw_text=f"{title} | {range_node.get_text(' ', strip=True)} | {item.get_text(' ', strip=True)}",
+                )
+            )
+    return records
+
+
+def fetch_timescinema(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    """解析清水時代影城首頁所指向的時刻表批次，依 1館／2館分派據點。"""
+    rows = conn.execute(
+        """
+        SELECT cl.*
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '清水時代影城' AND cl.active = 1
+        """
+    ).fetchall()
+    if not rows:
+        return []
+    locations = {"1": next((row for row in rows if "一館" in row["location_name"]), None), "2": next((row for row in rows if "二館" in row["location_name"]), None)}
+
+    homepage = BeautifulSoup(request_bytes("https://www.timescinema.com.tw/").decode("utf-8", errors="replace"), "html.parser")
+    current_link = next(
+        (
+            anchor.get("href")
+            for anchor in homepage.select("a[href]")
+            if re.search(r"showtimes=\d+", anchor.get("href", ""))
+        ),
+        None,
+    )
+    if not current_link:
+        return []
+    current_url = urllib.parse.urljoin(TIMES_URL, current_link)
+    current_raw = request_bytes(current_url)
+    current_soup = BeautifulSoup(current_raw.decode("utf-8", errors="replace"), "html.parser")
+    pages: dict[str, str] = {current_url: (current_soup.select_one(".showtimes_list2") or current_soup).get_text(" ", strip=True)}
+    for anchor in current_soup.select("a.showtimes_list[href]"):
+        pages[urllib.parse.urljoin(current_url, anchor["href"])] = anchor.get_text(" ", strip=True)
+
+    wanted_date = datetime.strptime(show_date, "%Y-%m-%d").date()
+    records: list[ShowtimeRecord] = []
+    for page_url, range_text in pages.items():
+        date_parts = re.findall(r"(\d{1,2})月(\d{1,2})日", range_text)
+        if len(date_parts) < 2:
+            continue
+        start_month, start_day = (int(value) for value in date_parts[0])
+        end_month, end_day = (int(value) for value in date_parts[1])
+        start_date = date(wanted_date.year, start_month, start_day)
+        end_date = date(wanted_date.year, end_month, end_day)
+        if end_date < start_date:
+            end_date = date(wanted_date.year + 1, end_month, end_day)
+        if not start_date <= wanted_date <= end_date:
+            continue
+        if page_url == current_url:
+            soup = current_soup
+            raw = current_raw
+        else:
+            raw = request_bytes(page_url)
+            soup = BeautifulSoup(raw.decode("utf-8", errors="replace"), "html.parser")
+        save_raw("timescinema_showtimes", raw, "html")
+
+        for movie in soup.select(".times_sort"):
+            title_node = movie.select_one(".times_sort_title")
+            title = title_node.get_text(" ", strip=True) if title_node else ""
+            if not movie_matches(title, aliases):
+                continue
+            content = movie.select_one(".times_sort_content")
+            if not content:
+                continue
+            default_halls = re.findall(r"([12])館\s*[A-Za-z]廳", content.get_text(" ", strip=True))
+            default_hall = default_halls[0] if len(set(default_halls)) == 1 else None
+            for table_row in content.select("table tr"):
+                pending: list[tuple[str, str | None]] = []
+                for cell in table_row.select("td"):
+                    cell_text = cell.get_text(" ", strip=True)
+                    hall_match = re.search(r"[→]?\s*([12])館\s*([A-Za-z]廳)", cell_text)
+                    if hall_match:
+                        hall_key = hall_match.group(1)
+                        location = locations.get(hall_key)
+                        if location:
+                            for start_time, language in pending:
+                                records.append(
+                                    ShowtimeRecord(int(location["id"]), show_date, start_time.zfill(5), f"{hall_key}館{hall_match.group(2)}", title, language or infer_language(title), page_url, page_url, f"{title} | {range_text} | {cell_text}")
+                                )
+                        pending.clear()
+                        continue
+                    time_match = re.search(r"(\d{1,2}:\d{2})", cell_text)
+                    if time_match:
+                        language = "國語" if "中文" in cell_text else "英語" if "英文" in cell_text else "日語" if "日文" in cell_text else None
+                        pending.append((time_match.group(1), language))
+                if pending and default_hall and locations.get(default_hall):
+                    location = locations[default_hall]
+                    hall_letter = next(iter(re.findall(rf"{default_hall}館\s*([A-Za-z]廳)", content.get_text(" ", strip=True))), "")
+                    for start_time, language in pending:
+                        records.append(
+                            ShowtimeRecord(int(location["id"]), show_date, start_time.zfill(5), f"{default_hall}館{hall_letter}", title, language or infer_language(title), page_url, page_url, f"{title} | {range_text} | {start_time}")
+                        )
+    return records
+
+
 def fetch_venice(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
     row = conn.execute(
         """
@@ -1233,67 +1884,73 @@ def fetch_windlion(conn: sqlite3.Connection, aliases: list[str], show_date: str)
 
 
 def fetch_ptcinema(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
-    row = conn.execute(
+    rows = conn.execute(
         """
         SELECT cl.*
         FROM cinema_locations cl
         JOIN cinema_chains cc ON cc.id = cl.chain_id
-        WHERE cc.chain_name = '中影屏東影城'
-        LIMIT 1
+        WHERE cc.chain_name = '中影屏東影城' AND cl.active = 1
         """
-    ).fetchone()
-    if not row:
+    ).fetchall()
+    if not rows:
         return []
-    source_url = PTCINEMA_URL.format(show_date=show_date)
-    raw = request_bytes(source_url, headers={"Referer": "https://ptcinema.movie.com.tw/"}, verify_ssl=False)
-    save_raw("ptcinema_time", raw, "html")
-    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
     records: list[ShowtimeRecord] = []
 
-    for option in soup.select("select option"):
-        title = option.get_text(" ", strip=True)
-        if movie_matches(title, aliases):
-            value = option.get("value")
-            if value:
-                detail_url = f"https://ptcinema.movie.com.tw/lightbox/index?id={value}"
-                try:
-                    detail = request_text(detail_url, headers={"Referer": source_url}, verify_ssl=False)
-                except Exception:
-                    continue
-                save_raw(f"ptcinema_lightbox_{value}", detail, "html")
-                records.extend(
-                    records_from_text_block(
-                        location_id=int(row["id"]),
-                        show_date=show_date,
-                        text=BeautifulSoup(detail, "html.parser").get_text("\n", strip=True),
-                        aliases=aliases,
-                        source_url=detail_url,
-                        booking_url=source_url,
-                        format_text=title,
-                    )
-                )
+    for row in rows:
+        # 同一個中影品牌的各場館僅網域不同，時刻表與 POP UP 結構相同。
+        location_url = row["location_url"] or row["source_url"] or PTCINEMA_URL.format(show_date=show_date)
+        parsed_url = urllib.parse.urlsplit(location_url)
+        time_path = parsed_url.path.rstrip("/")
+        if not time_path.endswith("/time"):
+            time_path = f"{time_path}/time" if time_path else "/time"
+        source_url = urllib.parse.urlunsplit((parsed_url.scheme, parsed_url.netloc, time_path, f"date={show_date}", ""))
+        raw = request_bytes(source_url, headers={"Referer": f"{parsed_url.scheme}://{parsed_url.netloc}/"}, verify_ssl=False)
+        save_raw(f"movie_com_tw_time_{row['id']}", raw, "html")
+        soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
 
-    for anchor in soup.select("a.link_lb[href*='lightbox/index']"):
-        anchor_text = anchor.get_text(" ", strip=True)
-        if not movie_matches(anchor_text, aliases):
-            continue
-        detail_url = urllib.parse.urljoin(source_url, anchor.get("href", ""))
-        try:
-            detail = request_text(detail_url, headers={"Referer": source_url}, verify_ssl=False)
-        except Exception:
-            continue
-        save_raw("ptcinema_lightbox", detail, "html")
-        records.extend(
-            records_from_text_block(
-                location_id=int(row["id"]),
-                show_date=show_date,
-                text=BeautifulSoup(detail, "html.parser").get_text("\n", strip=True),
-                aliases=aliases,
-                source_url=detail_url,
-                booking_url=source_url,
-                format_text=anchor_text,
-            )
-        )
+        for anchor in soup.select("a.link_lb[href*='lightbox/index']"):
+            # 電影名稱在清單卡片的 info_mask；POP UP 明細本身不含片名。
+            title_node = anchor.select_one(".info_mask .movie_title")
+            title = title_node.get_text(" ", strip=True) if title_node else anchor.get_text(" ", strip=True)
+            if not movie_matches(title, aliases):
+                continue
+            detail_url = urllib.parse.urljoin(source_url, anchor.get("href", ""))
+            try:
+                detail = request_text(detail_url, headers={"Referer": source_url}, verify_ssl=False)
+            except Exception:
+                continue
+            save_raw(f"movie_com_tw_lightbox_{row['id']}", detail, "html")
+            detail_soup = BeautifulSoup(detail, "html.parser")
+            booking_node = detail_soup.select_one("a.btn_buy[href]")
+            booking_url = booking_node.get("href") if booking_node else source_url
+
+            # 每個 ul.time_list 都是一個日期區塊：第一個 li.time 是日期，其餘 li 是時刻。
+            for time_list in detail_soup.select("ul.time_list"):
+                date_node = time_list.select_one("li.time")
+                if not date_node:
+                    continue
+                date_match = re.search(r"(\d{1,2})\s*/\s*(\d{1,2})", date_node.get_text(" ", strip=True))
+                if not date_match:
+                    continue
+                month, day = (int(value) for value in date_match.groups())
+                if f"{month:02d}-{day:02d}" != show_date[5:]:
+                    continue
+
+                for item in time_list.select("li:not(.time)"):
+                    for start_time in re.findall(r"\b\d{1,2}:\d{2}\b", item.get_text(" ", strip=True)):
+                        records.append(
+                            ShowtimeRecord(
+                                location_id=int(row["id"]),
+                                show_date=show_date,
+                                start_time=start_time.zfill(5),
+                                auditorium=None,
+                                format=title,
+                                language=infer_language(title),
+                                booking_url=booking_url,
+                                source_url=detail_url,
+                                raw_text=time_list.get_text(" ", strip=True),
+                            )
+                        )
     return records
 
 
@@ -1558,6 +2215,19 @@ def main() -> None:
         ("喜樂時代影城", CENTURYASIA_URL, fetch_centuryasia),
         ("美麗新影城", MIRANEW_TIMETABLE_URL, fetch_miranew),
         ("天台影城", TMOVIES_URL, fetch_tmovies),
+        ("哈拉影城", HALAR_URL, fetch_halar),
+        ("美麗華影城", MIRAMAR_URL, fetch_miramar),
+        ("南台影城", NANTAI_URL, fetch_nantai),
+        ("樂聲影城", LUX_URL, fetch_lux),
+        ("台鋁影城", MLD_URL, fetch_mld),
+        ("鴻金寶麻吉影城", MACHI_URL, fetch_machi),
+        ("光點華山電影館", SPOT_HS_URL, fetch_spot_hs),
+        ("微風影城", BREEZE_URL, fetch_breeze),
+        ("總督數位影城", GOVERNOR_URL, fetch_governor),
+        ("誠品電影院", ESLITE_URL, fetch_eslite),
+        ("南投戲院", NANTOU_URL.format(show_date=args.date), fetch_nantou),
+        ("埔里山明影城", SHANMING_URL, fetch_shanming),
+        ("清水時代影城", TIMES_URL, fetch_timescinema),
         ("威尼斯影城", VENICE_URL.format(page=1), fetch_venice),
         ("親親影城 / 親親戲院", CCMOVIE_URL, fetch_ccmovie),
         ("王牌映画影城", ACE_URL, fetch_acecinema),
