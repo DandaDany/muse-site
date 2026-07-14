@@ -7,6 +7,7 @@ import json
 import re
 import ssl
 import sqlite3
+import sys
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -18,6 +19,12 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 from init_db import DEFAULT_DB_PATH, init_db
+
+
+# Windows 排程／主控台可能仍採 CP950；來源名稱含非 CP950 字元時不可中斷整次更新。
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -74,7 +81,7 @@ def normalize_text(value: str | None) -> str:
         return ""
     table = str.maketrans("０１２３４５６７８９", "0123456789")
     value = html.unescape(value).translate(table).lower()
-    return re.sub(r"[\s　:：,，.。()（）\[\]【】\-–—_．・‧|｜]+", "", value)
+    return re.sub(r"[\s　:：,，.。、/／()（）\[\]【】\-–—_．・‧|｜'\"“”‘’!！?？~～]+", "", value)
 
 
 def movie_matches(text: str, aliases: list[str]) -> bool:

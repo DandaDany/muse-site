@@ -14,6 +14,11 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_DIR / "web" / "data" / "locations.geojson"
 
 
+def normalize_city(value: str | None) -> str | None:
+    """統一台灣地名中的「台／臺」，避免前端縣市篩選被拆成兩項。"""
+    return value.replace("台", "臺") if value else value
+
+
 def display_showtime_url(row: sqlite3.Row) -> str | None:
     source_url = row["source_url"]
     if source_url and "ambassador.com.tw/home/Showtime" in source_url:
@@ -58,7 +63,7 @@ def fetch_location_features(conn: sqlite3.Connection) -> list[dict[str, object]]
                     "location_name": row["location_name"],
                     "map_name": row["map_name"],
                     "address": row["address"],
-                    "city": row["city"],
+                    "city": normalize_city(row["city"]),
                     "location_url": row["location_url"],
                     "official_url": row["official_url"],
                     "crawl_url": row["crawl_url"],
@@ -116,7 +121,7 @@ def fetch_showtime_features(conn: sqlite3.Connection, movie_title: str, show_dat
                 row["location_name"],
                 row["map_name"],
                 row["address"],
-                row["city"],
+                normalize_city(row["city"]),
                 row["latitude"],
                 row["longitude"],
             )
@@ -152,7 +157,7 @@ def fetch_showtime_features(conn: sqlite3.Connection, movie_title: str, show_dat
                     "location_name": first["location_name"],
                     "map_name": first["map_name"],
                     "address": first["address"],
-                    "city": first["city"],
+                    "city": normalize_city(first["city"]),
                     "location_url": display_showtime_url(first),
                     "official_url": first["official_url"],
                     "crawl_url": first["source_url"],
