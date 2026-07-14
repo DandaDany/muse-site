@@ -357,6 +357,11 @@ function popupHtml(feature) {
         </div>
       `
     : "";
+  const unavailableMessage = props.showtime_unavailable
+    ? `<p class="popup-showtime-unavailable">${escapeHtml(
+        props.showtime_unavailable_reason || "官方場次暫時無法取得，請前往場次入口查看。",
+      )}</p>`
+    : "";
   const locationLink = props.location_url
     ? `<a class="popup-link popup-link-primary" href="${escapeHtml(props.location_url)}" target="_blank" rel="noreferrer">${TICKET_SVG}場次入口</a>`
     : "";
@@ -370,7 +375,7 @@ function popupHtml(feature) {
       ${address}
     </div>
     <div class="pop-body">
-      ${showtimeBlock}
+      ${showtimeBlock || unavailableMessage}
       <div class="popup-links">${locationLink}${officialLink}</div>
     </div>
   `;

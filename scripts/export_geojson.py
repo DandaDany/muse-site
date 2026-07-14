@@ -176,8 +176,78 @@ def fetch_showtime_features(conn: sqlite3.Connection, movie_title: str, show_dat
     return features
 
 
+def fetch_unavailable_showtime_features(
+    conn: sqlite3.Connection,
+    movie_title: str,
+    show_date: str,
+    existing_location_ids: set[int],
+) -> list[dict[str, object]]:
+    """Keep locations visible when their official site temporarily blocks crawling."""
+    rows = conn.execute(
+        """
+        SELECT
+            location_id,
+            chain_name,
+            location_name,
+            map_name,
+            address,
+            city,
+            latitude,
+            longitude,
+            location_url,
+            official_url,
+            crawl_url
+        FROM v_location_map_points
+        WHERE chain_name = '高雄環球影城'
+          AND latitude IS NOT NULL
+          AND longitude IS NOT NULL
+        """
+    ).fetchall()
+
+    features: list[dict[str, object]] = []
+    for row in rows:
+        if row["location_id"] in existing_location_ids:
+            continue
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [row["longitude"], row["latitude"]],
+                },
+                "properties": {
+                    "location_id": row["location_id"],
+                    "chain_name": row["chain_name"],
+                    "location_name": row["location_name"],
+                    "map_name": row["map_name"],
+                    "address": row["address"],
+                    "city": normalize_city(row["city"]),
+                    "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+                    "official_url": row["official_url"],
+                    "crawl_url": row["crawl_url"],
+                    "movie_title": movie_title,
+                    "show_date": show_date,
+                    "showtime_count": 0,
+                    "showtimes": [],
+                    "start_times": "",
+                    "showtime_unavailable": True,
+                    "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。",
+                },
+            }
+        )
+    return features
+
+
 def movie_payload(conn: sqlite3.Connection, movie_title: str, show_date: str) -> dict[str, object]:
     features = fetch_showtime_features(conn, movie_title, show_date)
+    features.extend(
+        fetch_unavailable_showtime_features(
+            conn,
+            movie_title,
+            show_date,
+            {int(feature["properties"]["location_id"]) for feature in features},
+        )
+    )
     return {
         "title": movie_title,
         "show_date": show_date,

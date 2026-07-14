@@ -8,12 +8,12 @@
     {
       "title": "玩具總動員5",
       "show_date": "2026-07-14",
-      "feature_count": 81
+      "feature_count": 82
     },
     {
       "title": "名偵探柯南:高速公路的墮天使",
       "show_date": "2026-07-14",
-      "feature_count": 79
+      "feature_count": 80
     }
   ],
   "movie_features": {
@@ -7372,6 +7372,34 @@
           ],
           "start_times": "14:00, 16:00, 18:00, 19:00, 20:00, 21:00, 23:00"
         }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.3253452,
+            22.6319673
+          ]
+        },
+        "properties": {
+          "location_id": 173,
+          "chain_name": "高雄環球影城",
+          "location_name": "高雄環球影城",
+          "map_name": "高雄環球影城 高雄環球影城",
+          "address": "高雄市苓雅區大順三路108號",
+          "city": "高雄市",
+          "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+          "official_url": "https://www.u-movie.com.tw/",
+          "crawl_url": "https://www.u-movie.com.tw/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-14",
+          "showtime_count": 0,
+          "showtimes": [],
+          "start_times": "",
+          "showtime_unavailable": true,
+          "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
+        }
       }
     ],
     "名偵探柯南:高速公路的墮天使": [
@@ -13843,10 +13871,38 @@
           ],
           "start_times": "13:15, 14:15, 15:00, 15:15, 15:30, 18:30"
         }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.3253452,
+            22.6319673
+          ]
+        },
+        "properties": {
+          "location_id": 173,
+          "chain_name": "高雄環球影城",
+          "location_name": "高雄環球影城",
+          "map_name": "高雄環球影城 高雄環球影城",
+          "address": "高雄市苓雅區大順三路108號",
+          "city": "高雄市",
+          "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+          "official_url": "https://www.u-movie.com.tw/",
+          "crawl_url": "https://www.u-movie.com.tw/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-14",
+          "showtime_count": 0,
+          "showtimes": [],
+          "start_times": "",
+          "showtime_unavailable": true,
+          "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
+        }
       }
     ]
   },
-  "feature_count": 81,
+  "feature_count": 82,
   "features": [
     {
       "type": "Feature",
@@ -21201,6 +21257,34 @@
           }
         ],
         "start_times": "14:00, 16:00, 18:00, 19:00, 20:00, 21:00, 23:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3253452,
+          22.6319673
+        ]
+      },
+      "properties": {
+        "location_id": 173,
+        "chain_name": "高雄環球影城",
+        "location_name": "高雄環球影城",
+        "map_name": "高雄環球影城 高雄環球影城",
+        "address": "高雄市苓雅區大順三路108號",
+        "city": "高雄市",
+        "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+        "official_url": "https://www.u-movie.com.tw/",
+        "crawl_url": "https://www.u-movie.com.tw/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-14",
+        "showtime_count": 0,
+        "showtimes": [],
+        "start_times": "",
+        "showtime_unavailable": true,
+        "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
       }
     }
   ]
