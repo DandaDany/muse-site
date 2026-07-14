@@ -58,7 +58,7 @@ SPOT_HS_URL = "https://spot-hs.tixi.com.tw/"
 BREEZE_URL = "https://breezecinemas.tixi.com.tw/"
 GOVERNOR_URL = "https://governor.tixi.com.tw/"
 ESLITE_URL = "https://meet.eslite.com/tw/tc/gallery/movieschedule/201803020001"
-NANTOU_URL = "https://www.nantoutheater.com/movie_order?search_movie_id=&search_date={show_date}&search_time=0"
+NANTOU_URL = "https://www.nantoutheater.com/movie_order?search_date={show_date}&search_time=0"
 SHANMING_URL = "https://www.shanmingcinema.com.tw/showtimes.php"
 TIMES_URL = "https://www.timescinema.com.tw/times.php"
 
@@ -1455,7 +1455,6 @@ def fetch_nantou(conn: sqlite3.Connection, aliases: list[str], show_date: str) -
             start_time = sibling.get_text(" ", strip=True)
             if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
                 continue
-            booking_url = urllib.parse.urljoin(source_url, sibling.get("href") or source_url)
             records.append(
                 ShowtimeRecord(
                     location_id=int(row["id"]),
@@ -1464,7 +1463,8 @@ def fetch_nantou(conn: sqlite3.Connection, aliases: list[str], show_date: str) -
                     auditorium=auditorium,
                     format=title,
                     language=infer_language(title),
-                    booking_url=booking_url,
+                    # 個別訂票頁會要求登入；地圖入口應維持可直接開啟的每日時刻表。
+                    booking_url=source_url,
                     source_url=source_url,
                     raw_text=f"{title} | {auditorium or ''} | {start_time}",
                 )
@@ -1749,31 +1749,40 @@ def fetch_luna(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> 
         return []
     raw = request_bytes(LUNA_URL, headers={"Referer": "https://www.lunacinemax.com.tw/"})
     save_raw("luna_schedule", raw, "html")
-    lines = text_blocks_from_html(raw)
+    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
     records: list[ShowtimeRecord] = []
-    current_hall: str | None = None
-    for index, line in enumerate(lines):
-        if re.fullmatch(r"(VIP|\d+廳)", line):
-            current_hall = line
+    # 每個 NAME_CHTLabel 是一部電影；同一區塊的多個 TIMELabel 都要保留。
+    for title_node in soup.select("span[id$='NAME_CHTLabel']"):
+        title = title_node.get_text(" ", strip=True)
+        if not movie_matches(title, aliases):
             continue
-        if not movie_matches(line, aliases):
-            continue
-        next_line = lines[index + 1] if index + 1 < len(lines) else ""
-        for start_time in re.findall(r"\d{1,2}:\d{2}", next_line):
+        movie_table = title_node.find_parent("table")
+        movie_row = movie_table.find_parent("tr") if movie_table else None
+        screen_table = movie_row.find_parent("table") if movie_row else None
+        screen_row = screen_table.find_parent("tr") if screen_table else None
+        hall_node = screen_row.select_one("span[id$='SCREEN_NAMELabel']") if screen_row else None
+        auditorium = hall_node.get_text(" ", strip=True) if hall_node else None
+        for time_node in movie_table.select("span[id$='TIMELabel']") if movie_table else []:
+            start_time = time_node.get_text(" ", strip=True)
+            if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                continue
             records.append(
                 ShowtimeRecord(
                     location_id=int(row["id"]),
                     show_date=show_date,
                     start_time=start_time.zfill(5),
-                    auditorium=current_hall,
-                    format=line,
-                    language=infer_language(line),
+                    auditorium=auditorium,
+                    format=title,
+                    language=infer_language(title),
                     booking_url=LUNA_URL,
                     source_url=LUNA_URL,
-                    raw_text=f"{current_hall or ''} {line}",
+                    raw_text=f"{auditorium or ''} {title} {start_time}",
                 )
             )
-    return records
+    unique_records: dict[tuple[str, str | None, str | None], ShowtimeRecord] = {}
+    for record in records:
+        unique_records[(record.start_time, record.auditorium, record.format)] = record
+    return list(unique_records.values())
 
 
 def fetch_ilanmovie(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:

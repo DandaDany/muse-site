@@ -21,6 +21,10 @@ def normalize_city(value: str | None) -> str | None:
 
 def display_showtime_url(row: sqlite3.Row) -> str | None:
     source_url = row["source_url"]
+    if row["location_name"] == "真善美劇院":
+        return row["location_url"] or source_url
+    if row["chain_name"] == "南投戲院":
+        return source_url or row["location_url"]
     if source_url and "ambassador.com.tw/home/Showtime" in source_url:
         return source_url.replace("%2F", "/").replace("%2f", "/")
     return row["booking_url"] or row["location_url"] or row["official_url"] or source_url
