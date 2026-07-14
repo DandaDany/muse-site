@@ -317,6 +317,23 @@
           <div class="label">點擊影城次數</div>
         </div>
       </div>
+      {% if ga4.movie_selections %}
+        <h3 style="font-size:.95rem;margin:1rem 0 .5rem;">電影選擇明細</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>電影</th><th class="num-cell">選擇次數</th></tr></thead>
+            <tbody>
+              {% for item in ga4.movie_selections %}
+                <tr><td>{{ item.title }}</td><td class="num-cell">{{ item.count }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% elif ga4.movie_selection_error %}
+        <div class="empty" style="padding:12px 0;">
+          尚未能按電影拆分：請在 GA4 建立事件參數 <code>movie_title</code> 的自訂維度，名稱可設為「電影名稱」。
+        </div>
+      {% endif %}
     {% endif %}
   </section>
 

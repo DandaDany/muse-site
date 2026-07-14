@@ -156,11 +156,10 @@ def dashboard(request):
     selected = _parse_selected_date(request.GET.get("date"))
     selected_date = selected.isoformat()  # 'YYYY-MM-DD'，同時餵給查詢與模板
 
-    report = (
-        CrawlReport.objects.filter(show_date=selected_date)
-        .order_by("-created_at")
-        .first()
-    )
+    reports = CrawlReport.objects.filter(show_date=selected_date).order_by("-created_at")
+    # skipped 只代表匯出/排程被略過，沒有新的場次摘要；不能讓它覆蓋同日
+    # 已完成的 partial_success/success 報告，否則儀表板會顯示成 0 場。
+    report = reports.exclude(status="skipped").first() or reports.first()
     stats = _stats_from_report(report) if report else _stats_from_local(selected_date)
 
     # ------------------------------------------------------------------

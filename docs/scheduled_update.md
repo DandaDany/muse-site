@@ -29,12 +29,13 @@
 要讓本機**自動向雲端 Django 拉最新片單、並把執行摘要回傳**，在本機設定環境變數：
 
 ```
-MUSE_API_BASE_URL=https://muse-backend-xxxx.onrender.com
+MUSE_API_BASE_URL=https://your-render-service.onrender.com
 MUSE_API_TOKEN=<與雲端 CRAWLER_API_TOKEN 相同的字串>
 MUSE_WORKER_NAME=company-desktop-01   # 選填，預設本機電腦名稱
 ```
 
 雲端 Render 端也要設一個對應的環境變數 `CRAWLER_API_TOKEN`（同一組隨機字串）。
+專案根目錄也可建立 `.env`，格式請參考 `.env.example`；排程執行時會自動載入。
 
 行為：
 - **執行前**：`daily_update.py` 向 `/api/tracked-movies/` 拉啟用片單，驗證後**原子寫入** `cache/tracked_movies.json` 與《電影清單.txt》。

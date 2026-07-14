@@ -21,12 +21,37 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # 讓沒有安裝後台相依套件的本機環境仍可使用快取/爬蟲
+    load_dotenv = None
+
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MOVIE_LIST = PROJECT_DIR / "電影清單.txt"
 CACHE_DIR = PROJECT_DIR / "cache"
 CACHE_JSON = CACHE_DIR / "tracked_movies.json"
 CACHE_META = CACHE_DIR / "tracked_movies_meta.json"
 PENDING_DIR = PROJECT_DIR / "data" / "output" / "pending_reports"
+
+# Windows 工作排程器不一定會繼承互動式終端機的環境變數；
+# 優先載入專案根目錄的 .env，再由真正的環境變數覆蓋。
+def _load_local_env() -> None:
+    env_path = PROJECT_DIR / ".env"
+    if load_dotenv:
+        load_dotenv(env_path)
+        return
+    # 最小 fallback：即使排程環境尚未安裝 python-dotenv，也能讀取簡單 KEY=VALUE 設定。
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8-sig").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_local_env()
 
 
 def now_iso() -> str:
@@ -178,10 +203,19 @@ def _post_report(report, timeout=30):
 
 def flush_pending_reports():
     """上傳所有待送報告，成功才刪檔（先落地再上傳的 outbox）。回傳 (sent, failed)。"""
-    if not PENDING_DIR.exists() or not api_base():
+    if not PENDING_DIR.exists():
         return 0, 0
+    pending_paths = sorted(PENDING_DIR.glob("*.json"))
+    if not pending_paths:
+        return 0, 0
+    if not api_base():
+        print("[warn] MUSE_API_BASE_URL 未設定；報告保留在 pending_reports，未送出")
+        return 0, len(pending_paths)
+    if not api_token():
+        print("[warn] MUSE_API_TOKEN 未設定；報告保留在 pending_reports，未送出")
+        return 0, len(pending_paths)
     sent = failed = 0
-    for path in sorted(PENDING_DIR.glob("*.json")):
+    for path in pending_paths:
         try:
             report = json.loads(path.read_text(encoding="utf-8"))
             _post_report(report)

@@ -45,7 +45,8 @@ def fetch_metrics() -> dict:
     """回傳流量摘要 dict。永遠可安全渲染。
 
     keys: configured(bool), error(str|None), property_url, range,
-          active_users, page_views, sessions, select_movie, select_cinema
+          active_users, page_views, sessions, select_movie, select_cinema,
+          movie_selections
     """
     prop = os.environ.get("GA4_PROPERTY_ID")
     if not prop:
@@ -109,7 +110,36 @@ def fetch_metrics() -> dict:
             "sessions": sessions,
             "select_movie": counts.get("select_movie", 0),
             "select_cinema": counts.get("select_cinema", 0),
+            "movie_selections": [],
+            "movie_selection_error": None,
         }
+
+        # movie_title 是事件參數；GA4 必須先建立同名的「自訂維度」後，
+        # Data API 才能用 customEvent:movie_title 分組查詢。
+        try:
+            movie_events = client.run_report(
+                RunReportRequest(
+                    property=prop_path,
+                    date_ranges=[date_range],
+                    dimensions=[
+                        Dimension(name="eventName"),
+                        Dimension(name="customEvent:movie_title"),
+                    ],
+                    metrics=[Metric(name="eventCount")],
+                    limit=100,
+                )
+            )
+            data["movie_selections"] = [
+                {
+                    "title": row.dimension_values[1].value or "（未提供片名）",
+                    "count": int(row.metric_values[0].value),
+                }
+                for row in movie_events.rows
+                if row.dimension_values[0].value == "select_movie"
+            ]
+            data["movie_selections"].sort(key=lambda item: (-item["count"], item["title"]))
+        except Exception as exc:
+            data["movie_selection_error"] = f"{type(exc).__name__}: {exc}"
     except Exception as exc:  # 套件未安裝、憑證錯誤、API 失敗… 一律安全降級
         data = {
             "configured": True,
