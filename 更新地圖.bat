@@ -1,4 +1,6 @@
 @echo off
+rem 手動備援用：每日排程已改由 GitHub Actions 自動執行（台灣時間每天 07:00）。
+rem 詳見 docs/scheduled_update.md。平常不需手動跑，臨時補跑或雲端不可用時再用。
 setlocal
 
 cd /d "%~dp0"
