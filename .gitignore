@@ -1,7 +1,4 @@
 data/*.sqlite
-# 例外：影城主檔 DB 需進版控，GitHub Actions 排程爬蟲才知道要爬哪些影城／據點代碼。
-# 每次爬蟲產生的場次（showtimes/crawl_runs）不提交，只當作執行期暫存（見 .github/workflows/daily-crawl.yml）。
-!data/movie_map.sqlite
 data/*.sqlite-shm
 data/*.sqlite-wal
 data/output/*
