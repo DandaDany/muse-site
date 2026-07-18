@@ -185,7 +185,7 @@ def pull_movie_list():
 
 # --- 影城主檔：向雲端拉 chains + locations ---------------------------------
 
-def fetch_cinema_master(timeout=30):
+def fetch_cinema_master(timeout=60):
     """向雲端拉影城主檔（品牌 + 據點，含 source_location_code）。
 
     回傳驗證過的 payload dict（含 chains / locations）。未設定 API 或回傳不合法

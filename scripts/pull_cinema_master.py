@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -82,10 +83,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    try:
-        payload = muse_api.fetch_cinema_master()
-    except Exception as exc:
-        print(f"[錯誤] 無法從後台取得影城主檔：{exc}", file=sys.stderr)
+    # Render 免費方案閒置會休眠，第一個請求需 ~50-90 秒喚醒。逐次重試吸收冷啟動：
+    # timeout 拉長 + 多次嘗試，讓每天排程那次「叫醒後台」不會直接失敗。
+    attempts = 5
+    payload = None
+    last_exc = None
+    for i in range(1, attempts + 1):
+        try:
+            payload = muse_api.fetch_cinema_master(timeout=60)
+            if i > 1:
+                print(f"[影城主檔] 第 {i} 次嘗試成功（後台已喚醒）。")
+            break
+        except Exception as exc:
+            last_exc = exc
+            if i < attempts:
+                print(f"[重試 {i}/{attempts}] 後台尚未回應（{type(exc).__name__}: {exc}）；"
+                      "可能是 Render 冷啟動，等待喚醒後重試…", file=sys.stderr)
+                time.sleep(15)
+    if payload is None:
+        print(f"[錯誤] 重試 {attempts} 次仍無法從後台取得影城主檔：{last_exc}", file=sys.stderr)
         print("       請確認 GitHub Secrets 的 MUSE_API_BASE_URL / MUSE_API_TOKEN，"
               "以及後台已部署 /api/cinema-master/。", file=sys.stderr)
         sys.exit(1)
