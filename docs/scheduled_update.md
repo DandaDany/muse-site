@@ -1,6 +1,64 @@
-# 本機每日排程更新（免費路線）
+# 每日排程更新
 
-讓本機每天固定時間自動：**從後台讀最新追蹤電影 → 爬場次 → 匯出 GeoJSON → 推 GitHub Pages**。這條路線完全免費（不需要雲端主機跑爬蟲），公開地圖靠 GitHub Pages 自動部署。
+排程每天固定時間自動：**從後台讀最新追蹤電影 → 爬場次 → 匯出 GeoJSON → 推 GitHub Pages**。公開地圖靠 GitHub Pages 自動部署。
+
+> **主排程 = GitHub Actions（雲端，見下方第一節）。** 本機工作排程器／`更新地圖.bat` 改為**手動備援**，平常不需要開機掛著跑。兩條路線用的是同一支 `scripts/daily_update.py`、同一份後台片單，可互相替換。
+
+---
+
+## 一、GitHub Actions 每日排程（主要方式）
+
+Workflow：`.github/workflows/daily-crawl.yml`，每天**台灣時間 07:00** 自動執行，並可在 Actions 頁面手動觸發（workflow_dispatch，可指定日期）。
+
+### 這條路線的資料來源與後台關係
+
+**後台是「片單」與「影城主檔」的單一真相來源**，GitHub Actions 每次爬蟲前都向後台拉這兩份資料，因此**不需要**把任何 binary DB 提交進 repo。
+
+| 資料 | 來源 | 與後台關係 |
+|------|------|-----------|
+| 要爬哪些電影（片單） | 後台 API `GET /api/tracked-movies/` → 寫入《電影清單.txt》 | ✅ 後台 TrackedMovie 是真實來源（斷線退回快取／repo 內《電影清單.txt》） |
+| 要爬哪些影城／據點（主檔） | 後台 API `GET /api/cinema-master/` → 重建 `data/movie_map.sqlite` 的 cinema_chains / cinema_locations | ✅ 後台 Postgres 是真實來源（含爬蟲必需的 `source_location_code`） |
+| 場次 | 即時爬 30+ 家影城官網 | ❌ 與後台無關 |
+| 執行結果摘要 | 爬完 POST `/api/crawl-report/` | ✅ 供後台儀表板 KPI |
+| 公開地圖 | 匯出 GeoJSON → 推 main → `pages.yml` 部署 | 與後台無關 |
+
+### 一次性設定
+
+1. **設定 GitHub Actions Secrets（必要，缺一不可）。** repo → **Settings → Secrets and variables → Actions → New repository secret**，新增兩個：
+
+   | Secret 名稱 | 值 |
+   |------------|-----|
+   | `MUSE_API_BASE_URL` | 後台網址，例如 `https://muse-backend-xxxx.onrender.com` |
+   | `MUSE_API_TOKEN` | 與後台 `CRAWLER_API_TOKEN` 相同的字串 |
+
+2. **影城代碼（source_location_code）已全自動化，不需任何本機動作。** 各官網據點代碼的來源如下，全部可從 repo 或雲端取得：
+
+   | 需代碼的來源 | 代碼來源 | 何時進系統 |
+   |------|------|------|
+   | 威秀 / MUVIE | `data/input/vieshow_locations.csv`（版控） | 後台 `build.sh` 部署時 `import_cinema_csv` 自動同步進 Postgres |
+   | 百老匯、宜蘭日新、其他小型影城 | `data/input/misc_locations.csv`（版控，源自 `fetch_misc_locations.py`） | 同上，部署時自動同步 |
+   | 新光、in89、國賓 | 各自 location-fetcher 即時爬官網 | 每日 workflow 建好 DB 後執行三支 fetcher 補進（座標安全、容錯不中斷） |
+
+   > 因此**不需再跑 `import_from_sqlite`、也不需碰本機**。若要在後台查代碼狀況：`影城據點` 列表已新增「代碼 / 有代碼」欄，可直接目視。
+   > workflow 的 `pull_cinema_master.py --require-codes` 會在後台完全沒有代碼時直接失敗，避免爬出空地圖。
+
+3. **部署後台讓新 API 生效。** `/api/cinema-master/` 是本次新增的端點——把後端變更部署到 Render（推 main → Render 自動部署）後才會存在。
+
+4. **確認排程已生效。** `schedule` 觸發只會從**預設分支（main）**執行——本 workflow 合併進 main 後排程才會開始每天跑。可先到 **Actions → Daily crawl and publish map → Run workflow** 手動跑一次驗證。
+
+### 技術重點
+
+- **影城主檔**：`scripts/pull_cinema_master.py` 每次執行前向後台 `/api/cinema-master/` 拉品牌＋據點，重建本機 SQLite；後台改影城即自動生效，無 binary 進 repo。
+- **時區**：GitHub cron 一律 UTC；台灣 07:00 = 前一天 UTC 23:00，故 `cron: "0 23 * * *"`。尖峰時段實際觸發可能延遲數分鐘。
+- **威秀 headful 瀏覽器**：威秀爬蟲需要有畫面的瀏覽器（`headless=False`）。Actions 無頭環境靠 **Xvfb 虛擬顯示器**（`xvfb-run`）解決。
+- **容錯**：單一影城爬失敗只記錄該來源錯誤，不中斷整體排程。
+- **推送**：workflow 用內建 `GITHUB_TOKEN` 把 GeoJSON 推回 main，觸發 `pages.yml` 自動部署。
+
+---
+
+## 二、本機每日排程（手動備援）
+
+> 本機路線完全免費（不需雲端主機跑爬蟲）。平常交給上面的 GitHub Actions；本機保留給臨時手動補跑或雲端不可用時使用。
 
 ## 流程
 

@@ -1,0 +1,113 @@
+name: Daily crawl and publish map
+
+# 雲端排程爬蟲（取代本機工作排程器 / 更新地圖.bat）。
+# 流程：向後台拉最新片單 → 爬 30+ 家影城場次 → 匯出 GeoJSON → 推回 main →
+#       觸發 pages.yml 部署公開地圖 → 回報執行摘要給後台儀表板。
+#
+# 前置需求：
+#   後台是影城主檔與片單的單一真相來源。在 repo → Settings → Secrets and variables →
+#   Actions 設定兩個 Secret（缺一不可）：
+#     - MUSE_API_BASE_URL：後台網址，例如 https://muse-backend-xxxx.onrender.com
+#     - MUSE_API_TOKEN   ：與後台 CRAWLER_API_TOKEN 相同的字串
+#   且後台 Postgres 需已灌入含 source_location_code 的影城主檔（在本機對 Render 跑過
+#   `python manage.py import_from_sqlite`）。本 workflow 每次爬蟲前會呼叫後台
+#   /api/cinema-master/ 重建本機 SQLite，因此「不需」把 binary DB 提交進 repo。
+#
+# 注意：GitHub 只會從「預設分支（main）」觸發 schedule；本 workflow 合併進 main 後排程才會生效。
+
+on:
+  schedule:
+    # 每天台灣時間 07:00（UTC+8）＝ 前一天 UTC 23:00。
+    # GitHub cron 一律用 UTC，且尖峰時段實際觸發可能延遲數分鐘。
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "場次日期 YYYY-MM-DD（留空＝台灣時區的今天）"
+        required: false
+        default: ""
+
+# 允許 workflow 用內建 GITHUB_TOKEN 把更新後的地圖資料推回 repo。
+permissions:
+  contents: write
+
+# 同一時間只跑一個爬蟲，避免手動觸發與排程重疊。
+concurrency:
+  group: daily-crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      # 讓 date.today() 與 log 以台灣時區為準。
+      TZ: Asia/Taipei
+      # 後台連線（必要）：拉片單與影城主檔、回報摘要都靠這兩個。缺少時「Build cinema master DB」步驟會直接失敗。
+      MUSE_API_BASE_URL: ${{ secrets.MUSE_API_BASE_URL }}
+      MUSE_API_TOKEN: ${{ secrets.MUSE_API_TOKEN }}
+      MUSE_WORKER_NAME: github-actions
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium and system deps
+        run: python -m playwright install --with-deps chromium
+
+      - name: Install Xvfb (headful browser for 威秀 VIESHOW)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Build cinema master DB from backend
+        # 向後台 /api/cinema-master/ 拉影城品牌＋據點（含 source_location_code），
+        # 在乾淨環境重建 data/movie_map.sqlite。--require-codes：若後台完全沒有據點代碼
+        # 直接失敗，避免爬出空地圖。威秀/百老匯/小型影城的代碼由後台 build.sh 從版控
+        # CSV 自動同步（import_cinema_csv），故後台已含這些代碼。
+        run: python scripts/pull_cinema_master.py --require-codes
+
+      - name: Refresh scraped-chain location codes (新光 / in89 / 國賓)
+        # 這三家的據點代碼是從官網即時爬（非靜態），故在此補進上一步建好的 SQLite。
+        # 其 upsert 皆座標安全（COALESCE 保留、或不動 latitude/longitude），只補代碼。
+        # 任一家官網暫時抓不到不應中斷整體排程，故容錯（缺代碼那家當天略過該來源）。
+        continue-on-error: true
+        run: |
+          python scripts/fetch_skcinemas_locations.py || true
+          python scripts/fetch_in89_locations.py || true
+          python scripts/fetch_ambassador_locations.py || true
+
+      - name: Run daily crawl (headful via Xvfb)
+        run: |
+          DATE_ARG=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            DATE_ARG="--date ${{ github.event.inputs.date }}"
+          fi
+          # --no-git：git 操作交給下一步統一處理，只提交地圖資料、不提交每日變動的 SQLite。
+          # 部分影城（威秀）需 headful 瀏覽器，透過 Xvfb 提供虛擬顯示器。
+          xvfb-run -a --server-args="-screen 0 1366x900x24" \
+            python scripts/daily_update.py --no-git $DATE_ARG
+
+      - name: Commit and push updated map data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 只提交公開地圖資料與片單；每次爬蟲產生的場次會弄髒 SQLite，但不提交（保持主檔乾淨）。
+          git add web/data/locations.geojson 電影清單.txt
+          if git diff --cached --quiet; then
+            echo "地圖資料無變動，無須發佈。"
+          else
+            git commit -m "Update map data (scheduled crawl)"
+            git push
+          fi

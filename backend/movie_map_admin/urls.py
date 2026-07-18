@@ -30,6 +30,7 @@ urlpatterns = [
     path("dashboard/", dashboard, name="dashboard"),
     # 機器對機器 API（本機 Worker 用，Bearer token 驗證）
     path("api/tracked-movies/", api.tracked_movies, name="api_tracked_movies"),
+    path("api/cinema-master/", api.cinema_master, name="api_cinema_master"),
     path("api/crawl-report/", api.crawl_report, name="api_crawl_report"),
     # 根路徑改導向營運儀表板，方便使用者一進站就能掌握營運狀況
     path("", RedirectView.as_view(url="/dashboard/", permanent=False)),

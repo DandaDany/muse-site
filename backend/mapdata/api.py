@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from .models import CrawlReport, TrackedMovie
+from .models import CinemaChain, CinemaLocation, CrawlReport, TrackedMovie
 
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
@@ -82,6 +82,62 @@ def tracked_movies(request):
             "version": version,
             "count": len(movies),
             "movies": movies,
+        }
+    )
+
+
+@require_http_methods(["GET"])
+def cinema_master(request):
+    """回傳影城主檔（啟用中的品牌 + 據點），供爬蟲 Worker 建本機 SQLite。
+
+    這是雲端 Postgres 的「影城地址簿」：包含爬蟲必需的 source_location_code
+    （各官網據點代碼）、經緯度等。GitHub Actions 每次排程爬蟲前呼叫本端點，
+    在乾淨環境重建 data/movie_map.sqlite 的 cinema_chains / cinema_locations，
+    取代「把 binary SQLite 提交進 repo」的舊做法。
+    """
+    denied = _check_token(request)
+    if denied:
+        return denied
+
+    chains = [
+        {
+            "id": c.id,
+            "chain_name": c.chain_name,
+            "official_url": c.official_url,
+            "crawl_url": c.crawl_url,
+            "booking_url": c.booking_url,
+            "all_locations_assumed_showing": bool(c.all_locations_assumed_showing),
+            "notes": c.notes,
+            "active": bool(c.active),
+        }
+        for c in CinemaChain.objects.filter(active=True).order_by("id")
+    ]
+    locations = [
+        {
+            "id": loc.id,
+            "chain_id": loc.chain_id,
+            "location_name": loc.location_name,
+            "display_name": loc.display_name,
+            "address": loc.address,
+            "city": loc.city,
+            "district": loc.district,
+            "latitude": loc.latitude,
+            "longitude": loc.longitude,
+            "source_location_code": loc.source_location_code,
+            "location_url": loc.location_url,
+            "source_url": loc.source_url,
+            "notes": loc.notes,
+            "active": bool(loc.active),
+        }
+        for loc in CinemaLocation.objects.filter(active=True).order_by("id")
+    ]
+    return JsonResponse(
+        {
+            "generated_at": timezone.now().isoformat(),
+            "chain_count": len(chains),
+            "location_count": len(locations),
+            "chains": chains,
+            "locations": locations,
         }
     )
 

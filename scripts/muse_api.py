@@ -183,6 +183,29 @@ def pull_movie_list():
         }
 
 
+# --- 影城主檔：向雲端拉 chains + locations ---------------------------------
+
+def fetch_cinema_master(timeout=30):
+    """向雲端拉影城主檔（品牌 + 據點，含 source_location_code）。
+
+    回傳驗證過的 payload dict（含 chains / locations）。未設定 API 或回傳不合法
+    時丟出例外，交由呼叫端決定如何處理（CI 應直接失敗，避免爬出空地圖）。
+    """
+    base = api_base()
+    if not base:
+        raise RuntimeError("未設定 MUSE_API_BASE_URL")
+    status, payload = _request(f"{base}/api/cinema-master/", timeout=timeout)
+    if status != 200:
+        raise RuntimeError(f"HTTP {status}")
+    if not isinstance(payload, dict):
+        raise RuntimeError("payload 不是物件")
+    chains = payload.get("chains")
+    locations = payload.get("locations")
+    if not isinstance(chains, list) or not isinstance(locations, list):
+        raise RuntimeError("payload 缺少 chains/locations 陣列")
+    return payload
+
+
 # --- 報告：outbox 待送佇列 -------------------------------------------------
 
 def save_pending_report(report) -> Path:
