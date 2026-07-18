@@ -65,13 +65,19 @@ class CinemaLocationAdmin(admin.ModelAdmin):
         "location_name",
         "chain",
         "city",
-        "address",
+        "source_location_code",
+        "has_code",
         "latitude",
         "longitude",
         "active",
     )
     list_filter = ("active", "city", "chain")
-    search_fields = ("location_name", "address", "city")
+    search_fields = ("location_name", "address", "city", "source_location_code")
+
+    @admin.display(boolean=True, description="有代碼")
+    def has_code(self, obj):
+        """一眼看出此據點是否有 source_location_code（爬蟲部分來源硬需求）。"""
+        return bool((obj.source_location_code or "").strip())
     autocomplete_fields = ("chain",)
     list_select_related = ("chain",)
     readonly_fields = ("created_at", "updated_at")
