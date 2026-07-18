@@ -34,6 +34,7 @@ DATA_INPUT = Path(settings.PROJECT_ROOT) / "data" / "input"
 DEFAULT_CSVS = [
     DATA_INPUT / "vieshow_locations.csv",
     DATA_INPUT / "manual_location_urls.csv",
+    DATA_INPUT / "misc_locations.csv",
 ]
 
 # CSV 表頭別名（對齊 scripts/import_cinema_sources.py 的欄位）。

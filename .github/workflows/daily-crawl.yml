@@ -74,8 +74,19 @@ jobs:
       - name: Build cinema master DB from backend
         # 向後台 /api/cinema-master/ 拉影城品牌＋據點（含 source_location_code），
         # 在乾淨環境重建 data/movie_map.sqlite。--require-codes：若後台完全沒有據點代碼
-        # （代表後台是用 geojson 而非 import_from_sqlite 灌的）直接失敗，避免爬出空地圖。
+        # 直接失敗，避免爬出空地圖。威秀/百老匯/小型影城的代碼由後台 build.sh 從版控
+        # CSV 自動同步（import_cinema_csv），故後台已含這些代碼。
         run: python scripts/pull_cinema_master.py --require-codes
+
+      - name: Refresh scraped-chain location codes (新光 / in89 / 國賓)
+        # 這三家的據點代碼是從官網即時爬（非靜態），故在此補進上一步建好的 SQLite。
+        # 其 upsert 皆座標安全（COALESCE 保留、或不動 latitude/longitude），只補代碼。
+        # 任一家官網暫時抓不到不應中斷整體排程，故容錯（缺代碼那家當天略過該來源）。
+        continue-on-error: true
+        run: |
+          python scripts/fetch_skcinemas_locations.py || true
+          python scripts/fetch_in89_locations.py || true
+          python scripts/fetch_ambassador_locations.py || true
 
       - name: Run daily crawl (headful via Xvfb)
         run: |
