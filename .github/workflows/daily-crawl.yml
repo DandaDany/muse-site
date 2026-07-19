@@ -2,7 +2,11 @@ name: Daily crawl and publish map
 
 # 雲端排程爬蟲（取代本機工作排程器 / 更新地圖.bat）。
 # 流程：向後台拉最新片單 → 爬 30+ 家影城場次 → 匯出 GeoJSON → 推回 main →
-#       觸發 pages.yml 部署公開地圖 → 回報執行摘要給後台儀表板。
+#       部署公開地圖（deploy-pages job）→ 回報執行摘要給後台儀表板。
+#
+# 為何自己部署 Pages 而非靠 pages.yml：用內建 GITHUB_TOKEN 推的 commit「不會」觸發
+# 其他 workflow（GitHub 防遞迴機制），所以 crawl job 推的地圖資料收不到 pages.yml。
+# 因此本 workflow 直接以 deploy-pages job 發佈 web/，確保排程更新一定會上線。
 #
 # 前置需求：
 #   後台是影城主檔與片單的單一真相來源。在 repo → Settings → Secrets and variables →
@@ -111,3 +115,37 @@ jobs:
             git commit -m "Update map data (scheduled crawl)"
             git push
           fi
+
+  # 部署公開地圖到 GitHub Pages。獨立 job：crawl 用 GITHUB_TOKEN 推的 commit 不會
+  # 觸發 pages.yml，故在此直接發佈 web/（checkout main 取 crawl 剛推上的新 geojson）。
+  deploy-pages:
+    needs: crawl
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # 與 pages.yml 共用同一並發群組，避免兩者同時部署 Pages 衝突。
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main (含 crawl 剛推上的最新地圖資料)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
