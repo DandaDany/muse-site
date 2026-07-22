@@ -86,18 +86,71 @@ def tracked_movies(request):
     )
 
 
-@require_http_methods(["GET"])
-def cinema_master(request):
-    """回傳影城主檔（啟用中的品牌 + 據點），供爬蟲 Worker 建本機 SQLite。
+def _upsert_location_codes(request) -> JsonResponse:
+    """POST /api/cinema-master/：回寫即時爬到的據點代碼到既有據點。
 
-    這是雲端 Postgres 的「影城地址簿」：包含爬蟲必需的 source_location_code
-    （各官網據點代碼）、經緯度等。GitHub Actions 每次排程爬蟲前呼叫本端點，
-    在乾淨環境重建 data/movie_map.sqlite 的 cinema_chains / cinema_locations，
-    取代「把 binary SQLite 提交進 repo」的舊做法。
+    body: {"locations": [{"chain_name","location_name","source_location_code"}, ...]}
+    以 (chain_name, location_name) 找既有據點，只更新有帶代碼者；找不到就記入 skipped。
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"error": "無效的 JSON。"}, status=400)
+
+    locations = data.get("locations")
+    if not isinstance(locations, list):
+        return JsonResponse({"error": "缺少 locations 陣列。"}, status=400)
+
+    updated = unchanged = skipped = 0
+    for item in locations:
+        if not isinstance(item, dict):
+            skipped += 1
+            continue
+        code = (item.get("source_location_code") or "").strip()
+        chain_name = (item.get("chain_name") or "").strip()
+        location_name = (item.get("location_name") or "").strip()
+        if not code or not chain_name or not location_name:
+            skipped += 1
+            continue
+        obj = (
+            CinemaLocation.objects
+            .filter(chain__chain_name=chain_name, location_name=location_name)
+            .first()
+        )
+        if obj is None:
+            skipped += 1
+            continue
+        if (obj.source_location_code or "") == code:
+            unchanged += 1
+            continue
+        obj.source_location_code = code
+        obj.save(update_fields=["source_location_code"])
+        updated += 1
+
+    return JsonResponse(
+        {"ok": True, "updated": updated, "unchanged": unchanged, "skipped": skipped}
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def cinema_master(request):
+    """影城主檔 API（啟用中的品牌 + 據點），供爬蟲 Worker 使用。
+
+    GET ：回傳影城地址簿（含爬蟲必需的 source_location_code、經緯度等）。
+          GitHub Actions 每次排程爬蟲前呼叫，重建本機 data/movie_map.sqlite。
+    POST：回寫「即時爬到的據點代碼」。新光/in89/國賓 的代碼是每次爬蟲即時抓的，
+          爬完把它們 POST 回來持久化到 Postgres，後台才會累積成完整單一來源；
+          之後即使某天該官網逾時，後台仍有上次存好的代碼可用。
+          只以自然鍵 (品牌, 據點名) 更新既有據點的 source_location_code，
+          找不到就略過（不新建，避免產生無座標的幽靈據點）。
     """
     denied = _check_token(request)
     if denied:
         return denied
+
+    if request.method == "POST":
+        return _upsert_location_codes(request)
 
     chains = [
         {
