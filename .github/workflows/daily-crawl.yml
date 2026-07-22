@@ -85,12 +85,20 @@ jobs:
       - name: Refresh scraped-chain location codes (新光 / in89 / 國賓)
         # 這三家的據點代碼是從官網即時爬（非靜態），故在此補進上一步建好的 SQLite。
         # 其 upsert 皆座標安全（COALESCE 保留、或不動 latitude/longitude），只補代碼。
-        # 任一家官網暫時抓不到不應中斷整體排程，故容錯（缺代碼那家當天略過該來源）。
+        # 新光（skcinemas）走 playwright，官網偶爾逾時，故重試一次。
+        # 任一家官網暫時抓不到不應中斷整體排程，故容錯——但缺的代碼會由後台既存值補上
+        # （見下一步「回寫」＋建 DB 步驟），不必單次成功。
         continue-on-error: true
         run: |
-          python scripts/fetch_skcinemas_locations.py || true
+          python scripts/fetch_skcinemas_locations.py || python scripts/fetch_skcinemas_locations.py || true
           python scripts/fetch_in89_locations.py || true
           python scripts/fetch_ambassador_locations.py || true
+
+      - name: Persist scraped codes back to backend
+        # 把即時爬到的代碼 POST 回後台持久化，讓後台累積成完整單一來源；
+        # 之後某天官網逾時，pull_cinema_master 仍能從後台取得上次存好的代碼。
+        continue-on-error: true
+        run: python scripts/push_cinema_codes.py
 
       - name: Run daily crawl (headful via Xvfb)
         run: |

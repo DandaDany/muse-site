@@ -206,6 +206,24 @@ def fetch_cinema_master(timeout=60):
     return payload
 
 
+def push_cinema_codes(locations, timeout=60):
+    """把即時爬到的據點代碼 POST 回後台持久化。回傳後台回應 dict。
+
+    locations: [{"chain_name","location_name","source_location_code"}, ...]
+    未設定 API 則丟例外，交由呼叫端（CI）決定容錯。
+    """
+    base = api_base()
+    if not base:
+        raise RuntimeError("未設定 MUSE_API_BASE_URL")
+    status, resp = _request(
+        f"{base}/api/cinema-master/", method="POST",
+        body={"locations": locations}, timeout=timeout,
+    )
+    if status not in (200, 201):
+        raise RuntimeError(f"HTTP {status}")
+    return resp
+
+
 # --- 報告：outbox 待送佇列 -------------------------------------------------
 
 def save_pending_report(report) -> Path:
