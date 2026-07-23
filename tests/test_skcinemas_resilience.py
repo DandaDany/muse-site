@@ -149,7 +149,7 @@ class ShinKongResilienceTests(unittest.TestCase):
             finally:
                 conn.close()
 
-    def test_official_and_atmovies_failures_are_reported_together(self) -> None:
+    def test_official_and_atmovies_failures_return_valid_zero(self) -> None:
         with workspace_tempdir() as temp_dir:
             db_path = Path(temp_dir) / "master.sqlite"
             make_db(db_path, with_codes=True)
@@ -159,8 +159,22 @@ class ShinKongResilienceTests(unittest.TestCase):
                 with patch.dict(os.environ, {"SKCINEMAS_OFFICIAL_REACHABLE": ""}), patch.object(
                     showtimes, "capture_skcinemas_headers", side_effect=RuntimeError("official_down")
                 ), patch.object(showtimes, "fetch_skcinemas_atmovies", side_effect=RuntimeError("fallback_down")):
-                    with self.assertRaisesRegex(RuntimeError, "official=official_down; atmovies=fallback_down"):
-                        showtimes.fetch_skcinemas(conn, ["玩具總動員5"], "2026-07-23")
+                    self.assertEqual(showtimes.fetch_skcinemas(conn, ["玩具總動員5"], "2026-07-23"), [])
+            finally:
+                conn.close()
+
+    def test_offline_atmovies_failure_returns_valid_zero(self) -> None:
+        with workspace_tempdir() as temp_dir:
+            db_path = Path(temp_dir) / "master.sqlite"
+            make_db(db_path, with_codes=True)
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            try:
+                with patch.dict(os.environ, {"SKCINEMAS_OFFICIAL_REACHABLE": "false"}), patch.object(
+                    showtimes, "fetch_skcinemas_atmovies", side_effect=RuntimeError("fallback_down")
+                ), patch.object(showtimes, "capture_skcinemas_headers") as official:
+                    self.assertEqual(showtimes.fetch_skcinemas(conn, ["玩具總動員5"], "2026-07-23"), [])
+                official.assert_not_called()
             finally:
                 conn.close()
 

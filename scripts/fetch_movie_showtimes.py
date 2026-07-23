@@ -683,13 +683,25 @@ def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str
 
     if os.getenv("SKCINEMAS_OFFICIAL_REACHABLE", "").lower() == "false":
         print("[SKCINEMAS] official endpoint unavailable; using @movies fallback")
-        return fetch_skcinemas_atmovies(rows, aliases, show_date)
+        try:
+            return fetch_skcinemas_atmovies(rows, aliases, show_date)
+        except Exception as fallback_error:
+            print(
+                "[SKCINEMAS] warning: @movies fallback failed; "
+                f"returning an empty Shin Kong result: {fallback_error}"
+            )
+            return []
 
     entry_url = f"{SKCINEMAS_FILMS_URL}?c={rows[0]['source_location_code']}"
     try: headers = capture_skcinemas_headers(entry_url)
     except Exception as official_error:
         try: return fetch_skcinemas_atmovies(rows, aliases, show_date)
-        except Exception as fallback_error: raise RuntimeError(f"official={official_error}; atmovies={fallback_error}")
+        except Exception as fallback_error:
+            print(
+                "[SKCINEMAS] warning: official and @movies sources failed; "
+                f"returning an empty Shin Kong result: official={official_error}; atmovies={fallback_error}"
+            )
+            return []
     records: list[ShowtimeRecord] = []
     for row in rows:
         cinema_id = str(row["source_location_code"])
