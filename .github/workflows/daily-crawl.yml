@@ -86,7 +86,7 @@ jobs:
         # 後台還沒部署最新主檔時，使用 repo 的自然鍵 CSV 補齊代碼。這只會
         # 更新既存據點的非空欄位，保留後台地址、座標與 URL，也不會建立幽靈據點。
         run: |
-          python scripts/import_cinema_sources.py data/input/cinema_codes.csv --overlay-existing --require-existing
+          python scripts/import_cinema_sources.py data/input/cinema_codes.csv --overlay-existing --chain "新光影城" --require-existing
           python scripts/verify_cinema_codes.py --csv data/input/cinema_codes.csv --chain "新光影城"
 
       - name: Refresh scraped-chain location codes (新光/in89/國賓/秀泰/美麗新)

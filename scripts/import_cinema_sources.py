@@ -196,7 +196,11 @@ LOCATION_OVERLAY_COLUMNS = (
 
 
 def overlay_existing_locations(
-    csv_path: Path, db_path: Path, *, require_existing: bool = False
+    csv_path: Path,
+    db_path: Path,
+    *,
+    require_existing: bool = False,
+    chain_names: set[str] | None = None,
 ) -> tuple[int, int]:
     """Overlay non-empty location fields without creating chains or locations.
 
@@ -210,6 +214,8 @@ def overlay_existing_locations(
     with sqlite3.connect(db_path) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         for item in normalized_rows(csv_path):
+            if chain_names and item["chain_name"] not in chain_names:
+                continue
             location_name = item["location_name"]
             if not location_name:
                 continue
@@ -288,13 +294,22 @@ def main() -> None:
         action="store_true",
         help="With --overlay-existing, fail when a CSV location is absent from the database.",
     )
+    parser.add_argument(
+        "--chain",
+        action="append",
+        default=[],
+        help="With --overlay-existing, restrict the CSV overlay to this chain. Can be repeated.",
+    )
     args = parser.parse_args()
 
     if args.overlay_existing:
         if args.replace:
             parser.error("--replace cannot be combined with --overlay-existing")
         location_count, missing_count = overlay_existing_locations(
-            args.csv, args.db, require_existing=args.require_existing
+            args.csv,
+            args.db,
+            require_existing=args.require_existing,
+            chain_names=set(args.chain) or None,
         )
         print(f"Overlay updated existing cinema locations: {location_count}")
         print(f"Missing CSV locations: {missing_count}")

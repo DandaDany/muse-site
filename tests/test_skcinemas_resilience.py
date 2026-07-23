@@ -69,10 +69,13 @@ class ShinKongResilienceTests(unittest.TestCase):
             db_path = Path(temp_dir) / "master.sqlite"
             make_db(db_path)
             updated, missing = overlay_existing_locations(
-                PROJECT_DIR / "data" / "input" / "cinema_codes.csv", db_path, require_existing=False
+                PROJECT_DIR / "data" / "input" / "cinema_codes.csv",
+                db_path,
+                require_existing=True,
+                chain_names={"新光影城"},
             )
-            self.assertGreaterEqual(updated, 5)
-            self.assertGreater(missing, 0)  # The fixture intentionally contains only Shin Kong locations.
+            self.assertEqual(updated, 5)
+            self.assertEqual(missing, 0)
             self.assertEqual(verify_codes(PROJECT_DIR / "data" / "input" / "cinema_codes.csv", db_path, "新光影城"), 5)
             conn = sqlite3.connect(db_path)
             try:
