@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 import gc
+import os
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
@@ -64,6 +65,98 @@ def workspace_tempdir():
 
 
 class ShinKongResilienceTests(unittest.TestCase):
+    ATMOVIES_PAGE = """
+    <h3>2026/07/23 (四)</h3>
+    <div id="theaterShowtimeBlock">
+      <ul id="theaterShowtimeTable">
+        <li class="filmTitle">無關電影</li><li><ul><li>09：00</li></ul></li>
+      </ul>
+      <ul id="theaterShowtimeTable">
+        <li class="filmTitle">玩具總動員5</li><li>
+          <ul><li><img src="poster.jpg" /></li><li>片長：102分</li></ul>
+          <ul><li class="filmVersion">英文版</li><li>19：20</li><li class="theaterElse">其他戲院</li></ul>
+          <ul><li class="filmVersion">國語版</li><li>21:30(隔日)</li></ul>
+        </li>
+      </ul>
+      <ul id="theaterShowtimeTable">
+        <li class="filmTitle">名偵探柯南 高速公路的墮天使</li><li>
+          <ul><li>14：10</li><li>19：35</li><li class="theaterElse">其他戲院</li></ul>
+        </li>
+      </ul>
+    </div>
+    """
+
+    @staticmethod
+    def atmovies_row() -> dict[str, object]:
+        return {"id": 1, "source_location_code": "1001"}
+
+    def test_atmovies_parser_keeps_movie_and_version_boundaries(self) -> None:
+        records = showtimes.parse_skcinemas_atmovies_page(
+            self.ATMOVIES_PAGE,
+            self.atmovies_row(),
+            ["玩具總動員5", "玩具總動員 5"],
+            "2026-07-23",
+            "https://example.test/showtime/",
+        )
+        self.assertEqual([(item.start_time, item.format, item.language) for item in records], [
+            ("19:20", "英文版", "英語"),
+            ("21:30", "國語版", "國語"),
+        ])
+        self.assertTrue(all("@movies" in item.raw_text for item in records))
+
+    def test_atmovies_parser_uses_japanese_default_when_version_is_absent(self) -> None:
+        records = showtimes.parse_skcinemas_atmovies_page(
+            self.ATMOVIES_PAGE,
+            self.atmovies_row(),
+            ["名偵探柯南"],
+            "2026-07-23",
+            "https://example.test/showtime/",
+        )
+        self.assertEqual([(item.start_time, item.format, item.language) for item in records], [
+            ("14:10", "日語版", "日語"),
+            ("19:35", "日語版", "日語"),
+        ])
+
+    def test_atmovies_parser_rejects_date_mismatch(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "atmovies_date_mismatch"):
+            showtimes.parse_skcinemas_atmovies_page(
+                self.ATMOVIES_PAGE, self.atmovies_row(), ["玩具總動員5"], "2026-07-24", "https://example.test/"
+            )
+
+    def test_all_active_shin_kong_codes_have_atmovies_mapping(self) -> None:
+        self.assertEqual(set(showtimes.SKCINEMAS_ATMOVIES), {"1001", "1002", "1003", "1004", "1005"})
+
+    def test_unreachable_official_source_uses_atmovies_without_playwright(self) -> None:
+        with workspace_tempdir() as temp_dir:
+            db_path = Path(temp_dir) / "master.sqlite"
+            make_db(db_path, with_codes=True)
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            try:
+                with patch.dict(os.environ, {"SKCINEMAS_OFFICIAL_REACHABLE": "false"}), patch.object(
+                    showtimes, "fetch_skcinemas_atmovies", return_value=[]
+                ) as fallback, patch.object(showtimes, "capture_skcinemas_headers") as official:
+                    self.assertEqual(showtimes.fetch_skcinemas(conn, ["玩具總動員5"], "2026-07-23"), [])
+                fallback.assert_called_once()
+                official.assert_not_called()
+            finally:
+                conn.close()
+
+    def test_official_and_atmovies_failures_are_reported_together(self) -> None:
+        with workspace_tempdir() as temp_dir:
+            db_path = Path(temp_dir) / "master.sqlite"
+            make_db(db_path, with_codes=True)
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            try:
+                with patch.dict(os.environ, {"SKCINEMAS_OFFICIAL_REACHABLE": ""}), patch.object(
+                    showtimes, "capture_skcinemas_headers", side_effect=RuntimeError("official_down")
+                ), patch.object(showtimes, "fetch_skcinemas_atmovies", side_effect=RuntimeError("fallback_down")):
+                    with self.assertRaisesRegex(RuntimeError, "official=official_down; atmovies=fallback_down"):
+                        showtimes.fetch_skcinemas(conn, ["玩具總動員5"], "2026-07-23")
+            finally:
+                conn.close()
+
     def test_versioned_codes_overlay_preserves_master_location_fields(self) -> None:
         with workspace_tempdir() as temp_dir:
             db_path = Path(temp_dir) / "master.sqlite"

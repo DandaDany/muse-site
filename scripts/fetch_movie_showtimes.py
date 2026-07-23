@@ -37,6 +37,14 @@ SHOWTIMES_BOOTSTRAP_URL = "https://capi.showtimes.com.tw/4/app/bootstrap"
 VIESHOW_URL = "https://www.vscinemas.com.tw/ShowTimes/"
 SKCINEMAS_FILMS_URL = "https://www.skcinemas.com/films"
 SKCINEMAS_SESSION_API = "https://www.skcinemas.com/api/VistaDataV2/GetSessionByCinemasIDForApp"
+SKCINEMAS_ATMOVIES = {
+    "1001": "https://www.atmovies.com.tw/showtime/t02b05/a02/",
+    "1002": "https://www.atmovies.com.tw/showtime/t06607/a06/",
+    "1003": "https://www.atmovies.com.tw/showtime/t04401/a04/",
+    "1004": "https://www.atmovies.com.tw/showtime/t03315/a03/",
+    "1005": "https://www.atmovies.com.tw/showtime/t02d04/a02/",
+}
+ATMOVIES_TIME_PATTERN = re.compile(r"^(\d{1,2})[：:](\d{2})(?:\(隔日\))?$")
 IN89_API_PATH = "/api/api_movie.php?method=getStagesByDate"
 CENTURYASIA_URL = "https://ticket.centuryasia.com.tw/"
 MIRANEW_TIMETABLE_URL = "https://www.miranewcinemas.com/Booking/Timetable"
@@ -531,6 +539,109 @@ def capture_skcinemas_headers(
     return captured
 
 
+def atmovies_page_date(soup: BeautifulSoup) -> str | None:
+    showtime_root = soup.select_one("#theaterShowtimeBlock")
+    heading = showtime_root.find_previous("h3") if showtime_root else None
+    match = re.search(r"(\d{4})/(\d{2})/(\d{2})", heading.get_text(" ", strip=True) if heading else "")
+    return "-".join(match.groups()) if match else None
+
+
+def parse_skcinemas_atmovies_page(
+    html_text: str, row: sqlite3.Row | dict, aliases: list[str], show_date: str, source_url: str
+) -> list[ShowtimeRecord]:
+    """Parse one @movies cinema page without allowing movie blocks to overlap."""
+    soup = BeautifulSoup(html_text, "html.parser")
+    showtime_root = soup.select_one("#theaterShowtimeBlock")
+    if not showtime_root:
+        raise RuntimeError("atmovies_schedule_block_missing")
+    if atmovies_page_date(soup) != show_date:
+        raise RuntimeError(f"atmovies_date_mismatch:{atmovies_page_date(soup)}")
+
+    movie_blocks = showtime_root.find_all("ul", id="theaterShowtimeTable", recursive=False)
+    if not movie_blocks:
+        raise RuntimeError("atmovies_schedule_empty")
+
+    code = str(row["source_location_code"])
+    records: list[ShowtimeRecord] = []
+    for movie_block in movie_blocks:
+        title_node = movie_block.find("li", class_="filmTitle", recursive=False)
+        if not title_node:
+            continue
+        title = title_node.get_text(" ", strip=True)
+        if not movie_matches(title, aliases):
+            continue
+
+        # A movie's details and schedule lists live beneath its direct content
+        # item.  Inspect only direct children at each level so neighbouring
+        # movie blocks, artwork, duration and "other theatres" links cannot
+        # become showtimes.
+        content_nodes = [
+            node
+            for node in movie_block.find_all("li", recursive=False)
+            if node is not title_node
+        ]
+        for content_node in content_nodes:
+            for schedule_list in content_node.find_all("ul", recursive=False):
+                direct_items = schedule_list.find_all("li", recursive=False)
+                version_node = next(
+                    (item for item in direct_items if "filmVersion" in (item.get("class") or [])), None
+                )
+                version = version_node.get_text(" ", strip=True) if version_node else "日語版"
+                for item in direct_items:
+                    if item is version_node:
+                        continue
+                    raw_time = item.get_text(" ", strip=True)
+                    match = ATMOVIES_TIME_PATTERN.fullmatch(raw_time)
+                    if not match:
+                        continue
+                    records.append(
+                        ShowtimeRecord(
+                            location_id=int(row["id"]),
+                            show_date=show_date,
+                            start_time=f"{int(match.group(1)):02d}:{match.group(2)}",
+                            auditorium=None,
+                            format=version,
+                            language=infer_language(version),
+                            booking_url=f"{SKCINEMAS_FILMS_URL}?c={code}",
+                            source_url=source_url,
+                            raw_text=f"@movies {title} | {version} | {raw_time}",
+                        )
+                    )
+    return records
+
+
+def fetch_skcinemas_atmovies(rows, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    records: list[ShowtimeRecord] = []
+    for row in rows:
+        code = str(row["source_location_code"])
+        base = SKCINEMAS_ATMOVIES.get(code)
+        if not base:
+            raise RuntimeError(f"atmovies_missing_mapping:{code}")
+        html_text = request_text(base)
+        soup = BeautifulSoup(html_text, "html.parser")
+        url = base
+        if atmovies_page_date(soup) != show_date:
+            url = f"{base}{show_date.replace('-', '')}/"
+            html_text = request_text(url)
+        try:
+            location_records = parse_skcinemas_atmovies_page(html_text, row, aliases, show_date, url)
+        except RuntimeError as exc:
+            raise RuntimeError(f"{exc}:{code}") from exc
+        records.extend(location_records)
+
+    seen: set[tuple[int, str, str, str | None, str | None]] = set()
+    deduplicated: list[ShowtimeRecord] = []
+    for record in records:
+        key = (record.location_id, record.show_date, record.start_time, record.format, record.language)
+        if key not in seen:
+            deduplicated.append(record)
+            seen.add(key)
+    if len(deduplicated) != len(records):
+        print(f"[SKCINEMAS] duplicate @movies records removed: before={len(records)} after={len(deduplicated)}")
+    print(f"[SKCINEMAS] @movies fallback locations={len(rows)} records={len(deduplicated)}")
+    return deduplicated
+
+
 def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
     active_count = conn.execute(
         """
@@ -556,8 +667,15 @@ def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str
     if not rows:
         return []
 
+    if os.getenv("SKCINEMAS_OFFICIAL_REACHABLE", "").lower() == "false":
+        print("[SKCINEMAS] official endpoint unavailable; using @movies fallback")
+        return fetch_skcinemas_atmovies(rows, aliases, show_date)
+
     entry_url = f"{SKCINEMAS_FILMS_URL}?c={rows[0]['source_location_code']}"
-    headers = capture_skcinemas_headers(entry_url)
+    try: headers = capture_skcinemas_headers(entry_url)
+    except Exception as official_error:
+        try: return fetch_skcinemas_atmovies(rows, aliases, show_date)
+        except Exception as fallback_error: raise RuntimeError(f"official={official_error}; atmovies={fallback_error}")
     records: list[ShowtimeRecord] = []
     for row in rows:
         cinema_id = str(row["source_location_code"])

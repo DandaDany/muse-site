@@ -97,13 +97,20 @@ jobs:
         # upsert 皆座標安全（只補代碼）。新光走 playwright、官網偶爾逾時，故重試一次。
         # 任一家暫時抓不到不中斷排程（容錯）——缺的代碼會由後台既存值補上（見下一步回寫）。
         run: |
-          curl -L -o /dev/null -sS --connect-timeout 15 --max-time 90 \
+          if curl -L -o /dev/null -sS --connect-timeout 15 --max-time 90 \
             -w 'SKCINEMAS curl http=%{http_code} ip=%{remote_ip} dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} ttfb=%{time_starttransfer} total=%{time_total}\n' \
-            'https://www.skcinemas.com/films?c=1001' || echo 'SKCINEMAS curl failed (continuing to browser diagnostics)'
+            'https://www.skcinemas.com/films?c=1001'; then
+            echo 'SKCINEMAS_OFFICIAL_REACHABLE=true' >> "$GITHUB_ENV"
+          else
+            echo 'SKCINEMAS_OFFICIAL_REACHABLE=false' >> "$GITHUB_ENV"
+            echo '::warning::SKCINEMAS official site is unreachable; the daily crawl will use the @movies fallback.'
+          fi
           # 新光需在 Actions 用 headed Chromium 與 Xvfb 攔截官方 API。版控 CSV
           # 已先驗證可作備援，若即時刷新兩次都失敗，記錄明確警告後仍讓每日場次
           # crawler 執行；後者會以 failed source 回報 partial_success，絕不假裝 0 筆成功。
-          if ! (xvfb-run -a --server-args="-screen 0 1366x900x24" \
+          if [ "$SKCINEMAS_OFFICIAL_REACHABLE" = "false" ]; then
+            echo 'SKCINEMAS official site unavailable; skipping Playwright location refresh and retaining the verified five codes.'
+          elif ! (xvfb-run -a --server-args="-screen 0 1366x900x24" \
               python scripts/fetch_skcinemas_locations.py --headed || \
               xvfb-run -a --server-args="-screen 0 1366x900x24" \
               python scripts/fetch_skcinemas_locations.py --headed); then

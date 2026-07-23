@@ -47,13 +47,9 @@ def fetch_locations(headless: bool = True, wait_ms: int = 8000) -> list[dict[str
         browser = playwright.chromium.launch(headless=headless, slow_mo=120 if not headless else 0)
         try:
             page = browser.new_page(
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/126.0.0.0 Safari/537.36"
-                ),
                 locale="zh-TW",
                 timezone_id="Asia/Taipei",
+                viewport={"width": 1366, "height": 900},
             )
 
             def on_response(response) -> None:
