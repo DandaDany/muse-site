@@ -37,6 +37,11 @@ SHOWTIMES_BOOTSTRAP_URL = "https://capi.showtimes.com.tw/4/app/bootstrap"
 VIESHOW_URL = "https://www.vscinemas.com.tw/ShowTimes/"
 SKCINEMAS_FILMS_URL = "https://www.skcinemas.com/films"
 SKCINEMAS_SESSION_API = "https://www.skcinemas.com/api/VistaDataV2/GetSessionByCinemasIDForApp"
+SKCINEMAS_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/126.0.0.0 Safari/537.36"
+)
 IN89_API_PATH = "/api/api_movie.php?method=getStagesByDate"
 CENTURYASIA_URL = "https://ticket.centuryasia.com.tw/"
 MIRANEW_TIMETABLE_URL = "https://www.miranewcinemas.com/Booking/Timetable"
@@ -486,7 +491,11 @@ def capture_skcinemas_headers(
             headless = os.environ.get("SKCINEMAS_HEADLESS", "true").lower() not in {"0", "false", "no"}
         browser = playwright.chromium.launch(headless=headless, slow_mo=120 if not headless else 0)
         try:
-            page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
+            page = browser.new_page(
+                user_agent=SKCINEMAS_USER_AGENT,
+                locale="zh-TW",
+                timezone_id="Asia/Taipei",
+            )
 
             def on_request(request) -> None:
                 nonlocal captured
