@@ -35,6 +35,9 @@ DEFAULT_CSVS = [
     DATA_INPUT / "vieshow_locations.csv",
     DATA_INPUT / "manual_location_urls.csv",
     DATA_INPUT / "misc_locations.csv",
+    # 從本機主檔匯出的全部據點代碼（新光/in89/國賓/秀泰/美麗新…）。
+    # 由 scripts/export_location_codes.py 產生後提交進版控；不存在時自動略過。
+    DATA_INPUT / "cinema_codes.csv",
 ]
 
 # CSV 表頭別名（對齊 scripts/import_cinema_sources.py 的欄位）。
