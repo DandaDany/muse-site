@@ -100,8 +100,10 @@ jobs:
           if curl -L -o /dev/null -sS --connect-timeout 15 --max-time 90 \
             -w 'SKCINEMAS curl http=%{http_code} ip=%{remote_ip} dns=%{time_namelookup} connect=%{time_connect} tls=%{time_appconnect} ttfb=%{time_starttransfer} total=%{time_total}\n' \
             'https://www.skcinemas.com/films?c=1001'; then
+            SKCINEMAS_OFFICIAL_REACHABLE=true
             echo 'SKCINEMAS_OFFICIAL_REACHABLE=true' >> "$GITHUB_ENV"
           else
+            SKCINEMAS_OFFICIAL_REACHABLE=false
             echo 'SKCINEMAS_OFFICIAL_REACHABLE=false' >> "$GITHUB_ENV"
             echo '::warning::SKCINEMAS official site is unreachable; the daily crawl will use the @movies fallback.'
           fi
