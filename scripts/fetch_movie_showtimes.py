@@ -37,11 +37,6 @@ SHOWTIMES_BOOTSTRAP_URL = "https://capi.showtimes.com.tw/4/app/bootstrap"
 VIESHOW_URL = "https://www.vscinemas.com.tw/ShowTimes/"
 SKCINEMAS_FILMS_URL = "https://www.skcinemas.com/films"
 SKCINEMAS_SESSION_API = "https://www.skcinemas.com/api/VistaDataV2/GetSessionByCinemasIDForApp"
-SKCINEMAS_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/126.0.0.0 Safari/537.36"
-)
 IN89_API_PATH = "/api/api_movie.php?method=getStagesByDate"
 CENTURYASIA_URL = "https://ticket.centuryasia.com.tw/"
 MIRANEW_TIMETABLE_URL = "https://www.miranewcinemas.com/Booking/Timetable"
@@ -486,43 +481,53 @@ def capture_skcinemas_headers(
     entry_url: str, *, headless: bool | None = None, wait_ms: int = 8000
 ) -> dict[str, str]:
     captured: dict[str, str] = {}
+    diagnostics = {"document_started": False, "document_status": None, "api_request": False}
     with sync_playwright() as playwright:
         if headless is None:
             headless = os.environ.get("SKCINEMAS_HEADLESS", "true").lower() not in {"0", "false", "no"}
         browser = playwright.chromium.launch(headless=headless, slow_mo=120 if not headless else 0)
         try:
-            page = browser.new_page(
-                user_agent=SKCINEMAS_USER_AGENT,
-                locale="zh-TW",
-                timezone_id="Asia/Taipei",
-            )
+            context = browser.new_context(locale="zh-TW", timezone_id="Asia/Taipei", viewport={"width": 1366, "height": 900})
+            page = context.new_page()
 
             def on_request(request) -> None:
                 nonlocal captured
-                if captured or "/api/VistaDataV2/" not in request.url:
+                if "/api/VistaDataV2/" not in request.url:
                     return
-                headers = skcinemas_headers_from_request(request.headers, entry_url)
+                diagnostics["api_request"] = True
+                headers = skcinemas_headers_from_request(request.all_headers(), entry_url)
                 if headers:
                     captured = headers
 
+            def on_response(response) -> None:
+                if response.url == entry_url:
+                    diagnostics["document_status"] = response.status
+
+            def on_failed(request) -> None:
+                if request.url == entry_url:
+                    print(f"[SKCINEMAS] document requestfailed={request.failure}")
+
             # The signed API request can happen before DOMContentLoaded.
-            page.on("request", on_request)
+            context.on("request", on_request)
+            context.on("response", on_response)
+            context.on("requestfailed", on_failed)
             navigation_error: Exception | None = None
             try:
-                page.goto(entry_url, wait_until="commit", timeout=30_000)
+                diagnostics["document_started"] = True
+                page.goto(entry_url, wait_until="commit", timeout=90_000)
             except PlaywrightTimeoutError as exc:
                 navigation_error = exc
 
-            deadline = time.monotonic() + wait_ms / 1000
+            deadline = time.monotonic() + min(120_000, 90_000 + wait_ms) / 1000
             while not captured and time.monotonic() < deadline:
                 page.wait_for_timeout(200)
             if navigation_error and not navigation_timeout_is_recoverable(navigation_error, captured):
-                raise RuntimeError("無法取得新光 API headers（導航逾時且沒有 API request）") from navigation_error
+                raise RuntimeError("navigation_timeout_before_commit: 無法取得新光 API headers（沒有 API request）") from navigation_error
         finally:
             browser.close()
 
     if not captured:
-        raise RuntimeError("無法取得新光 API headers")
+        raise RuntimeError("api_headers_missing" if diagnostics["api_request"] else "api_request_not_triggered")
     return captured
 
 
