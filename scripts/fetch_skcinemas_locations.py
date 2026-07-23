@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+import time
 from pathlib import Path
 
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 from init_db import DEFAULT_DB_PATH, init_db
@@ -28,34 +30,52 @@ def infer_city(name: str) -> str | None:
     return None
 
 
+def navigation_timeout_is_recoverable(error: Exception | None, captured: object) -> bool:
+    return isinstance(error, PlaywrightTimeoutError) and bool(captured)
+
+
+def wait_for_capture(page, captured: list[dict[str, object]], wait_ms: int) -> None:
+    deadline = time.monotonic() + wait_ms / 1000
+    while not captured and time.monotonic() < deadline:
+        page.wait_for_timeout(200)
+
+
 def fetch_locations(headless: bool = True, wait_ms: int = 8000) -> list[dict[str, object]]:
     captured: list[dict[str, object]] = []
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=headless, slow_mo=120 if not headless else 0)
-        page = browser.new_page(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/126.0.0.0 Safari/537.36"
-            ),
-            locale="zh-TW",
-            timezone_id="Asia/Taipei",
-        )
+        try:
+            page = browser.new_page(
+                locale="zh-TW",
+                timezone_id="Asia/Taipei",
+                viewport={"width": 1366, "height": 900},
+            )
 
-        def on_response(response) -> None:
-            if response.url.endswith("/api/VistaDataV2/GetAllForApp") and response.status == 200:
-                try:
-                    payload = response.json()
-                except Exception:
-                    return
-                if payload.get("result") is True and isinstance(payload.get("data"), list):
-                    captured.extend(payload["data"])
+            def on_response(response) -> None:
+                if response.url.endswith("/api/VistaDataV2/GetAllForApp") and response.status == 200:
+                    try:
+                        payload = response.json()
+                    except Exception:
+                        return
+                    if payload.get("result") is True and isinstance(payload.get("data"), list):
+                        captured.extend(payload["data"])
 
-        page.on("response", on_response)
-        page.goto(DEFAULT_ENTRY_URL, wait_until="domcontentloaded", timeout=60000)
-        page.wait_for_timeout(wait_ms)
-        browser.close()
+            # Register before navigation: the API may finish before the document
+            # reaches DOMContentLoaded on GitHub Actions runners.
+            page.on("response", on_response)
+            navigation_error: Exception | None = None
+            try:
+                page.goto(DEFAULT_ENTRY_URL, wait_until="commit", timeout=30_000)
+            except PlaywrightTimeoutError as exc:
+                navigation_error = exc
+            wait_for_capture(page, captured, wait_ms)
+            if navigation_error and not navigation_timeout_is_recoverable(navigation_error, captured):
+                raise RuntimeError("新光據點頁導航逾時，且未取得 GetAllForApp API response") from navigation_error
+            if not captured:
+                raise RuntimeError("無法取得新光 GetAllForApp API response")
+        finally:
+            browser.close()
 
     locations: list[dict[str, object]] = []
     seen: set[str] = set()

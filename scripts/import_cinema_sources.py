@@ -184,6 +184,79 @@ def upsert_location(conn: sqlite3.Connection, chain_id: int, item: dict[str, obj
     return True
 
 
+LOCATION_OVERLAY_COLUMNS = (
+    "address",
+    "city",
+    "district",
+    "latitude",
+    "longitude",
+    "source_location_code",
+    "location_url",
+)
+
+
+def overlay_existing_locations(
+    csv_path: Path,
+    db_path: Path,
+    *,
+    require_existing: bool = False,
+    chain_names: set[str] | None = None,
+) -> tuple[int, int]:
+    """Overlay non-empty location fields without creating chains or locations.
+
+    This is deliberately narrower than the normal importer.  CI uses it to add
+    version-controlled source codes after the cinema master is rebuilt from the
+    backend, while preserving the backend's addresses, coordinates and URLs.
+    """
+    init_db(db_path)
+    updated = 0
+    missing: list[str] = []
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA foreign_keys = ON")
+        for item in normalized_rows(csv_path):
+            if chain_names and item["chain_name"] not in chain_names:
+                continue
+            location_name = item["location_name"]
+            if not location_name:
+                continue
+            row = conn.execute(
+                """
+                SELECT cl.id
+                FROM cinema_locations cl
+                JOIN cinema_chains cc ON cc.id = cl.chain_id
+                WHERE cc.chain_name = ? AND cl.location_name = ?
+                """,
+                (item["chain_name"], location_name),
+            ).fetchone()
+            if not row:
+                missing.append(f"{item['chain_name']} / {location_name}")
+                continue
+
+            changes = {
+                column: item[column]
+                for column in LOCATION_OVERLAY_COLUMNS
+                if item.get(column) is not None
+            }
+            if not changes:
+                continue
+            assignments = ", ".join(f"{column} = ?" for column in changes)
+            conn.execute(
+                f"UPDATE cinema_locations SET {assignments} WHERE id = ?",
+                [*changes.values(), row[0]],
+            )
+            updated += 1
+    conn.close()
+
+    if missing and require_existing:
+        raise ValueError(
+            "CSV contains locations missing from the rebuilt cinema master: "
+            + "; ".join(missing)
+        )
+    if missing:
+        print("Skipped missing existing locations: " + "; ".join(missing))
+    return updated, len(missing)
+
+
 def import_cinema_sources(csv_path: Path, db_path: Path, replace: bool = False) -> tuple[int, int]:
     init_db(db_path)
     chains_seen: set[int] = set()
@@ -211,11 +284,39 @@ def main() -> None:
         action="store_true",
         help="Replace existing cinema chains and locations before importing.",
     )
+    parser.add_argument(
+        "--overlay-existing",
+        action="store_true",
+        help="Only update matching existing locations; never create chains or locations.",
+    )
+    parser.add_argument(
+        "--require-existing",
+        action="store_true",
+        help="With --overlay-existing, fail when a CSV location is absent from the database.",
+    )
+    parser.add_argument(
+        "--chain",
+        action="append",
+        default=[],
+        help="With --overlay-existing, restrict the CSV overlay to this chain. Can be repeated.",
+    )
     args = parser.parse_args()
 
-    chain_count, location_count = import_cinema_sources(args.csv, args.db, replace=args.replace)
-    print(f"Imported or updated cinema chains: {chain_count}")
-    print(f"Imported or updated cinema locations: {location_count}")
+    if args.overlay_existing:
+        if args.replace:
+            parser.error("--replace cannot be combined with --overlay-existing")
+        location_count, missing_count = overlay_existing_locations(
+            args.csv,
+            args.db,
+            require_existing=args.require_existing,
+            chain_names=set(args.chain) or None,
+        )
+        print(f"Overlay updated existing cinema locations: {location_count}")
+        print(f"Missing CSV locations: {missing_count}")
+    else:
+        chain_count, location_count = import_cinema_sources(args.csv, args.db, replace=args.replace)
+        print(f"Imported or updated cinema chains: {chain_count}")
+        print(f"Imported or updated cinema locations: {location_count}")
     print(f"Database: {args.db}")
 
 
