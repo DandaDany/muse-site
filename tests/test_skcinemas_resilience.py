@@ -123,6 +123,13 @@ class ShinKongResilienceTests(unittest.TestCase):
                 self.ATMOVIES_PAGE, self.atmovies_row(), ["玩具總動員5"], "2026-07-24", "https://example.test/"
             )
 
+    def test_atmovies_request_retries_then_returns_text(self) -> None:
+        with patch.object(
+            showtimes, "request_text", side_effect=[RuntimeError("502"), RuntimeError("502"), "page"]
+        ), patch.object(showtimes.time, "sleep") as sleep:
+            self.assertEqual(showtimes.request_atmovies_text("https://example.test/"), "page")
+        self.assertEqual(sleep.call_count, 2)
+
     def test_all_active_shin_kong_codes_have_atmovies_mapping(self) -> None:
         self.assertEqual(set(showtimes.SKCINEMAS_ATMOVIES), {"1001", "1002", "1003", "1004", "1005"})
 

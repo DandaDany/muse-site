@@ -546,6 +546,20 @@ def atmovies_page_date(soup: BeautifulSoup) -> str | None:
     return "-".join(match.groups()) if match else None
 
 
+def request_atmovies_text(url: str, attempts: int = 3) -> str:
+    """Retry only transient public-page fetches; never turn an error into zero records."""
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            return request_text(url)
+        except Exception as exc:
+            last_error = exc
+            if attempt < attempts:
+                print(f"[SKCINEMAS] @movies request failed (attempt {attempt}/{attempts}): {exc}")
+                time.sleep(attempt)
+    raise RuntimeError(f"atmovies_request_failed:{url}:{last_error}") from last_error
+
+
 def parse_skcinemas_atmovies_page(
     html_text: str, row: sqlite3.Row | dict, aliases: list[str], show_date: str, source_url: str
 ) -> list[ShowtimeRecord]:
@@ -617,12 +631,12 @@ def fetch_skcinemas_atmovies(rows, aliases: list[str], show_date: str) -> list[S
         base = SKCINEMAS_ATMOVIES.get(code)
         if not base:
             raise RuntimeError(f"atmovies_missing_mapping:{code}")
-        html_text = request_text(base)
+        html_text = request_atmovies_text(base)
         soup = BeautifulSoup(html_text, "html.parser")
         url = base
         if atmovies_page_date(soup) != show_date:
             url = f"{base}{show_date.replace('-', '')}/"
-            html_text = request_text(url)
+            html_text = request_atmovies_text(url)
         try:
             location_records = parse_skcinemas_atmovies_page(html_text, row, aliases, show_date, url)
         except RuntimeError as exc:
