@@ -8,12 +8,12 @@
     {
       "title": "玩具總動員5",
       "show_date": "2026-07-23",
-      "feature_count": 65
+      "feature_count": 69
     },
     {
       "title": "名偵探柯南:高速公路的墮天使",
       "show_date": "2026-07-23",
-      "feature_count": 63
+      "feature_count": 67
     }
   ],
   "movie_features": {
@@ -74,20 +74,20 @@
               "label": "16:35 (數位 英)玩具總動員5 (普遍級)"
             },
             {
-              "time": "17:40",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:40 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
               "time": "19:40",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "19:40 (數位 國)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "20:40",
+              "format": "(數位 英)玩具總動員5 (普遍級)",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "20:40 (數位 英)玩具總動員5 (普遍級)"
             },
             {
               "time": "21:45",
@@ -106,7 +106,7 @@
               "label": "23:45 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:20, 12:25, 14:30, 16:35, 17:40, 19:40, 21:45, 23:45"
+          "start_times": "10:20, 12:25, 14:30, 16:35, 19:40, 20:40, 21:45, 23:45"
         }
       },
       {
@@ -760,21 +760,13 @@
           "map_name": "哈拉影城 哈拉影城",
           "address": "臺北市內湖區南湖里康寧路三段72號",
           "city": "臺北市",
-          "location_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263924&visLang=1",
+          "location_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263925&visLang=1",
           "official_url": "https://www.halarcity.com/",
           "crawl_url": "https://halarcity.com.tw/browsing/Cinemas/Details/0000000001",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 3,
+          "showtime_count": 2,
           "showtimes": [
-            {
-              "time": "16:30",
-              "format": "玩具總動員5",
-              "language": null,
-              "auditorium": "V-hall",
-              "booking_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263924&visLang=1",
-              "label": "16:30 玩具總動員5 / V-hall"
-            },
             {
               "time": "18:30",
               "format": "(中)玩具總動員5",
@@ -792,7 +784,7 @@
               "label": "20:30 玩具總動員5 / V-hall"
             }
           ],
-          "start_times": "16:30, 18:30, 20:30"
+          "start_times": "18:30, 20:30"
         }
       },
       {
@@ -1406,20 +1398,20 @@
               "label": "15:05 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:15",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
               "time": "16:35",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "16:35 (數位 英)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "17:10",
+              "format": "(數位 國)玩具總動員5 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -1446,7 +1438,7 @@
               "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "11:00, 13:05, 15:05, 16:15, 16:35, 18:20, 20:25, 22:30"
+          "start_times": "11:00, 13:05, 15:05, 16:35, 17:10, 18:20, 20:25, 22:30"
         }
       },
       {
@@ -1505,12 +1497,12 @@
               "label": "12:10 (數位 英)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:15",
+              "time": "16:10",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
+              "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -1553,7 +1545,7 @@
               "label": "22:25 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:05, 12:05, 12:10, 12:10, 16:15, 18:20, 20:20, 22:15, 22:20, 22:25"
+          "start_times": "10:05, 12:05, 12:10, 12:10, 16:10, 18:20, 20:20, 22:15, 22:20, 22:25"
         }
       },
       {
@@ -1620,14 +1612,6 @@
               "label": "13:35 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:15",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
               "time": "17:25",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
@@ -1666,9 +1650,17 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "20:25 (數位 英)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "21:30",
+              "format": "(數位 英)玩具總動員5 (普遍級)",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "21:30 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "09:00, 09:35, 11:05, 13:10, 13:35, 16:15, 17:25, 17:40, 18:20, 19:30, 20:25"
+          "start_times": "09:00, 09:35, 11:05, 13:10, 13:35, 17:25, 17:40, 18:20, 19:30, 20:25, 21:30"
         }
       },
       {
@@ -1695,12 +1687,12 @@
           "showtime_count": 4,
           "showtimes": [
             {
-              "time": "15:55",
+              "time": "09:00",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:55 (數位 英)玩具總動員5 (普遍級)"
+              "label": "09:00 (數位 英)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:00",
@@ -1727,7 +1719,7 @@
               "label": "23:40 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "15:55, 18:00, 20:05, 23:40"
+          "start_times": "09:00, 18:00, 20:05, 23:40"
         }
       },
       {
@@ -1751,48 +1743,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 10,
+          "showtime_count": 6,
           "showtimes": [
-            {
-              "time": "10:30",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "10:30 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "12:30",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "12:30 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "14:30",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "14:30 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:15",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:10",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
-            },
             {
               "time": "18:20",
               "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -1832,9 +1784,17 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "22:25 (數位 英)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "23:25",
+              "format": "(數位 英)玩具總動員5 (普遍級)",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "23:25 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:30, 12:30, 14:30, 16:15, 17:10, 18:20, 19:15, 20:25, 21:20, 22:25"
+          "start_times": "18:20, 19:15, 20:25, 21:20, 22:25, 23:25"
         }
       },
       {
@@ -1858,7 +1818,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 10,
+          "showtime_count": 9,
           "showtimes": [
             {
               "time": "09:30",
@@ -1877,28 +1837,12 @@
               "label": "10:10 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "15:45",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:45 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:20",
+              "time": "12:15",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:20 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:55",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:55 (數位 英)玩具總動員5 (普遍級)"
+              "label": "12:15 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:00",
@@ -1939,9 +1883,17 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "21:05 (數位 英)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "23:10",
+              "format": "(數位 英)玩具總動員5 (普遍級)",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "23:10 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "09:30, 10:10, 15:45, 16:20, 16:55, 18:00, 18:30, 19:00, 20:05, 21:05"
+          "start_times": "09:30, 10:10, 12:15, 18:00, 18:30, 19:00, 20:05, 21:05, 23:10"
         }
       },
       {
@@ -1968,12 +1920,12 @@
           "showtime_count": 4,
           "showtimes": [
             {
-              "time": "16:50",
+              "time": "10:50",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:50 (數位 英)玩具總動員5 (普遍級)"
+              "label": "10:50 (數位 英)玩具總動員5 (普遍級)"
             },
             {
               "time": "19:10",
@@ -2000,7 +1952,7 @@
               "label": "23:20 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "16:50, 19:10, 21:10, 23:20"
+          "start_times": "10:50, 19:10, 21:10, 23:20"
         }
       },
       {
@@ -2024,16 +1976,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 7,
+          "showtime_count": 4,
           "showtimes": [
-            {
-              "time": "10:00",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "10:00 (數位 國)玩具總動員5 (普遍級)"
-            },
             {
               "time": "12:05",
               "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -2043,28 +1987,12 @@
               "label": "12:05 (數位 英)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:25",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:25 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:40",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:40 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:30",
+              "time": "15:25",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:30 (數位 英)玩具總動員5 (普遍級)"
+              "label": "15:25 (數位 英)玩具總動員5 (普遍級)"
             },
             {
               "time": "19:35",
@@ -2083,7 +2011,7 @@
               "label": "21:40 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:00, 12:05, 16:25, 16:40, 17:30, 19:35, 21:40"
+          "start_times": "12:05, 15:25, 19:35, 21:40"
         }
       },
       {
@@ -2126,20 +2054,20 @@
               "label": "11:00 (數位 英)玩具總動員5 (普遍級)"
             },
             {
+              "time": "12:05",
+              "format": "(數位 國)玩具總動員5 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
+            },
+            {
               "time": "15:10",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "15:10 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:15",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -2174,7 +2102,7 @@
               "label": "21:25 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:00, 11:00, 15:10, 16:15, 18:20, 19:20, 20:25, 21:25"
+          "start_times": "10:00, 11:00, 12:05, 15:10, 18:20, 19:20, 20:25, 21:25"
         }
       },
       {
@@ -2198,7 +2126,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 16,
+          "showtime_count": 14,
           "showtimes": [
             {
               "time": "10:10",
@@ -2249,14 +2177,6 @@
               "label": "15:00 (數位 英)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:15",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
               "time": "17:35",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
@@ -2271,14 +2191,6 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "17:35 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:50",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:50 (數位 英)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -2329,7 +2241,7 @@
               "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:10, 10:30, 12:15, 12:40, 13:55, 15:00, 16:15, 17:35, 17:35, 17:50, 18:20, 19:10, 19:10, 19:40, 20:25, 22:30"
+          "start_times": "10:10, 10:30, 12:15, 12:40, 13:55, 15:00, 17:35, 17:35, 18:20, 19:10, 19:10, 19:40, 20:25, 22:30"
         }
       },
       {
@@ -2353,7 +2265,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 9,
+          "showtime_count": 8,
           "showtimes": [
             {
               "time": "10:00",
@@ -2364,20 +2276,12 @@
               "label": "10:00 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:10",
+              "time": "12:05",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:15",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:15 (數位 英)玩具總動員5 (普遍級)"
+              "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -2428,7 +2332,7 @@
               "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:00, 16:10, 17:15, 18:20, 18:40, 19:20, 20:25, 21:25, 22:30"
+          "start_times": "10:00, 12:05, 18:20, 18:40, 19:20, 20:25, 21:25, 22:30"
         }
       },
       {
@@ -2479,20 +2383,20 @@
               "label": "14:35 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:40",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:40 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
               "time": "18:45",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "18:45 (數位 國)玩具總動員5 (普遍級)"
+            },
+            {
+              "time": "19:05",
+              "format": "(數位 國)玩具總動員5 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "19:05 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "20:50",
@@ -2519,7 +2423,7 @@
               "label": "23:15 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:30, 12:35, 14:35, 16:40, 18:45, 20:50, 22:55, 23:15"
+          "start_times": "10:30, 12:35, 14:35, 18:45, 19:05, 20:50, 22:55, 23:15"
         }
       },
       {
@@ -2562,12 +2466,12 @@
               "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "15:55",
+              "time": "14:15",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:55 (數位 國)玩具總動員5 (普遍級)"
+              "label": "14:15 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "16:25",
@@ -2610,7 +2514,7 @@
               "label": "23:05 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "09:55, 12:05, 15:55, 16:25, 18:00, 20:05, 22:05, 23:05"
+          "start_times": "09:55, 12:05, 14:15, 16:25, 18:00, 20:05, 22:05, 23:05"
         }
       },
       {
@@ -2634,16 +2538,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 5,
+          "showtime_count": 4,
           "showtimes": [
-            {
-              "time": "16:25",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:25 (數位 英)玩具總動員5 (普遍級)"
-            },
             {
               "time": "18:30",
               "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -2677,7 +2573,7 @@
               "label": "22:55 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "16:25, 18:30, 20:40, 21:55, 22:55"
+          "start_times": "18:30, 20:40, 21:55, 22:55"
         }
       },
       {
@@ -2728,12 +2624,12 @@
               "label": "14:10 (數位 英)玩具總動員5 (普遍級)"
             },
             {
-              "time": "15:55",
+              "time": "16:15",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:55 (數位 國)玩具總動員5 (普遍級)"
+              "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:00",
@@ -2776,114 +2672,7 @@
               "label": "22:35 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:00, 12:05, 14:10, 15:55, 18:00, 18:40, 20:30, 22:00, 22:35"
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            121.300237045248,
-            25.018843340565
-          ]
-        },
-        "properties": {
-          "location_id": 37,
-          "chain_name": "威秀影城 / VIESHOW",
-          "location_name": "桃園桃知道威秀影城",
-          "map_name": "威秀影城 / VIESHOW 桃園桃知道威秀影城",
-          "address": "桃園市桃園區南平路301號4樓",
-          "city": "桃園市",
-          "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
-          "official_url": "https://www.vscinemas.com.tw/",
-          "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
-          "movie_title": "玩具總動員5",
-          "show_date": "2026-07-23",
-          "showtime_count": 10,
-          "showtimes": [
-            {
-              "time": "09:50",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "09:50 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "09:55",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "09:55 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "11:15",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "11:15 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "11:55",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "11:55 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "13:25",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "13:25 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "15:45",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:45 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:10",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:45",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:45 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:50",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:50 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "20:05",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "20:05 (數位 國)玩具總動員5 (普遍級)"
-            }
-          ],
-          "start_times": "09:50, 09:55, 11:15, 11:55, 13:25, 15:45, 16:10, 17:45, 17:50, 20:05"
+          "start_times": "10:00, 12:05, 14:10, 16:15, 18:00, 18:40, 20:30, 22:00, 22:35"
         }
       },
       {
@@ -2918,6 +2707,14 @@
               "label": "11:25 (數位 國)玩具總動員5 (普遍級)"
             },
             {
+              "time": "12:15",
+              "format": "(數位 英)玩具總動員5 (普遍級)",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "12:15 (數位 英)玩具總動員5 (普遍級)"
+            },
+            {
               "time": "13:30",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
@@ -2926,20 +2723,12 @@
               "label": "13:30 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "16:20",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:20 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:20",
+              "time": "17:35",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:20 (數位 國)玩具總動員5 (普遍級)"
+              "label": "17:35 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:20",
@@ -2974,7 +2763,7 @@
               "label": "22:20 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "11:25, 13:30, 16:20, 17:20, 18:20, 19:25, 20:20, 22:20"
+          "start_times": "11:25, 12:15, 13:30, 17:35, 18:20, 19:25, 20:20, 22:20"
         }
       },
       {
@@ -3017,12 +2806,12 @@
               "label": "14:10 (數位 國)玩具總動員5 (普遍級)"
             },
             {
-              "time": "17:10",
+              "time": "16:50",
               "format": "(數位 國)玩具總動員5 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
+              "label": "16:50 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "19:20",
@@ -3033,7 +2822,7 @@
               "label": "19:20 (數位 國)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:30, 14:10, 17:10, 19:20"
+          "start_times": "10:30, 14:10, 16:50, 19:20"
         }
       },
       {
@@ -3084,20 +2873,20 @@
               "label": "12:15 (數位 英)玩具總動員5 (普遍級)"
             },
             {
+              "time": "14:20",
+              "format": "(數位 國)玩具總動員5 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "14:20 (數位 國)玩具總動員5 (普遍級)"
+            },
+            {
               "time": "16:25",
               "format": "(數位 英)玩具總動員5 (普遍級)",
               "language": "英語",
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "16:25 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:30",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:30 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:35",
@@ -3148,7 +2937,7 @@
               "label": "22:45 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "10:10, 12:15, 12:15, 16:25, 16:30, 18:35, 20:30, 20:40, 22:35, 22:40, 22:45"
+          "start_times": "10:10, 12:15, 12:15, 14:20, 16:25, 18:35, 20:30, 20:40, 22:35, 22:40, 22:45"
         }
       },
       {
@@ -3172,7 +2961,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 8,
+          "showtime_count": 4,
           "showtimes": [
             {
               "time": "00:00",
@@ -3181,38 +2970,6 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "00:00 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "16:00",
-              "format": "(數位 英)玩具總動員5 (普遍級)",
-              "language": "英語",
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:00 (數位 英)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:00",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:00 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:15",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:15 (數位 國)玩具總動員5 (普遍級)"
-            },
-            {
-              "time": "17:45",
-              "format": "(數位 國)玩具總動員5 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:45 (數位 國)玩具總動員5 (普遍級)"
             },
             {
               "time": "18:00",
@@ -3239,7 +2996,334 @@
               "label": "22:00 (數位 英)玩具總動員5 (普遍級)"
             }
           ],
-          "start_times": "00:00, 16:00, 17:00, 17:15, 17:45, 18:00, 20:00, 22:00"
+          "start_times": "00:00, 18:00, 20:00, 22:00"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.64371,
+            24.16526
+          ]
+        },
+        "properties": {
+          "location_id": 43,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台中中港",
+          "map_name": "新光影城 新光影城台中中港",
+          "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
+          "city": "臺中市",
+          "location_url": "https://www.skcinemas.com/films?c=1003",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t04401/a04/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-23",
+          "showtime_count": 5,
+          "showtimes": [
+            {
+              "time": "10:05",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "10:05 中文版"
+            },
+            {
+              "time": "11:45",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "11:45 英文版"
+            },
+            {
+              "time": "14:00",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "14:00 英文版"
+            },
+            {
+              "time": "15:40",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "15:40 中文版"
+            },
+            {
+              "time": "20:20",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "20:20 英文版"
+            }
+          ],
+          "start_times": "10:05, 11:45, 14:00, 15:40, 20:20"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.5342,
+            25.118
+          ]
+        },
+        "properties": {
+          "location_id": 44,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台北天母",
+          "map_name": "新光影城 新光影城台北天母",
+          "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
+          "city": "臺北市",
+          "location_url": "https://www.skcinemas.com/films?c=1005",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t02d04/a02/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-23",
+          "showtime_count": 6,
+          "showtimes": [
+            {
+              "time": "10:35",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "10:35 中文版"
+            },
+            {
+              "time": "12:40",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "12:40 英文版"
+            },
+            {
+              "time": "14:45",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "14:45 英文版"
+            },
+            {
+              "time": "15:55",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "15:55 中文版"
+            },
+            {
+              "time": "18:00",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "18:00 英文版"
+            },
+            {
+              "time": "21:00",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "21:00 英文版"
+            }
+          ],
+          "start_times": "10:35, 12:40, 14:45, 15:55, 18:00, 21:00"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.50664,
+            25.045591
+          ]
+        },
+        "properties": {
+          "location_id": 45,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台北獅子林",
+          "map_name": "新光影城 新光影城台北獅子林",
+          "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
+          "city": "臺北市",
+          "location_url": "https://www.skcinemas.com/films?c=1001",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t02b05/a02/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-23",
+          "showtime_count": 1,
+          "showtimes": [
+            {
+              "time": "19:20",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1001",
+              "label": "19:20 英文版"
+            }
+          ],
+          "start_times": "19:20"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.197693,
+            22.986882
+          ]
+        },
+        "properties": {
+          "location_id": 46,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台南西門",
+          "map_name": "新光影城 新光影城台南西門",
+          "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
+          "city": "臺南市",
+          "location_url": "https://www.skcinemas.com/films?c=1002",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t06607/a06/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-23",
+          "showtime_count": 5,
+          "showtimes": [
+            {
+              "time": "09:15",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "09:15 中文版"
+            },
+            {
+              "time": "11:20",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "11:20 英文版"
+            },
+            {
+              "time": "13:25",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "13:25 中文版"
+            },
+            {
+              "time": "15:30",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "15:30 中文版"
+            },
+            {
+              "time": "19:45",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "19:45 英文版"
+            }
+          ],
+          "start_times": "09:15, 11:20, 13:25, 15:30, 19:45"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.213758,
+            25.017327
+          ]
+        },
+        "properties": {
+          "location_id": 47,
+          "chain_name": "新光影城",
+          "location_name": "新光影城桃園青埔",
+          "map_name": "新光影城 新光影城桃園青埔",
+          "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
+          "city": "桃園市",
+          "location_url": "https://www.skcinemas.com/films?c=1004",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t03315/a03/",
+          "movie_title": "玩具總動員5",
+          "show_date": "2026-07-23",
+          "showtime_count": 7,
+          "showtimes": [
+            {
+              "time": "09:15",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "09:15 中文版"
+            },
+            {
+              "time": "11:20",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "11:20 英文版"
+            },
+            {
+              "time": "13:25",
+              "format": "中文版",
+              "language": "國語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "13:25 中文版"
+            },
+            {
+              "time": "15:30",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "15:30 英文版"
+            },
+            {
+              "time": "17:35",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "17:35 英文版"
+            },
+            {
+              "time": "19:40",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "19:40 英文版"
+            },
+            {
+              "time": "21:45",
+              "format": "英文版",
+              "language": "英語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "21:45 英文版"
+            }
+          ],
+          "start_times": "09:15, 11:20, 13:25, 15:30, 17:35, 19:40, 21:45"
         }
       },
       {
@@ -3809,7 +3893,7 @@
           "crawl_url": "https://www.showtimes.com.tw/ticketing?cid=53&date=2026-07-23&category=popular",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 16,
+          "showtime_count": 15,
           "showtimes": [
             {
               "time": "09:30",
@@ -3876,14 +3960,6 @@
               "label": "16:00 數位 國語 / 1館5廳"
             },
             {
-              "time": "16:40",
-              "format": "數位 英語",
-              "language": "英語",
-              "auditorium": "1館12廳",
-              "booking_url": "https://www.showtimes.com.tw/ticketing?cid=53&date=2026-07-23&category=popular",
-              "label": "16:40 數位 英語 / 1館12廳"
-            },
-            {
               "time": "17:20",
               "format": "數位 國語",
               "language": "國語",
@@ -3940,7 +4016,7 @@
               "label": "22:30 數位 英語 / 1館5廳"
             }
           ],
-          "start_times": "09:30, 10:10, 10:50, 11:40, 13:00, 14:30, 15:10, 16:00, 16:40, 17:20, 18:10, 19:30, 20:20, 21:00, 21:40, 22:30"
+          "start_times": "09:30, 10:10, 10:50, 11:40, 13:00, 14:30, 15:10, 16:00, 17:20, 18:10, 19:30, 20:20, 21:00, 21:40, 22:30"
         }
       },
       {
@@ -5008,16 +5084,8 @@
           "crawl_url": "https://www.miranewcinemas.com/Booking/Timetable",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 3,
+          "showtime_count": 2,
           "showtimes": [
-            {
-              "time": "16:30",
-              "format": "皇家廳 英文版",
-              "language": "英語",
-              "auditorium": "RC2",
-              "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-              "label": "16:30 皇家廳 英文版 / RC2"
-            },
             {
               "time": "18:45",
               "format": "皇家廳 英文版",
@@ -5035,7 +5103,7 @@
               "label": "20:55 皇家廳 英文版 / RC2"
             }
           ],
-          "start_times": "16:30, 18:45, 20:55"
+          "start_times": "18:45, 20:55"
         }
       },
       {
@@ -5059,24 +5127,8 @@
           "crawl_url": "https://www.miranewcinemas.com/Booking/Timetable",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 4,
+          "showtime_count": 2,
           "showtimes": [
-            {
-              "time": "17:20",
-              "format": "標準廳 中文版",
-              "language": "國語",
-              "auditorium": "6",
-              "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-              "label": "17:20 標準廳 中文版 / 6"
-            },
-            {
-              "time": "18:20",
-              "format": "標準廳 英文版",
-              "language": "英語",
-              "auditorium": "10",
-              "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-              "label": "18:20 標準廳 英文版 / 10"
-            },
             {
               "time": "19:30",
               "format": "標準廳 中文版",
@@ -5094,7 +5146,7 @@
               "label": "21:35 標準廳 英文版 / 6"
             }
           ],
-          "start_times": "17:20, 18:20, 19:30, 21:35"
+          "start_times": "19:30, 21:35"
         }
       },
       {
@@ -5113,21 +5165,13 @@
           "map_name": "美麗華影城 美麗華影城",
           "address": "臺北市中山區金泰里敬業三路22號6樓",
           "city": "臺北市",
-          "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431364",
+          "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431365",
           "official_url": "https://www.miramarcinemas.tw/",
           "crawl_url": "https://www.miramarcinemas.tw/timetable",
           "movie_title": "玩具總動員5",
           "show_date": "2026-07-23",
-          "showtime_count": 3,
+          "showtime_count": 2,
           "showtimes": [
-            {
-              "time": "17:40",
-              "format": "中文(CHI)",
-              "language": "國語",
-              "auditorium": null,
-              "booking_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431364",
-              "label": "17:40 中文(CHI)"
-            },
             {
               "time": "19:40",
               "format": "英文(ENG)",
@@ -5145,7 +5189,7 @@
               "label": "21:40 英文(ENG)"
             }
           ],
-          "start_times": "17:40, 19:40, 21:40"
+          "start_times": "19:40, 21:40"
         }
       },
       {
@@ -5309,7 +5353,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 11,
+          "showtime_count": 10,
           "showtimes": [
             {
               "time": "00:40",
@@ -5352,14 +5396,6 @@
               "label": "16:55 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
-              "time": "17:20",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
               "time": "17:35",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
@@ -5400,7 +5436,7 @@
               "label": "23:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "00:40, 10:40, 12:55, 16:35, 16:55, 17:20, 17:35, 21:20, 21:50, 22:20, 23:10"
+          "start_times": "00:40, 10:40, 12:55, 16:35, 16:55, 17:35, 21:20, 21:50, 22:20, 23:10"
         }
       },
       {
@@ -6580,6 +6616,14 @@
           "showtime_count": 8,
           "showtimes": [
             {
+              "time": "10:50",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "10:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
               "time": "13:00",
               "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
@@ -6594,14 +6638,6 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "13:50 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "16:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "19:00",
@@ -6644,7 +6680,7 @@
               "label": "21:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "13:00, 13:50, 16:50, 19:00, 19:10, 19:30, 19:40, 21:50"
+          "start_times": "10:50, 13:00, 13:50, 19:00, 19:10, 19:30, 19:40, 21:50"
         }
       },
       {
@@ -6668,16 +6704,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 4,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "16:00",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "18:10",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -6703,7 +6731,7 @@
               "label": "22:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "16:00, 18:10, 20:20, 22:30"
+          "start_times": "18:10, 20:20, 22:30"
         }
       },
       {
@@ -6730,20 +6758,20 @@
           "showtime_count": 6,
           "showtimes": [
             {
+              "time": "09:30",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "09:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
               "time": "11:45",
               "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "11:45 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "16:20",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "18:00",
@@ -6778,7 +6806,7 @@
               "label": "22:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "11:45, 16:20, 18:00, 18:30, 20:40, 22:50"
+          "start_times": "09:30, 11:45, 18:00, 18:30, 20:40, 22:50"
         }
       },
       {
@@ -6802,32 +6830,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 5,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "15:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "16:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "18:00",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "18:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "20:10",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -6843,9 +6847,17 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "21:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
+              "time": "22:20",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "22:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "15:50, 16:50, 18:00, 20:10, 21:10"
+          "start_times": "20:10, 21:10, 22:20"
         }
       },
       {
@@ -6869,7 +6881,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 8,
+          "showtime_count": 7,
           "showtimes": [
             {
               "time": "00:30",
@@ -6894,14 +6906,6 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "11:15 (4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:00",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "18:30",
@@ -6936,7 +6940,7 @@
               "label": "23:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "00:30, 09:10, 11:15, 17:00, 18:30, 19:10, 21:20, 23:30"
+          "start_times": "00:30, 09:10, 11:15, 18:30, 19:10, 21:20, 23:30"
         }
       },
       {
@@ -6960,48 +6964,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 8,
+          "showtime_count": 5,
           "showtimes": [
-            {
-              "time": "12:40",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "12:40 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "14:50",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "14:50 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "15:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "15:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:00",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:00 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "18:00",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "18:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "19:10",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7025,9 +6989,25 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "21:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
+              "time": "22:20",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "22:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
+              "time": "23:30",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "23:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "12:40, 14:50, 15:50, 17:00, 18:00, 19:10, 20:10, 21:20"
+          "start_times": "19:10, 20:10, 21:20, 22:20, 23:30"
         }
       },
       {
@@ -7051,16 +7031,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 4,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "16:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "19:00",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7086,7 +7058,7 @@
               "label": "23:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "16:50, 19:00, 21:10, 23:20"
+          "start_times": "19:00, 21:10, 23:20"
         }
       },
       {
@@ -7110,31 +7082,15 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 5,
+          "showtime_count": 3,
           "showtimes": [
             {
-              "time": "10:10",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "10:10 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "16:30",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:30 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:40",
+              "time": "09:00",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:40 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+              "label": "09:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "19:50",
@@ -7153,7 +7109,7 @@
               "label": "22:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "10:10, 16:30, 17:40, 19:50, 22:00"
+          "start_times": "09:00, 19:50, 22:00"
         }
       },
       {
@@ -7177,16 +7133,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 5,
+          "showtime_count": 4,
           "showtimes": [
-            {
-              "time": "17:10",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "19:20",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7220,7 +7168,7 @@
               "label": "23:40 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "17:10, 19:20, 21:30, 22:30, 23:40"
+          "start_times": "19:20, 21:30, 22:30, 23:40"
         }
       },
       {
@@ -7255,20 +7203,20 @@
               "label": "10:10 (4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
+              "time": "11:10",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "11:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
               "time": "12:20",
               "format": "(4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "12:20 (4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:20",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "18:35",
@@ -7295,7 +7243,7 @@
               "label": "21:45 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "10:10, 12:20, 17:20, 18:35, 19:35, 21:45"
+          "start_times": "10:10, 11:10, 12:20, 18:35, 19:35, 21:45"
         }
       },
       {
@@ -7319,32 +7267,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 6,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "10:50",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "10:50 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "16:25",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:25 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:35",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:35 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "18:35",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7370,7 +7294,7 @@
               "label": "22:55 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "10:50, 16:25, 17:35, 18:35, 20:45, 22:55"
+          "start_times": "18:35, 20:45, 22:55"
         }
       },
       {
@@ -7394,16 +7318,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 4,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "16:40",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:40 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "18:55",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7429,7 +7345,7 @@
               "label": "23:15 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "16:40, 18:55, 21:05, 23:15"
+          "start_times": "18:55, 21:05, 23:15"
         }
       },
       {
@@ -7453,16 +7369,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 4,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "16:15",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:15 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "18:25",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7488,7 +7396,7 @@
               "label": "22:45 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "16:15, 18:25, 20:35, 22:45"
+          "start_times": "18:25, 20:35, 22:45"
         }
       },
       {
@@ -7512,24 +7420,8 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 5,
+          "showtime_count": 3,
           "showtimes": [
-            {
-              "time": "16:20",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:35",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:35 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
             {
               "time": "18:35",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -7555,7 +7447,7 @@
               "label": "23:05 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "16:20, 17:35, 18:35, 20:50, 23:05"
+          "start_times": "18:35, 20:50, 23:05"
         }
       },
       {
@@ -7724,14 +7616,6 @@
               "label": "16:30 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
-              "time": "17:50",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:50 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
               "time": "18:30",
               "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
@@ -7794,9 +7678,17 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "22:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
+            {
+              "time": "23:00",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "23:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "10:00, 12:00, 12:30, 16:20, 16:30, 17:50, 18:30, 18:40, 18:40, 20:00, 20:50, 21:30, 21:50, 22:10"
+          "start_times": "10:00, 12:00, 12:30, 16:20, 16:30, 18:30, 18:40, 18:40, 20:00, 20:50, 21:30, 21:50, 22:10, 23:00"
         }
       },
       {
@@ -7820,7 +7712,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 7,
+          "showtime_count": 6,
           "showtimes": [
             {
               "time": "12:05",
@@ -7855,14 +7747,6 @@
               "label": "16:15 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
-              "time": "16:20",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:20 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
               "time": "20:00",
               "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
@@ -7879,7 +7763,7 @@
               "label": "20:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "12:05, 12:35, 15:45, 16:15, 16:20, 20:00, 20:30"
+          "start_times": "12:05, 12:35, 15:45, 16:15, 20:00, 20:30"
         }
       },
       {
@@ -7903,7 +7787,7 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 9,
+          "showtime_count": 3,
           "showtimes": [
             {
               "time": "09:45",
@@ -7912,54 +7796,6 @@
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "09:45 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "11:10",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "11:10 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "11:15",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "11:15 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "12:30",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "12:30 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:40",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:40 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:45",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:45 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:50",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:50 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "19:50",
@@ -7978,7 +7814,7 @@
               "label": "22:10 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "09:45, 11:10, 11:15, 12:30, 17:40, 17:45, 17:50, 19:50, 22:10"
+          "start_times": "09:45, 19:50, 22:10"
         }
       },
       {
@@ -8002,8 +7838,16 @@
           "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 10,
+          "showtime_count": 8,
           "showtimes": [
+            {
+              "time": "00:00",
+              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
+              "language": null,
+              "auditorium": null,
+              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+              "label": "00:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
+            },
             {
               "time": "09:40",
               "format": "(4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)",
@@ -8021,36 +7865,12 @@
               "label": "11:50 (4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
-              "time": "16:30",
-              "format": "(數位 日)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "16:30 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "17:30",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "17:30 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
               "time": "18:10",
               "format": "(4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)",
               "language": null,
               "auditorium": null,
               "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
               "label": "18:10 (4DX 日)名偵探柯南 高速公路的墮天使 (普遍級)"
-            },
-            {
-              "time": "18:10",
-              "format": "(數位 國)名偵探柯南 高速公路的墮天使 (普遍級)",
-              "language": null,
-              "auditorium": null,
-              "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-              "label": "18:10 (數位 國)名偵探柯南 高速公路的墮天使 (普遍級)"
             },
             {
               "time": "18:40",
@@ -8085,7 +7905,302 @@
               "label": "23:00 (數位 日)名偵探柯南 高速公路的墮天使 (普遍級)"
             }
           ],
-          "start_times": "09:40, 11:50, 16:30, 17:30, 18:10, 18:10, 18:40, 20:50, 21:50, 23:00"
+          "start_times": "00:00, 09:40, 11:50, 18:10, 18:40, 20:50, 21:50, 23:00"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.64371,
+            24.16526
+          ]
+        },
+        "properties": {
+          "location_id": 43,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台中中港",
+          "map_name": "新光影城 新光影城台中中港",
+          "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
+          "city": "臺中市",
+          "location_url": "https://www.skcinemas.com/films?c=1003",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t04401/a04/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-23",
+          "showtime_count": 4,
+          "showtimes": [
+            {
+              "time": "09:40",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "09:40 日文版"
+            },
+            {
+              "time": "11:50",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "11:50 日文版"
+            },
+            {
+              "time": "13:35",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "13:35 日文版"
+            },
+            {
+              "time": "17:45",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1003",
+              "label": "17:45 日文版"
+            }
+          ],
+          "start_times": "09:40, 11:50, 13:35, 17:45"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.5342,
+            25.118
+          ]
+        },
+        "properties": {
+          "location_id": 44,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台北天母",
+          "map_name": "新光影城 新光影城台北天母",
+          "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
+          "city": "臺北市",
+          "location_url": "https://www.skcinemas.com/films?c=1005",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t02d04/a02/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-23",
+          "showtime_count": 4,
+          "showtimes": [
+            {
+              "time": "10:25",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "10:25 日文版"
+            },
+            {
+              "time": "15:15",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "15:15 日文版"
+            },
+            {
+              "time": "17:25",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "17:25 日文版"
+            },
+            {
+              "time": "19:35",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1005",
+              "label": "19:35 日文版"
+            }
+          ],
+          "start_times": "10:25, 15:15, 17:25, 19:35"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.50664,
+            25.045591
+          ]
+        },
+        "properties": {
+          "location_id": 45,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台北獅子林",
+          "map_name": "新光影城 新光影城台北獅子林",
+          "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
+          "city": "臺北市",
+          "location_url": "https://www.skcinemas.com/films?c=1001",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t02b05/a02/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-23",
+          "showtime_count": 2,
+          "showtimes": [
+            {
+              "time": "14:10",
+              "format": "日語版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1001",
+              "label": "14:10 日語版"
+            },
+            {
+              "time": "19:35",
+              "format": "日語版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1001",
+              "label": "19:35 日語版"
+            }
+          ],
+          "start_times": "14:10, 19:35"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.197693,
+            22.986882
+          ]
+        },
+        "properties": {
+          "location_id": 46,
+          "chain_name": "新光影城",
+          "location_name": "新光影城台南西門",
+          "map_name": "新光影城 新光影城台南西門",
+          "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
+          "city": "臺南市",
+          "location_url": "https://www.skcinemas.com/films?c=1002",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t06607/a06/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-23",
+          "showtime_count": 5,
+          "showtimes": [
+            {
+              "time": "09:25",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "09:25 日文版"
+            },
+            {
+              "time": "11:20",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "11:20 日文版"
+            },
+            {
+              "time": "13:45",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "13:45 日文版"
+            },
+            {
+              "time": "17:35",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "17:35 日文版"
+            },
+            {
+              "time": "20:05",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1002",
+              "label": "20:05 日文版"
+            }
+          ],
+          "start_times": "09:25, 11:20, 13:45, 17:35, 20:05"
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            121.213758,
+            25.017327
+          ]
+        },
+        "properties": {
+          "location_id": 47,
+          "chain_name": "新光影城",
+          "location_name": "新光影城桃園青埔",
+          "map_name": "新光影城 新光影城桃園青埔",
+          "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
+          "city": "桃園市",
+          "location_url": "https://www.skcinemas.com/films?c=1004",
+          "official_url": "https://www.skcinemas.com/",
+          "crawl_url": "https://www.atmovies.com.tw/showtime/t03315/a03/",
+          "movie_title": "名偵探柯南:高速公路的墮天使",
+          "show_date": "2026-07-23",
+          "showtime_count": 5,
+          "showtimes": [
+            {
+              "time": "10:05",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "10:05 日文版"
+            },
+            {
+              "time": "12:25",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "12:25 日文版"
+            },
+            {
+              "time": "14:45",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "14:45 日文版"
+            },
+            {
+              "time": "17:05",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "17:05 日文版"
+            },
+            {
+              "time": "19:25",
+              "format": "日文版",
+              "language": "日語",
+              "auditorium": null,
+              "booking_url": "https://www.skcinemas.com/films?c=1004",
+              "label": "19:25 日文版"
+            }
+          ],
+          "start_times": "10:05, 12:25, 14:45, 17:05, 19:25"
         }
       },
       {
@@ -9590,49 +9705,6 @@
         "geometry": {
           "type": "Point",
           "coordinates": [
-            121.287749028433,
-            25.053000983341
-          ]
-        },
-        "properties": {
-          "location_id": 69,
-          "chain_name": "美麗新影城",
-          "location_name": "桃園台茂美麗新影城",
-          "map_name": "美麗新影城 桃園台茂美麗新影城",
-          "address": "桃園市蘆竹區南崁路一段112號7樓",
-          "city": "桃園市",
-          "location_url": "https://www.miranewcinemas.com/Booking/Timetable",
-          "official_url": "https://www.miranewcinemas.com/",
-          "crawl_url": "https://www.miranewcinemas.com/Booking/Timetable",
-          "movie_title": "名偵探柯南:高速公路的墮天使",
-          "show_date": "2026-07-23",
-          "showtime_count": 2,
-          "showtimes": [
-            {
-              "time": "18:40",
-              "format": "Pink Sofa廳 日文版",
-              "language": "日語",
-              "auditorium": "PK",
-              "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-              "label": "18:40 Pink Sofa廳 日文版 / PK"
-            },
-            {
-              "time": "18:40",
-              "format": "標準廳 日文版",
-              "language": "日語",
-              "auditorium": "2",
-              "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-              "label": "18:40 標準廳 日文版 / 2"
-            }
-          ],
-          "start_times": "18:40, 18:40"
-        }
-      },
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
             121.55751470000001,
             25.083348479857356
           ]
@@ -9644,21 +9716,13 @@
           "map_name": "美麗華影城 美麗華影城",
           "address": "臺北市中山區金泰里敬業三路22號6樓",
           "city": "臺北市",
-          "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=85aa066d-ca7d-47bb-9f7f-cf96d748c462&session=431368",
+          "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=85aa066d-ca7d-47bb-9f7f-cf96d748c462&session=431330",
           "official_url": "https://www.miramarcinemas.tw/",
           "crawl_url": "https://www.miramarcinemas.tw/timetable",
           "movie_title": "名偵探柯南:高速公路的墮天使",
           "show_date": "2026-07-23",
-          "showtime_count": 3,
+          "showtime_count": 2,
           "showtimes": [
-            {
-              "time": "17:10",
-              "format": "日文(JPN)",
-              "language": "日語",
-              "auditorium": null,
-              "booking_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=85aa066d-ca7d-47bb-9f7f-cf96d748c462&session=431368",
-              "label": "17:10 日文(JPN)"
-            },
             {
               "time": "19:20",
               "format": "日文(JPN)",
@@ -9676,7 +9740,7 @@
               "label": "22:30 日文(JPN)"
             }
           ],
-          "start_times": "17:10, 19:20, 22:30"
+          "start_times": "19:20, 22:30"
         }
       },
       {
@@ -9784,7 +9848,7 @@
       }
     ]
   },
-  "feature_count": 65,
+  "feature_count": 69,
   "features": [
     {
       "type": "Feature",
@@ -9842,20 +9906,20 @@
             "label": "16:35 (數位 英)玩具總動員5 (普遍級)"
           },
           {
-            "time": "17:40",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:40 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
             "time": "19:40",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "19:40 (數位 國)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "20:40",
+            "format": "(數位 英)玩具總動員5 (普遍級)",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "20:40 (數位 英)玩具總動員5 (普遍級)"
           },
           {
             "time": "21:45",
@@ -9874,7 +9938,7 @@
             "label": "23:45 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:20, 12:25, 14:30, 16:35, 17:40, 19:40, 21:45, 23:45"
+        "start_times": "10:20, 12:25, 14:30, 16:35, 19:40, 20:40, 21:45, 23:45"
       }
     },
     {
@@ -10528,21 +10592,13 @@
         "map_name": "哈拉影城 哈拉影城",
         "address": "臺北市內湖區南湖里康寧路三段72號",
         "city": "臺北市",
-        "location_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263924&visLang=1",
+        "location_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263925&visLang=1",
         "official_url": "https://www.halarcity.com/",
         "crawl_url": "https://halarcity.com.tw/browsing/Cinemas/Details/0000000001",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 3,
+        "showtime_count": 2,
         "showtimes": [
-          {
-            "time": "16:30",
-            "format": "玩具總動員5",
-            "language": null,
-            "auditorium": "V-hall",
-            "booking_url": "https://halarcity.com.tw/Ticketing/visSelectTickets.aspx?cinemacode=0000000001&txtSessionId=263924&visLang=1",
-            "label": "16:30 玩具總動員5 / V-hall"
-          },
           {
             "time": "18:30",
             "format": "(中)玩具總動員5",
@@ -10560,7 +10616,7 @@
             "label": "20:30 玩具總動員5 / V-hall"
           }
         ],
-        "start_times": "16:30, 18:30, 20:30"
+        "start_times": "18:30, 20:30"
       }
     },
     {
@@ -11174,20 +11230,20 @@
             "label": "15:05 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:15",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
             "time": "16:35",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "16:35 (數位 英)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "17:10",
+            "format": "(數位 國)玩具總動員5 (普遍級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -11214,7 +11270,7 @@
             "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "11:00, 13:05, 15:05, 16:15, 16:35, 18:20, 20:25, 22:30"
+        "start_times": "11:00, 13:05, 15:05, 16:35, 17:10, 18:20, 20:25, 22:30"
       }
     },
     {
@@ -11273,12 +11329,12 @@
             "label": "12:10 (數位 英)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:15",
+            "time": "16:10",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
+            "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -11321,7 +11377,7 @@
             "label": "22:25 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:05, 12:05, 12:10, 12:10, 16:15, 18:20, 20:20, 22:15, 22:20, 22:25"
+        "start_times": "10:05, 12:05, 12:10, 12:10, 16:10, 18:20, 20:20, 22:15, 22:20, 22:25"
       }
     },
     {
@@ -11388,14 +11444,6 @@
             "label": "13:35 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:15",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
             "time": "17:25",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
@@ -11434,9 +11482,17 @@
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "20:25 (數位 英)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "21:30",
+            "format": "(數位 英)玩具總動員5 (普遍級)",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "21:30 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "09:00, 09:35, 11:05, 13:10, 13:35, 16:15, 17:25, 17:40, 18:20, 19:30, 20:25"
+        "start_times": "09:00, 09:35, 11:05, 13:10, 13:35, 17:25, 17:40, 18:20, 19:30, 20:25, 21:30"
       }
     },
     {
@@ -11463,12 +11519,12 @@
         "showtime_count": 4,
         "showtimes": [
           {
-            "time": "15:55",
+            "time": "09:00",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "15:55 (數位 英)玩具總動員5 (普遍級)"
+            "label": "09:00 (數位 英)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:00",
@@ -11495,7 +11551,7 @@
             "label": "23:40 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "15:55, 18:00, 20:05, 23:40"
+        "start_times": "09:00, 18:00, 20:05, 23:40"
       }
     },
     {
@@ -11519,48 +11575,8 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 10,
+        "showtime_count": 6,
         "showtimes": [
-          {
-            "time": "10:30",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "10:30 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "12:30",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "12:30 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "14:30",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "14:30 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:15",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:10",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
-          },
           {
             "time": "18:20",
             "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -11600,9 +11616,17 @@
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "22:25 (數位 英)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "23:25",
+            "format": "(數位 英)玩具總動員5 (普遍級)",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "23:25 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:30, 12:30, 14:30, 16:15, 17:10, 18:20, 19:15, 20:25, 21:20, 22:25"
+        "start_times": "18:20, 19:15, 20:25, 21:20, 22:25, 23:25"
       }
     },
     {
@@ -11626,7 +11650,7 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 10,
+        "showtime_count": 9,
         "showtimes": [
           {
             "time": "09:30",
@@ -11645,28 +11669,12 @@
             "label": "10:10 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "15:45",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "15:45 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:20",
+            "time": "12:15",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:20 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:55",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:55 (數位 英)玩具總動員5 (普遍級)"
+            "label": "12:15 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:00",
@@ -11707,9 +11715,17 @@
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "21:05 (數位 英)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "23:10",
+            "format": "(數位 英)玩具總動員5 (普遍級)",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "23:10 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "09:30, 10:10, 15:45, 16:20, 16:55, 18:00, 18:30, 19:00, 20:05, 21:05"
+        "start_times": "09:30, 10:10, 12:15, 18:00, 18:30, 19:00, 20:05, 21:05, 23:10"
       }
     },
     {
@@ -11736,12 +11752,12 @@
         "showtime_count": 4,
         "showtimes": [
           {
-            "time": "16:50",
+            "time": "10:50",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:50 (數位 英)玩具總動員5 (普遍級)"
+            "label": "10:50 (數位 英)玩具總動員5 (普遍級)"
           },
           {
             "time": "19:10",
@@ -11768,7 +11784,7 @@
             "label": "23:20 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "16:50, 19:10, 21:10, 23:20"
+        "start_times": "10:50, 19:10, 21:10, 23:20"
       }
     },
     {
@@ -11792,16 +11808,8 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 7,
+        "showtime_count": 4,
         "showtimes": [
-          {
-            "time": "10:00",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "10:00 (數位 國)玩具總動員5 (普遍級)"
-          },
           {
             "time": "12:05",
             "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -11811,28 +11819,12 @@
             "label": "12:05 (數位 英)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:25",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:25 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:40",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:40 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:30",
+            "time": "15:25",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:30 (數位 英)玩具總動員5 (普遍級)"
+            "label": "15:25 (數位 英)玩具總動員5 (普遍級)"
           },
           {
             "time": "19:35",
@@ -11851,7 +11843,7 @@
             "label": "21:40 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:00, 12:05, 16:25, 16:40, 17:30, 19:35, 21:40"
+        "start_times": "12:05, 15:25, 19:35, 21:40"
       }
     },
     {
@@ -11894,20 +11886,20 @@
             "label": "11:00 (數位 英)玩具總動員5 (普遍級)"
           },
           {
+            "time": "12:05",
+            "format": "(數位 國)玩具總動員5 (普遍級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
+          },
+          {
             "time": "15:10",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "15:10 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:15",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -11942,7 +11934,7 @@
             "label": "21:25 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:00, 11:00, 15:10, 16:15, 18:20, 19:20, 20:25, 21:25"
+        "start_times": "10:00, 11:00, 12:05, 15:10, 18:20, 19:20, 20:25, 21:25"
       }
     },
     {
@@ -11966,7 +11958,7 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 16,
+        "showtime_count": 14,
         "showtimes": [
           {
             "time": "10:10",
@@ -12017,14 +12009,6 @@
             "label": "15:00 (數位 英)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:15",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
             "time": "17:35",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
@@ -12039,14 +12023,6 @@
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "17:35 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:50",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:50 (數位 英)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -12097,7 +12073,7 @@
             "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:10, 10:30, 12:15, 12:40, 13:55, 15:00, 16:15, 17:35, 17:35, 17:50, 18:20, 19:10, 19:10, 19:40, 20:25, 22:30"
+        "start_times": "10:10, 10:30, 12:15, 12:40, 13:55, 15:00, 17:35, 17:35, 18:20, 19:10, 19:10, 19:40, 20:25, 22:30"
       }
     },
     {
@@ -12121,7 +12097,7 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 9,
+        "showtime_count": 8,
         "showtimes": [
           {
             "time": "10:00",
@@ -12132,20 +12108,12 @@
             "label": "10:00 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:10",
+            "time": "12:05",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:15",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:15 (數位 英)玩具總動員5 (普遍級)"
+            "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -12196,7 +12164,7 @@
             "label": "22:30 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:00, 16:10, 17:15, 18:20, 18:40, 19:20, 20:25, 21:25, 22:30"
+        "start_times": "10:00, 12:05, 18:20, 18:40, 19:20, 20:25, 21:25, 22:30"
       }
     },
     {
@@ -12247,20 +12215,20 @@
             "label": "14:35 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:40",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:40 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
             "time": "18:45",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "18:45 (數位 國)玩具總動員5 (普遍級)"
+          },
+          {
+            "time": "19:05",
+            "format": "(數位 國)玩具總動員5 (普遍級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "19:05 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "20:50",
@@ -12287,7 +12255,7 @@
             "label": "23:15 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:30, 12:35, 14:35, 16:40, 18:45, 20:50, 22:55, 23:15"
+        "start_times": "10:30, 12:35, 14:35, 18:45, 19:05, 20:50, 22:55, 23:15"
       }
     },
     {
@@ -12330,12 +12298,12 @@
             "label": "12:05 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "15:55",
+            "time": "14:15",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "15:55 (數位 國)玩具總動員5 (普遍級)"
+            "label": "14:15 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "16:25",
@@ -12378,7 +12346,7 @@
             "label": "23:05 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "09:55, 12:05, 15:55, 16:25, 18:00, 20:05, 22:05, 23:05"
+        "start_times": "09:55, 12:05, 14:15, 16:25, 18:00, 20:05, 22:05, 23:05"
       }
     },
     {
@@ -12402,16 +12370,8 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 5,
+        "showtime_count": 4,
         "showtimes": [
-          {
-            "time": "16:25",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:25 (數位 英)玩具總動員5 (普遍級)"
-          },
           {
             "time": "18:30",
             "format": "(數位 英)玩具總動員5 (普遍級)",
@@ -12445,7 +12405,7 @@
             "label": "22:55 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "16:25, 18:30, 20:40, 21:55, 22:55"
+        "start_times": "18:30, 20:40, 21:55, 22:55"
       }
     },
     {
@@ -12496,12 +12456,12 @@
             "label": "14:10 (數位 英)玩具總動員5 (普遍級)"
           },
           {
-            "time": "15:55",
+            "time": "16:15",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "15:55 (數位 國)玩具總動員5 (普遍級)"
+            "label": "16:15 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:00",
@@ -12544,114 +12504,7 @@
             "label": "22:35 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:00, 12:05, 14:10, 15:55, 18:00, 18:40, 20:30, 22:00, 22:35"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          121.300237045248,
-          25.018843340565
-        ]
-      },
-      "properties": {
-        "location_id": 37,
-        "chain_name": "威秀影城 / VIESHOW",
-        "location_name": "桃園桃知道威秀影城",
-        "map_name": "威秀影城 / VIESHOW 桃園桃知道威秀影城",
-        "address": "桃園市桃園區南平路301號4樓",
-        "city": "桃園市",
-        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
-        "official_url": "https://www.vscinemas.com.tw/",
-        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
-        "movie_title": "玩具總動員5",
-        "show_date": "2026-07-23",
-        "showtime_count": 10,
-        "showtimes": [
-          {
-            "time": "09:50",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "09:50 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "09:55",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "09:55 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "11:15",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "11:15 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "11:55",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "11:55 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "13:25",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "13:25 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "15:45",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "15:45 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:10",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:10 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:45",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:45 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:50",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:50 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "20:05",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "20:05 (數位 國)玩具總動員5 (普遍級)"
-          }
-        ],
-        "start_times": "09:50, 09:55, 11:15, 11:55, 13:25, 15:45, 16:10, 17:45, 17:50, 20:05"
+        "start_times": "10:00, 12:05, 14:10, 16:15, 18:00, 18:40, 20:30, 22:00, 22:35"
       }
     },
     {
@@ -12686,6 +12539,14 @@
             "label": "11:25 (數位 國)玩具總動員5 (普遍級)"
           },
           {
+            "time": "12:15",
+            "format": "(數位 英)玩具總動員5 (普遍級)",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "12:15 (數位 英)玩具總動員5 (普遍級)"
+          },
+          {
             "time": "13:30",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
@@ -12694,20 +12555,12 @@
             "label": "13:30 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "16:20",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:20 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:20",
+            "time": "17:35",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:20 (數位 國)玩具總動員5 (普遍級)"
+            "label": "17:35 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:20",
@@ -12742,7 +12595,7 @@
             "label": "22:20 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "11:25, 13:30, 16:20, 17:20, 18:20, 19:25, 20:20, 22:20"
+        "start_times": "11:25, 12:15, 13:30, 17:35, 18:20, 19:25, 20:20, 22:20"
       }
     },
     {
@@ -12785,12 +12638,12 @@
             "label": "14:10 (數位 國)玩具總動員5 (普遍級)"
           },
           {
-            "time": "17:10",
+            "time": "16:50",
             "format": "(數位 國)玩具總動員5 (普遍級)",
             "language": null,
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:10 (數位 國)玩具總動員5 (普遍級)"
+            "label": "16:50 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "19:20",
@@ -12801,7 +12654,7 @@
             "label": "19:20 (數位 國)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:30, 14:10, 17:10, 19:20"
+        "start_times": "10:30, 14:10, 16:50, 19:20"
       }
     },
     {
@@ -12852,20 +12705,20 @@
             "label": "12:15 (數位 英)玩具總動員5 (普遍級)"
           },
           {
+            "time": "14:20",
+            "format": "(數位 國)玩具總動員5 (普遍級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "14:20 (數位 國)玩具總動員5 (普遍級)"
+          },
+          {
             "time": "16:25",
             "format": "(數位 英)玩具總動員5 (普遍級)",
             "language": "英語",
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "16:25 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:30",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:30 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:35",
@@ -12916,7 +12769,7 @@
             "label": "22:45 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "10:10, 12:15, 12:15, 16:25, 16:30, 18:35, 20:30, 20:40, 22:35, 22:40, 22:45"
+        "start_times": "10:10, 12:15, 12:15, 14:20, 16:25, 18:35, 20:30, 20:40, 22:35, 22:40, 22:45"
       }
     },
     {
@@ -12940,7 +12793,7 @@
         "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 8,
+        "showtime_count": 4,
         "showtimes": [
           {
             "time": "00:00",
@@ -12949,38 +12802,6 @@
             "auditorium": null,
             "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
             "label": "00:00 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "16:00",
-            "format": "(數位 英)玩具總動員5 (普遍級)",
-            "language": "英語",
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "16:00 (數位 英)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:00",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:00 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:15",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:15 (數位 國)玩具總動員5 (普遍級)"
-          },
-          {
-            "time": "17:45",
-            "format": "(數位 國)玩具總動員5 (普遍級)",
-            "language": null,
-            "auditorium": null,
-            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
-            "label": "17:45 (數位 國)玩具總動員5 (普遍級)"
           },
           {
             "time": "18:00",
@@ -13007,7 +12828,334 @@
             "label": "22:00 (數位 英)玩具總動員5 (普遍級)"
           }
         ],
-        "start_times": "00:00, 16:00, 17:00, 17:15, 17:45, 18:00, 20:00, 22:00"
+        "start_times": "00:00, 18:00, 20:00, 22:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.64371,
+          24.16526
+        ]
+      },
+      "properties": {
+        "location_id": 43,
+        "chain_name": "新光影城",
+        "location_name": "新光影城台中中港",
+        "map_name": "新光影城 新光影城台中中港",
+        "address": "台中市西屯區臺灣大道三段301號14樓（新光三越台中中港店）",
+        "city": "臺中市",
+        "location_url": "https://www.skcinemas.com/films?c=1003",
+        "official_url": "https://www.skcinemas.com/",
+        "crawl_url": "https://www.atmovies.com.tw/showtime/t04401/a04/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-23",
+        "showtime_count": 5,
+        "showtimes": [
+          {
+            "time": "10:05",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1003",
+            "label": "10:05 中文版"
+          },
+          {
+            "time": "11:45",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1003",
+            "label": "11:45 英文版"
+          },
+          {
+            "time": "14:00",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1003",
+            "label": "14:00 英文版"
+          },
+          {
+            "time": "15:40",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1003",
+            "label": "15:40 中文版"
+          },
+          {
+            "time": "20:20",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1003",
+            "label": "20:20 英文版"
+          }
+        ],
+        "start_times": "10:05, 11:45, 14:00, 15:40, 20:20"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.5342,
+          25.118
+        ]
+      },
+      "properties": {
+        "location_id": 44,
+        "chain_name": "新光影城",
+        "location_name": "新光影城台北天母",
+        "map_name": "新光影城 新光影城台北天母",
+        "address": "台北市士林區忠誠路二段202號4樓（新光三越台北天母店B棟）",
+        "city": "臺北市",
+        "location_url": "https://www.skcinemas.com/films?c=1005",
+        "official_url": "https://www.skcinemas.com/",
+        "crawl_url": "https://www.atmovies.com.tw/showtime/t02d04/a02/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-23",
+        "showtime_count": 6,
+        "showtimes": [
+          {
+            "time": "10:35",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "10:35 中文版"
+          },
+          {
+            "time": "12:40",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "12:40 英文版"
+          },
+          {
+            "time": "14:45",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "14:45 英文版"
+          },
+          {
+            "time": "15:55",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "15:55 中文版"
+          },
+          {
+            "time": "18:00",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "18:00 英文版"
+          },
+          {
+            "time": "21:00",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1005",
+            "label": "21:00 英文版"
+          }
+        ],
+        "start_times": "10:35, 12:40, 14:45, 15:55, 18:00, 21:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.50664,
+          25.045591
+        ]
+      },
+      "properties": {
+        "location_id": 45,
+        "chain_name": "新光影城",
+        "location_name": "新光影城台北獅子林",
+        "map_name": "新光影城 新光影城台北獅子林",
+        "address": "台北市萬華區西寧南路36號4-5樓（獅子林大樓）",
+        "city": "臺北市",
+        "location_url": "https://www.skcinemas.com/films?c=1001",
+        "official_url": "https://www.skcinemas.com/",
+        "crawl_url": "https://www.atmovies.com.tw/showtime/t02b05/a02/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-23",
+        "showtime_count": 1,
+        "showtimes": [
+          {
+            "time": "19:20",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1001",
+            "label": "19:20 英文版"
+          }
+        ],
+        "start_times": "19:20"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.197693,
+          22.986882
+        ]
+      },
+      "properties": {
+        "location_id": 46,
+        "chain_name": "新光影城",
+        "location_name": "新光影城台南西門",
+        "map_name": "新光影城 新光影城台南西門",
+        "address": "台南市中西區西門路一段658號9樓（新光三越台南新天地）",
+        "city": "臺南市",
+        "location_url": "https://www.skcinemas.com/films?c=1002",
+        "official_url": "https://www.skcinemas.com/",
+        "crawl_url": "https://www.atmovies.com.tw/showtime/t06607/a06/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-23",
+        "showtime_count": 5,
+        "showtimes": [
+          {
+            "time": "09:15",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1002",
+            "label": "09:15 中文版"
+          },
+          {
+            "time": "11:20",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1002",
+            "label": "11:20 英文版"
+          },
+          {
+            "time": "13:25",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1002",
+            "label": "13:25 中文版"
+          },
+          {
+            "time": "15:30",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1002",
+            "label": "15:30 中文版"
+          },
+          {
+            "time": "19:45",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1002",
+            "label": "19:45 英文版"
+          }
+        ],
+        "start_times": "09:15, 11:20, 13:25, 15:30, 19:45"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.213758,
+          25.017327
+        ]
+      },
+      "properties": {
+        "location_id": 47,
+        "chain_name": "新光影城",
+        "location_name": "新光影城桃園青埔",
+        "map_name": "新光影城 新光影城桃園青埔",
+        "address": "桃園市中壢區春德路107號3-5樓（置地廣場·桃園）",
+        "city": "桃園市",
+        "location_url": "https://www.skcinemas.com/films?c=1004",
+        "official_url": "https://www.skcinemas.com/",
+        "crawl_url": "https://www.atmovies.com.tw/showtime/t03315/a03/",
+        "movie_title": "玩具總動員5",
+        "show_date": "2026-07-23",
+        "showtime_count": 7,
+        "showtimes": [
+          {
+            "time": "09:15",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "09:15 中文版"
+          },
+          {
+            "time": "11:20",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "11:20 英文版"
+          },
+          {
+            "time": "13:25",
+            "format": "中文版",
+            "language": "國語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "13:25 中文版"
+          },
+          {
+            "time": "15:30",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "15:30 英文版"
+          },
+          {
+            "time": "17:35",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "17:35 英文版"
+          },
+          {
+            "time": "19:40",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "19:40 英文版"
+          },
+          {
+            "time": "21:45",
+            "format": "英文版",
+            "language": "英語",
+            "auditorium": null,
+            "booking_url": "https://www.skcinemas.com/films?c=1004",
+            "label": "21:45 英文版"
+          }
+        ],
+        "start_times": "09:15, 11:20, 13:25, 15:30, 17:35, 19:40, 21:45"
       }
     },
     {
@@ -13577,7 +13725,7 @@
         "crawl_url": "https://www.showtimes.com.tw/ticketing?cid=53&date=2026-07-23&category=popular",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 16,
+        "showtime_count": 15,
         "showtimes": [
           {
             "time": "09:30",
@@ -13644,14 +13792,6 @@
             "label": "16:00 數位 國語 / 1館5廳"
           },
           {
-            "time": "16:40",
-            "format": "數位 英語",
-            "language": "英語",
-            "auditorium": "1館12廳",
-            "booking_url": "https://www.showtimes.com.tw/ticketing?cid=53&date=2026-07-23&category=popular",
-            "label": "16:40 數位 英語 / 1館12廳"
-          },
-          {
             "time": "17:20",
             "format": "數位 國語",
             "language": "國語",
@@ -13708,7 +13848,7 @@
             "label": "22:30 數位 英語 / 1館5廳"
           }
         ],
-        "start_times": "09:30, 10:10, 10:50, 11:40, 13:00, 14:30, 15:10, 16:00, 16:40, 17:20, 18:10, 19:30, 20:20, 21:00, 21:40, 22:30"
+        "start_times": "09:30, 10:10, 10:50, 11:40, 13:00, 14:30, 15:10, 16:00, 17:20, 18:10, 19:30, 20:20, 21:00, 21:40, 22:30"
       }
     },
     {
@@ -14776,16 +14916,8 @@
         "crawl_url": "https://www.miranewcinemas.com/Booking/Timetable",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 3,
+        "showtime_count": 2,
         "showtimes": [
-          {
-            "time": "16:30",
-            "format": "皇家廳 英文版",
-            "language": "英語",
-            "auditorium": "RC2",
-            "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-            "label": "16:30 皇家廳 英文版 / RC2"
-          },
           {
             "time": "18:45",
             "format": "皇家廳 英文版",
@@ -14803,7 +14935,7 @@
             "label": "20:55 皇家廳 英文版 / RC2"
           }
         ],
-        "start_times": "16:30, 18:45, 20:55"
+        "start_times": "18:45, 20:55"
       }
     },
     {
@@ -14827,24 +14959,8 @@
         "crawl_url": "https://www.miranewcinemas.com/Booking/Timetable",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 4,
+        "showtime_count": 2,
         "showtimes": [
-          {
-            "time": "17:20",
-            "format": "標準廳 中文版",
-            "language": "國語",
-            "auditorium": "6",
-            "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-            "label": "17:20 標準廳 中文版 / 6"
-          },
-          {
-            "time": "18:20",
-            "format": "標準廳 英文版",
-            "language": "英語",
-            "auditorium": "10",
-            "booking_url": "https://www.miranewcinemas.com/Booking/Timetable",
-            "label": "18:20 標準廳 英文版 / 10"
-          },
           {
             "time": "19:30",
             "format": "標準廳 中文版",
@@ -14862,7 +14978,7 @@
             "label": "21:35 標準廳 英文版 / 6"
           }
         ],
-        "start_times": "17:20, 18:20, 19:30, 21:35"
+        "start_times": "19:30, 21:35"
       }
     },
     {
@@ -14881,21 +14997,13 @@
         "map_name": "美麗華影城 美麗華影城",
         "address": "臺北市中山區金泰里敬業三路22號6樓",
         "city": "臺北市",
-        "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431364",
+        "location_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431365",
         "official_url": "https://www.miramarcinemas.tw/",
         "crawl_url": "https://www.miramarcinemas.tw/timetable",
         "movie_title": "玩具總動員5",
         "show_date": "2026-07-23",
-        "showtime_count": 3,
+        "showtime_count": 2,
         "showtimes": [
-          {
-            "time": "17:40",
-            "format": "中文(CHI)",
-            "language": "國語",
-            "auditorium": null,
-            "booking_url": "https://www.miramarcinemas.tw/Booking/TicketType?id=c1e9e364-9018-4a27-a819-13184e637282&session=431364",
-            "label": "17:40 中文(CHI)"
-          },
           {
             "time": "19:40",
             "format": "英文(ENG)",
@@ -14913,7 +15021,7 @@
             "label": "21:40 英文(ENG)"
           }
         ],
-        "start_times": "17:40, 19:40, 21:40"
+        "start_times": "19:40, 21:40"
       }
     },
     {
