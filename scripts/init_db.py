@@ -33,10 +33,13 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> None:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
 
-    with sqlite3.connect(db_path) as conn:
+    conn = sqlite3.connect(db_path)
+    try:
         conn.execute("PRAGMA foreign_keys = ON")
         conn.executescript(schema_sql)
         ensure_migrations(conn)
+    finally:
+        conn.close()
 
 
 def list_tables(db_path: Path) -> list[str]:

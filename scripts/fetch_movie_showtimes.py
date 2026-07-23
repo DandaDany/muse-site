@@ -4,10 +4,12 @@ import argparse
 import ast
 import html
 import json
+import os
 import re
 import ssl
 import sqlite3
 import sys
+import time
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -16,6 +18,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 from init_db import DEFAULT_DB_PATH, init_db
@@ -458,37 +461,71 @@ def fetch_showtimes_showtimes_api(
     return records
 
 
-def capture_skcinemas_headers(entry_url: str) -> dict[str, str]:
+def skcinemas_headers_from_request(headers: dict[str, str], entry_url: str) -> dict[str, str] | None:
+    normalized = {str(key).lower(): value for key, value in headers.items()}
+    if not all(normalized.get(key) for key in ("timestamp", "did", "token")):
+        return None
+    return {
+        "timestamp": normalized["timestamp"],
+        "DID": normalized["did"],
+        "token": normalized["token"],
+        "Referer": entry_url,
+    }
+
+
+def navigation_timeout_is_recoverable(error: Exception | None, captured: object) -> bool:
+    return isinstance(error, PlaywrightTimeoutError) and bool(captured)
+
+
+def capture_skcinemas_headers(
+    entry_url: str, *, headless: bool | None = None, wait_ms: int = 8000
+) -> dict[str, str]:
     captured: dict[str, str] = {}
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
-        page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
+        if headless is None:
+            headless = os.environ.get("SKCINEMAS_HEADLESS", "true").lower() not in {"0", "false", "no"}
+        browser = playwright.chromium.launch(headless=headless, slow_mo=120 if not headless else 0)
+        try:
+            page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
 
-        def on_request(request) -> None:
-            nonlocal captured
-            if captured or "/api/VistaDataV2/" not in request.url:
-                return
-            headers = request.headers
-            required = ["timestamp", "did", "token"]
-            if all(headers.get(key) for key in required):
-                captured = {
-                    "timestamp": headers["timestamp"],
-                    "DID": headers["did"],
-                    "token": headers["token"],
-                    "Referer": entry_url,
-                }
+            def on_request(request) -> None:
+                nonlocal captured
+                if captured or "/api/VistaDataV2/" not in request.url:
+                    return
+                headers = skcinemas_headers_from_request(request.headers, entry_url)
+                if headers:
+                    captured = headers
 
-        page.on("request", on_request)
-        page.goto(entry_url, wait_until="domcontentloaded", timeout=60_000)
-        page.wait_for_timeout(7000)
-        browser.close()
+            # The signed API request can happen before DOMContentLoaded.
+            page.on("request", on_request)
+            navigation_error: Exception | None = None
+            try:
+                page.goto(entry_url, wait_until="commit", timeout=30_000)
+            except PlaywrightTimeoutError as exc:
+                navigation_error = exc
+
+            deadline = time.monotonic() + wait_ms / 1000
+            while not captured and time.monotonic() < deadline:
+                page.wait_for_timeout(200)
+            if navigation_error and not navigation_timeout_is_recoverable(navigation_error, captured):
+                raise RuntimeError("無法取得新光 API headers（導航逾時且沒有 API request）") from navigation_error
+        finally:
+            browser.close()
 
     if not captured:
-        raise RuntimeError("Could not capture Shin Kong Cinemas API headers.")
+        raise RuntimeError("無法取得新光 API headers")
     return captured
 
 
 def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    active_count = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM cinema_locations cl
+        JOIN cinema_chains cc ON cc.id = cl.chain_id
+        WHERE cc.chain_name = '新光影城' AND cl.active = 1
+        """
+    ).fetchone()[0]
     rows = conn.execute(
         """
         SELECT cl.*
@@ -496,10 +533,12 @@ def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str
         JOIN cinema_chains cc ON cc.id = cl.chain_id
         WHERE cc.chain_name = '新光影城'
           AND cl.active = 1
-          AND cl.source_location_code IS NOT NULL
+          AND TRIM(COALESCE(cl.source_location_code, '')) <> ''
         ORDER BY cl.location_name
         """
     ).fetchall()
+    if active_count and not rows:
+        raise RuntimeError("新光影城有啟用據點，但 0 個據點具有 source_location_code")
     if not rows:
         return []
 
@@ -516,7 +555,7 @@ def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str
         )
         save_raw(f"skcinemas_sessions_{cinema_id}", json.dumps(payload, ensure_ascii=False, indent=2), "json")
         if not isinstance(payload, dict) or payload.get("result") is not True:
-            continue
+            raise RuntimeError(f"新光 API 回應失敗（據點 {cinema_id}）")
         data = payload.get("data") or {}
         session_films = data.get("SessionFilm") or []
         target_film_ids = {
