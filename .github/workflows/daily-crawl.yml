@@ -82,17 +82,20 @@ jobs:
         # CSV 自動同步（import_cinema_csv），故後台已含這些代碼。
         run: python scripts/pull_cinema_master.py --require-codes
 
-      - name: Refresh scraped-chain location codes (新光 / in89 / 國賓)
-        # 這三家的據點代碼是從官網即時爬（非靜態），故在此補進上一步建好的 SQLite。
-        # 其 upsert 皆座標安全（COALESCE 保留、或不動 latitude/longitude），只補代碼。
-        # 新光（skcinemas）走 playwright，官網偶爾逾時，故重試一次。
-        # 任一家官網暫時抓不到不應中斷整體排程，故容錯——但缺的代碼會由後台既存值補上
-        # （見下一步「回寫」＋建 DB 步驟），不必單次成功。
+      - name: Refresh scraped-chain location codes (新光/in89/國賓/秀泰/美麗新)
+        # 需要 source_location_code 的 7 家中，威秀/百老匯是靜態（後台已存）；其餘 5 家
+        # 的代碼是從官網即時爬（非靜態），故在此補進上一步建好的 SQLite：
+        #   新光=skcinemas、in89、國賓=ambassador、秀泰=showtimes、美麗新=misc(MIRANEW)。
+        # 秀泰/美麗新用 API 的 corporation_id/CinemaId 比對本機代碼，漏爬就整家 0 筆。
+        # upsert 皆座標安全（只補代碼）。新光走 playwright、官網偶爾逾時，故重試一次。
+        # 任一家暫時抓不到不中斷排程（容錯）——缺的代碼會由後台既存值補上（見下一步回寫）。
         continue-on-error: true
         run: |
           python scripts/fetch_skcinemas_locations.py || python scripts/fetch_skcinemas_locations.py || true
           python scripts/fetch_in89_locations.py || true
           python scripts/fetch_ambassador_locations.py || true
+          python scripts/fetch_showtimes_locations.py || true
+          python scripts/fetch_misc_locations.py || true
 
       - name: Persist scraped codes back to backend
         # 把即時爬到的代碼 POST 回後台持久化，讓後台累積成完整單一來源；
