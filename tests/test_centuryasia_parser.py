@@ -54,6 +54,41 @@ class CenturyasiaLegacyTemplateTests(unittest.TestCase):
         self.assertTrue(all("再生家族" not in (r.raw_text or "") for r in records))
 
 
+class CenturyasiaShowtimeUrlTests(unittest.TestCase):
+    """各館場次頁對照：以館名/代碼/既有網址關鍵字命中，歇業館回 None。"""
+
+    def _row(self, name="", code="", url=""):
+        return {"location_name": name, "source_location_code": code, "location_url": url}
+
+    def test_nangang_uses_new_book_template(self):
+        url = showtimes.centuryasia_showtime_url(self._row(name="喜樂時代影城南港店"))
+        self.assertEqual(url, "https://www.centuryasia.com.tw/book.html?sid=Nangang&ver=0fKKApRlrx8=")
+
+    def test_ximen_uses_legacy_template(self):
+        url = showtimes.centuryasia_showtime_url(self._row(name="喜樂時代影城西門今日店"))
+        self.assertEqual(url, "https://ximen.centuryasia.com.tw/ticket_online.aspx?page=0")
+
+    def test_kaohsiung_matches_via_ksml_subdomain(self):
+        # 後台代碼是 kaohsiung，但子網域是 ksml，兩者都應命中。
+        by_name = showtimes.centuryasia_showtime_url(self._row(name="喜樂時代影城高雄總圖店"))
+        by_url = showtimes.centuryasia_showtime_url(
+            self._row(url="https://ksml.centuryasia.com.tw/index.aspx")
+        )
+        self.assertEqual(by_name, "https://ksml.centuryasia.com.tw/ticket_online.aspx?page=0")
+        self.assertEqual(by_url, by_name)
+
+    def test_closed_taoyuan_is_skipped(self):
+        url = showtimes.centuryasia_showtime_url(self._row(name="喜樂時代影城桃園A19店", code="taoyuan"))
+        self.assertIsNone(url)
+
+    def test_override_ignores_stale_index_url(self):
+        # 後台存的是舊入口頁，仍應被館名關鍵字導向正確場次頁。
+        url = showtimes.centuryasia_showtime_url(
+            self._row(name="喜樂時代影城永和店", url="https://ticket.centuryasia.com.tw/beyond/index.aspx")
+        )
+        self.assertEqual(url, "https://beyond.centuryasia.com.tw/ticket_online.aspx?page=0")
+
+
 class CenturyasiaNewTemplateTests(unittest.TestCase):
     """新版 book.html 週表模板（南港店）。"""
 

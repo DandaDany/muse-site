@@ -1276,6 +1276,31 @@ def parse_centuryasia(
     return []
 
 
+# 喜樂時代各館的「正確場次頁」對照表。以館名/代碼/既有網址中的關鍵字命中，
+# 因此不依賴後台主檔存的 location_url（常是舊的 index.aspx 入口頁）。
+# 值為 None 代表已歇業、直接跳過。
+# 註：南港用新版 book.html，ver= 為網站產生的參數，若日後失效需重新取得；
+#     其餘為舊版 ticket_online.aspx（伺服器端渲染、可分頁）。
+CENTURYASIA_SHOWTIME_URLS: list[tuple[tuple[str, ...], str | None]] = [
+    (("南港", "nangang"), "https://www.centuryasia.com.tw/book.html?sid=Nangang&ver=0fKKApRlrx8="),
+    (("西門", "ximen"), "https://ximen.centuryasia.com.tw/ticket_online.aspx?page=0"),
+    (("永和", "beyond"), "https://beyond.centuryasia.com.tw/ticket_online.aspx?page=0"),
+    (("高雄", "ksml", "kaohsiung"), "https://ksml.centuryasia.com.tw/ticket_online.aspx?page=0"),
+    (("桃園", "taoyuan", "a19"), None),  # 桃園 A19 已歇業
+]
+
+
+def centuryasia_showtime_url(row: sqlite3.Row) -> str | None:
+    """回傳該館的正確場次頁網址；已歇業回 None；未知館沿用 DB 既有網址。"""
+    haystack = " ".join(
+        str(row[key] or "") for key in ("location_name", "source_location_code", "location_url")
+    ).lower()
+    for keys, url in CENTURYASIA_SHOWTIME_URLS:
+        if any(key.lower() in haystack for key in keys):
+            return url
+    return row["location_url"] or CENTURYASIA_URL
+
+
 def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
     rows = conn.execute(
         """
@@ -1289,7 +1314,9 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
     ).fetchall()
     records: list[ShowtimeRecord] = []
     for row in rows:
-        source_url = row["location_url"] or CENTURYASIA_URL
+        source_url = centuryasia_showtime_url(row)
+        if source_url is None:
+            continue  # 已歇業的館直接跳過
         location_id = int(row["id"])
         # 舊版 aspx 場次頁會分頁（?page=0,1,2…）；逐頁抓到空頁為止。其餘模板單頁即可。
         is_paged = "ticket_online.aspx" in source_url
