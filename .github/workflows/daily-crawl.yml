@@ -67,15 +67,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: (temp) Geocode 喜樂時代 addresses
-        # 暫時：在有網路的 Actions 為喜樂時代 4 館地址取得真實座標，讀完即移除。
-        run: |
-          python scripts/geocode_addresses.py \
-            "台北市萬華區峨眉街52號" \
-            "台北市南港區忠孝東路七段299號" \
-            "新北市永和區中山路一段238號" \
-            "高雄市前鎮區林森四路189號"
-
       - name: Install Playwright Chromium and system deps
         run: python -m playwright install --with-deps chromium
 

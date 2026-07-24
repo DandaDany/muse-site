@@ -1,5 +1,5 @@
 chain_name,location_name,city,address,source_location_code,location_url,official_url,all_locations_assumed_showing,latitude,longitude,notes
-喜樂時代影城,喜樂時代影城西門今日店,台北市,台北市萬華區峨眉街52號,ximen,https://ximen.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,25.0429,121.5060,座標為依地址推估之近似值，請於後台核對
-喜樂時代影城,喜樂時代影城南港店,台北市,台北市南港區忠孝東路七段299號,nangang,https://www.centuryasia.com.tw/book.html?sid=Nangang&ver=0fKKApRlrx8=,https://www.centuryasia.com.tw/,1,25.0574,121.6160,座標為依地址推估之近似值，請於後台核對
-喜樂時代影城,喜樂時代影城永和店,新北市,新北市永和區中山路一段238號,beyond,https://beyond.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,25.0113,121.5147,座標為依地址推估之近似值，請於後台核對
-喜樂時代影城,喜樂時代影城高雄總圖店,高雄市,高雄市前鎮區林森四路189號,ksml,https://ksml.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,22.6041,120.3013,座標為依地址推估之近似值，請於後台核對
+喜樂時代影城,喜樂時代影城西門今日店,台北市,台北市萬華區峨眉街52號,ximen,https://ximen.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,25.043803,121.505399,座標由 ArcGIS 地理編碼（score 100）
+喜樂時代影城,喜樂時代影城南港店,台北市,台北市南港區忠孝東路七段299號,nangang,https://www.centuryasia.com.tw/book.html?sid=Nangang&ver=0fKKApRlrx8=,https://www.centuryasia.com.tw/,1,25.052363,121.604793,座標由 ArcGIS 地理編碼（score 100）
+喜樂時代影城,喜樂時代影城永和店,新北市,新北市永和區中山路一段238號,beyond,https://beyond.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,25.007836,121.507646,座標由 ArcGIS 地理編碼（score 100）
+喜樂時代影城,喜樂時代影城高雄總圖店,高雄市,高雄市前鎮區林森四路189號,ksml,https://ksml.centuryasia.com.tw/ticket_online.aspx?page=0,https://www.centuryasia.com.tw/,1,22.609271,120.302090,座標由 ArcGIS 地理編碼（score 97.88）
