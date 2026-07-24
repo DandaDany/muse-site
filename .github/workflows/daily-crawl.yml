@@ -67,19 +67,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: (temp) Geocode 待新增影城 addresses
-        # 暫時：核對使用者提供的座標。讀完即移除。
-        run: |
-          python scripts/geocode_addresses.py \
-            "台北市萬華區武昌街二段85號" \
-            "高雄市前鎮區忠勤路8號" \
-            "台北市信義區菸廠路88號" \
-            "台北市松山區復興南路一段39號" \
-            "台北市松山區長安東路二段219號" \
-            "台北市中山區中山北路二段18號" \
-            "台北市中正區八德路一段1號" \
-            "南投縣南投市大同街87號"
-
       - name: Install Playwright Chromium and system deps
         run: python -m playwright install --with-deps chromium
 
