@@ -1,0 +1,8 @@
+chain_name,location_name,city,address,all_locations_assumed_showing,latitude,longitude,notes
+樂聲影城,樂聲影城,台北市,台北市萬華區武昌街二段85號,1,25.04473,121.50474,單館；chain_name 需對齊 fetch_lux
+台鋁影城,MLD台鋁影城,高雄市,高雄市前鎮區忠勤路8號,1,22.60394,120.30370,單館；chain_name 需對齊 fetch_mld
+誠品電影院,誠品電影院,台北市,台北市信義區菸廠路88號B2,1,25.04359,121.56064,單館；chain_name 需對齊 fetch_eslite
+微風影城,微風影城,台北市,台北市松山區復興南路一段39號8樓,1,25.04603,121.54394,單館；chain_name 需對齊 fetch_breeze
+總督數位影城,總督數位影城,台北市,台北市松山區長安東路二段219號,1,25.04803,121.54413,單館；chain_name 需對齊 fetch_governor
+光點華山電影館,光點華山電影館,台北市,台北市中正區八德路一段1號,1,25.04419,121.52926,單館；chain_name 需對齊 fetch_spot_hs
+南投戲院,南投戲院,南投縣,南投縣南投市大同街87號,1,23.90795,120.68788,單館；chain_name 需對齊 fetch_nantou
