@@ -82,37 +82,6 @@ jobs:
         # CSV 自動同步（import_cinema_csv），故後台已含這些代碼。
         run: python scripts/pull_cinema_master.py --require-codes
 
-      - name: (diagnostic) Print per-chain active location counts
-        # 暫時診斷：確認後台各品牌 active 據點數，找出哪些影城後台無據點。合併前會移除。
-        run: |
-          python - <<'PY'
-          import sqlite3, sys
-          sys.path.insert(0, "scripts")
-          from init_db import DEFAULT_DB_PATH
-          con = sqlite3.connect(str(DEFAULT_DB_PATH))
-          con.row_factory = sqlite3.Row
-          rows = con.execute(
-              """
-              SELECT cc.chain_name,
-                     COUNT(cl.id) AS total,
-                     COALESCE(SUM(CASE WHEN cl.active = 1 THEN 1 ELSE 0 END), 0) AS active
-              FROM cinema_chains cc
-              LEFT JOIN cinema_locations cl ON cl.chain_id = cc.id
-              GROUP BY cc.id, cc.chain_name
-              ORDER BY active ASC, cc.chain_name
-              """
-          ).fetchall()
-          zero = []
-          print("[CHAINCOUNT] ===== 各品牌 active/total 據點數 =====")
-          for r in rows:
-              flag = "  <== 無 active 據點" if r["active"] == 0 else ""
-              print(f"[CHAINCOUNT] {r['chain_name']} : active={r['active']} total={r['total']}{flag}")
-              if r["active"] == 0:
-                  zero.append(r["chain_name"])
-          print(f"[CHAINCOUNT] 品牌總數={len(rows)} 無active據點品牌數={len(zero)}")
-          print("[CHAINCOUNT] 無active據點：" + "、".join(zero) if zero else "[CHAINCOUNT] 所有品牌皆有 active 據點")
-          PY
-
       - name: Overlay version-controlled cinema codes and verify Shin Kong
         # 後台還沒部署最新主檔時，使用 repo 的自然鍵 CSV 補齊代碼。這只會
         # 更新既存據點的非空欄位，保留後台地址、座標與 URL，也不會建立幽靈據點。
