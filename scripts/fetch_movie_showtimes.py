@@ -1123,6 +1123,159 @@ def text_blocks_from_html(raw: bytes | str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
 
 
+def _century_split_hall_format(text: str | None) -> tuple[str | None, str | None]:
+    """把影廳字串拆成 (影廳, 格式/語言)。
+
+    支援兩種來源寫法：
+      新版 book.html： "1廳｜2D英語"        → ("1廳", "2D英語")
+      舊版 aspx：      "7廳 8樓 數位國語"    → ("7廳 8樓", "數位國語")
+    """
+    text = re.sub(r"\s+", " ", (text or "").strip())
+    if not text:
+        return None, None
+    for sep in ("｜", "|"):
+        if sep in text:
+            hall, fmt = text.split(sep, 1)
+            return hall.strip() or None, fmt.strip() or None
+    match = re.match(r"(.*?樓)\s*(.+)", text)
+    if match and match.group(2):
+        return match.group(1).strip(), match.group(2).strip()
+    parts = text.split(" ", 1)
+    if len(parts) == 2:
+        return parts[0].strip(), parts[1].strip()
+    return text, None
+
+
+def parse_centuryasia_new(
+    soup: BeautifulSoup,
+    *,
+    aliases: list[str],
+    show_date: str,
+    location_id: int,
+    source_url: str,
+) -> list[ShowtimeRecord]:
+    """解析新版 book.html 週表模板。
+
+    每個 .content-row = 一部電影，右側 .weektable 有 7 天，帶 active 的那天
+    即目前顯示的場次日期；.timetable 只列出 active 日期的場次（無日期文字，
+    日期需由 active booktime 判定）。
+    """
+    _, month, day = show_date.split("-")
+    target_md = {f"{month}.{day}", f"{int(month)}.{int(day)}"}
+    records: list[ShowtimeRecord] = []
+    for row in soup.select(".content-row"):
+        title_node = row.select_one(".movie-title p") or row.select_one(".movie-title .ellipsis")
+        if not title_node or not movie_matches(title_node.get_text(strip=True), aliases):
+            continue
+        active = row.select_one(".weektable .booktime.active")
+        active_md = None
+        if active:
+            active_match = re.search(r"(\d{1,2})\.(\d{1,2})", active.get_text(" ", strip=True))
+            if active_match:
+                active_md = f"{int(active_match.group(1))}.{int(active_match.group(2))}"
+        # active 日期不是要抓的日期時，畫面上的 timetable 屬於別天，跳過避免抓錯日期。
+        if active_md is not None and active_md not in {f"{int(month)}.{int(day)}"} | target_md:
+            continue
+        for hall_and_time in row.select(".timetable .hallandtime"):
+            hall_node = hall_and_time.select_one(".hall")
+            hall_text = hall_node.get_text(" ", strip=True) if hall_node else None
+            auditorium, fmt = _century_split_hall_format(hall_text)
+            for span in hall_and_time.select(".alltime .time span"):
+                start_time = span.get_text(strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                records.append(
+                    ShowtimeRecord(
+                        location_id=location_id,
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=auditorium,
+                        format=fmt or hall_text,
+                        language=infer_language(hall_text),
+                        booking_url=source_url,
+                        source_url=source_url,
+                        raw_text=f"{title_node.get_text(strip=True)} | {hall_text or ''} | {start_time}",
+                    )
+                )
+    return records
+
+
+def parse_centuryasia_legacy(
+    soup: BeautifulSoup,
+    *,
+    aliases: list[str],
+    show_date: str,
+    location_id: int,
+    source_url: str,
+) -> list[ShowtimeRecord]:
+    """解析舊版 ticket_online.aspx 模板。
+
+    每個 section.tickets_movie_time_box = 一部電影；日期選單中帶
+    li.tickets_date_ing 的是目前顯示日期（span.tdd_d[value=YYYY/MM/DD]）；
+    每個 .tickets_date_csbox = 一個影廳/語言，其 li 為場次時間，onclick 內含訂票連結。
+    """
+    show_slash = show_date.replace("-", "/")
+    records: list[ShowtimeRecord] = []
+    for section in soup.select("section.tickets_movie_time_box"):
+        title_node = section.select_one(".times_title")
+        if not title_node or not movie_matches(title_node.get_text(strip=True), aliases):
+            continue
+        active_value = None
+        active_date = section.select_one("li.tickets_date_ing .tdd_d")
+        if active_date:
+            active_value = (active_date.get("value") or "").replace("-", "/").strip()
+        if active_value and active_value != show_slash:
+            continue
+        for box in section.select(".tickets_date_csbox"):
+            hall_node = box.select_one(".tickets_date_cs")
+            hall_text = hall_node.get_text(" ", strip=True) if hall_node else None
+            auditorium, fmt = _century_split_hall_format(hall_text)
+            for li in box.select(".tickets_date_cts li"):
+                start_time = li.get_text(strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                booking_url = source_url
+                onclick = li.get("onclick") or ""
+                href_match = re.search(r"location\.href=['\"]([^'\"]+)['\"]", onclick)
+                if href_match:
+                    booking_url = html.unescape(href_match.group(1))
+                records.append(
+                    ShowtimeRecord(
+                        location_id=location_id,
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=auditorium,
+                        format=fmt or hall_text,
+                        language=infer_language(hall_text),
+                        booking_url=booking_url,
+                        source_url=source_url,
+                        raw_text=f"{title_node.get_text(strip=True)} | {hall_text or ''} | {start_time}",
+                    )
+                )
+    return records
+
+
+def parse_centuryasia(
+    html_text: str,
+    *,
+    aliases: list[str],
+    show_date: str,
+    location_id: int,
+    source_url: str,
+) -> list[ShowtimeRecord]:
+    """依 HTML 內容自動判斷喜樂時代模板並解析。"""
+    soup = BeautifulSoup(html_text, "html.parser")
+    if soup.select_one("section.tickets_movie_time_box"):
+        return parse_centuryasia_legacy(
+            soup, aliases=aliases, show_date=show_date, location_id=location_id, source_url=source_url
+        )
+    if soup.select_one(".content-row .timetable"):
+        return parse_centuryasia_new(
+            soup, aliases=aliases, show_date=show_date, location_id=location_id, source_url=source_url
+        )
+    return []
+
+
 def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
     rows = conn.execute(
         """
@@ -1137,24 +1290,35 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
     records: list[ShowtimeRecord] = []
     for row in rows:
         source_url = row["location_url"] or CENTURYASIA_URL
-        html_text = render_page_html(source_url, wait_ms=6000)
-        save_raw(f"centuryasia_{row['source_location_code'] or row['id']}", html_text, "html")
-        soup = BeautifulSoup(html_text, "html.parser")
-        page_text = soup.get_text("\n", strip=True)
-        if not movie_matches(page_text, aliases):
-            continue
-        for block in html_blocks_with_movie(soup, aliases):
-            block_text = block.get_text("\n", strip=True)
-            records.extend(
-                records_from_text_block(
-                    location_id=int(row["id"]),
-                    show_date=show_date,
-                    text=block_text,
-                    aliases=aliases,
-                    source_url=source_url,
-                    booking_url=source_url,
-                )
+        location_id = int(row["id"])
+        # 舊版 aspx 場次頁會分頁（?page=0,1,2…）；逐頁抓到空頁為止。其餘模板單頁即可。
+        is_paged = "ticket_online.aspx" in source_url
+        page = 0
+        while True:
+            page_url = source_url
+            if is_paged:
+                sep = "&" if "?" in source_url else "?"
+                page_url = re.sub(r"([?&])page=\d+", r"\1page=" + str(page), source_url)
+                if "page=" not in page_url:
+                    page_url = f"{source_url}{sep}page={page}"
+            html_text = render_page_html(page_url, wait_ms=6000)
+            save_raw(f"centuryasia_{row['source_location_code'] or location_id}_p{page}", html_text, "html")
+            page_records = parse_centuryasia(
+                html_text,
+                aliases=aliases,
+                show_date=show_date,
+                location_id=location_id,
+                source_url=page_url,
             )
+            records.extend(page_records)
+            if not is_paged:
+                break
+            # 分頁：這頁沒有任何電影區塊就停止（避免無限翻頁）。
+            if not BeautifulSoup(html_text, "html.parser").select_one("section.tickets_movie_time_box"):
+                break
+            page += 1
+            if page > 20:
+                break
     return records
 
 
