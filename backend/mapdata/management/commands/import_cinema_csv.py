@@ -35,6 +35,9 @@ DEFAULT_CSVS = [
     DATA_INPUT / "vieshow_locations.csv",
     DATA_INPUT / "manual_location_urls.csv",
     DATA_INPUT / "misc_locations.csv",
+    # 喜樂時代各館（含地址、場次頁網址與座標）——手動維護的完整據點資料，
+    # 讓喜樂時代能被建立、爬取並顯示於地圖。
+    DATA_INPUT / "centuryasia_locations.csv",
     # 從本機主檔匯出的全部據點代碼（新光/in89/國賓/秀泰/美麗新…）。
     # 由 scripts/export_location_codes.py 產生後提交進版控；不存在時自動略過。
     DATA_INPUT / "cinema_codes.csv",

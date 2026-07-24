@@ -1312,15 +1312,15 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
         ORDER BY cl.location_name
         """
     ).fetchall()
-    print(f"[CENTURY] 喜樂時代 active 據點數={len(rows)}")
+    if not rows:
+        print("[CENTURY] 後台無 active 喜樂時代據點；請確認 centuryasia_locations.csv 已匯入後台。")
     records: list[ShowtimeRecord] = []
     for row in rows:
         source_url = centuryasia_showtime_url(row)
         if source_url is None:
-            print(f"[CENTURY] 跳過(歇業) name={row['location_name']!r} code={row['source_location_code']!r}")
             continue  # 已歇業的館直接跳過
         location_id = int(row["id"])
-        print(f"[CENTURY] name={row['location_name']!r} code={row['source_location_code']!r} url={source_url}")
+        venue_count = 0
         # 舊版 aspx 場次頁會分頁（?page=0,1,2…）；逐頁抓到空頁為止。其餘模板單頁即可。
         is_paged = "ticket_online.aspx" in source_url
         page = 0
@@ -1333,7 +1333,6 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
                     page_url = f"{source_url}{sep}page={page}"
             html_text = render_page_html(page_url, wait_ms=6000)
             save_raw(f"centuryasia_{row['source_location_code'] or location_id}_p{page}", html_text, "html")
-            page_soup = BeautifulSoup(html_text, "html.parser")
             page_records = parse_centuryasia(
                 html_text,
                 aliases=aliases,
@@ -1341,13 +1340,7 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
                 location_id=location_id,
                 source_url=page_url,
             )
-            has_legacy = bool(page_soup.select_one("section.tickets_movie_time_box"))
-            has_new = bool(page_soup.select_one(".content-row .timetable"))
-            movie_on_page = movie_matches(page_soup.get_text(" ", strip=True), aliases)
-            print(
-                f"[CENTURY]   page={page} html_len={len(html_text)} legacy={has_legacy} "
-                f"new={has_new} movie_on_page={movie_on_page} records={len(page_records)}"
-            )
+            venue_count += len(page_records)
             records.extend(page_records)
             if not is_paged:
                 break
@@ -1357,6 +1350,7 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
             page += 1
             if page > 20:
                 break
+        print(f"[CENTURY] {row['location_name']}: {venue_count} 場次（{source_url}）")
     return records
 
 
