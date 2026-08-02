@@ -50,6 +50,7 @@ CENTURYASIA_URL = "https://ticket.centuryasia.com.tw/"
 MIRANEW_TIMETABLE_URL = "https://www.miranewcinemas.com/Booking/Timetable"
 CCMOVIE_URL = "https://www.ccmovie.com.tw/product.php?_path=product_showtimes"
 ACE_URL = "https://www.acecinema.com.tw/movie/now"
+ACE_ATMOVIES_URL = "https://www.atmovies.com.tw/showtime/t04428/a04/"
 TMOVIES_URL = "https://www.t-movies.com.tw/index.php"
 VENICE_URL = "https://www.venice-cinemas.com.tw/showtime.php?movie_date=&page={page}"
 BROADWAY_API = "https://www.broadway-cineplex.com.tw/Movie/GetMovieList/{code}"
@@ -59,6 +60,7 @@ LUNA_URL = "https://www.lunacinemax.com.tw/time_schedule.aspx"
 ILANMOVIE_URL = "https://ilanmovie.com/index.php"
 WINDLION_URL = "https://cinemax.windlion.com.tw/movies.php"
 PTCINEMA_URL = "https://ptcinema.movie.com.tw/time?date={show_date}"
+PTCINEMA_ATMOVIES_URL = "https://www.atmovies.com.tw/showtime/t08701/a87/"
 HALAR_URL = "https://halarcity.com.tw/browsing/Cinemas/Details/0000000001"
 MIRAMAR_URL = "https://www.miramarcinemas.tw/timetable"
 NANTAI_URL = "https://www.nt-movie.com.tw/showtime.php"
@@ -561,7 +563,12 @@ def request_atmovies_text(url: str, attempts: int = 3) -> str:
 
 
 def parse_skcinemas_atmovies_page(
-    html_text: str, row: sqlite3.Row | dict, aliases: list[str], show_date: str, source_url: str
+    html_text: str,
+    row: sqlite3.Row | dict,
+    aliases: list[str],
+    show_date: str,
+    source_url: str,
+    booking_url: str | None = None,
 ) -> list[ShowtimeRecord]:
     """Parse one @movies cinema page without allowing movie blocks to overlap."""
     soup = BeautifulSoup(html_text, "html.parser")
@@ -616,12 +623,36 @@ def parse_skcinemas_atmovies_page(
                             auditorium=None,
                             format=version,
                             language=infer_language(version),
-                            booking_url=f"{SKCINEMAS_FILMS_URL}?c={code}",
+                            booking_url=booking_url or f"{SKCINEMAS_FILMS_URL}?c={code}",
                             source_url=source_url,
                             raw_text=f"@movies {title} | {version} | {raw_time}",
                         )
                     )
     return records
+
+
+def fetch_atmovies_cinema_fallback(
+    row: sqlite3.Row | dict,
+    aliases: list[str],
+    show_date: str,
+    base_url: str,
+    booking_url: str,
+) -> list[ShowtimeRecord]:
+    """Fetch one cinema from @movies when its official host is unreachable."""
+    html_text = request_atmovies_text(base_url)
+    soup = BeautifulSoup(html_text, "html.parser")
+    source_url = base_url
+    if atmovies_page_date(soup) != show_date:
+        source_url = f"{base_url}{show_date.replace('-', '')}/"
+        html_text = request_atmovies_text(source_url)
+    return parse_skcinemas_atmovies_page(
+        html_text,
+        row,
+        aliases,
+        show_date,
+        source_url,
+        booking_url=booking_url,
+    )
 
 
 def fetch_skcinemas_atmovies(rows, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
@@ -1022,7 +1053,11 @@ def fetch_acecinema(conn: sqlite3.Connection, aliases: list[str], show_date: str
     ).fetchone()
     if not row:
         return []
-    raw = request_bytes(ACE_URL, headers={"Referer": "https://www.acecinema.com.tw/"})
+    try:
+        raw = request_bytes(ACE_URL, headers={"Referer": "https://www.acecinema.com.tw/"})
+    except Exception as official_error:
+        print(f"[ACECINEMA] official source failed; using @movies fallback: {official_error}")
+        return fetch_atmovies_cinema_fallback(row, aliases, show_date, ACE_ATMOVIES_URL, ACE_URL)
     save_raw("acecinema_now", raw, "html")
     soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
     records: list[ShowtimeRecord] = []
@@ -2313,7 +2348,24 @@ def fetch_ptcinema(conn: sqlite3.Connection, aliases: list[str], show_date: str)
         if not time_path.endswith("/time"):
             time_path = f"{time_path}/time" if time_path else "/time"
         source_url = urllib.parse.urlunsplit((parsed_url.scheme, parsed_url.netloc, time_path, f"date={show_date}", ""))
-        raw = request_bytes(source_url, headers={"Referer": f"{parsed_url.scheme}://{parsed_url.netloc}/"}, verify_ssl=False)
+        try:
+            raw = request_bytes(
+                source_url,
+                headers={"Referer": f"{parsed_url.scheme}://{parsed_url.netloc}/"},
+                verify_ssl=False,
+            )
+        except Exception as official_error:
+            print(f"[PTCINEMA] official source failed; using @movies fallback: {official_error}")
+            records.extend(
+                fetch_atmovies_cinema_fallback(
+                    row,
+                    aliases,
+                    show_date,
+                    PTCINEMA_ATMOVIES_URL,
+                    source_url,
+                )
+            )
+            continue
         save_raw(f"movie_com_tw_time_{row['id']}", raw, "html")
         soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
 
