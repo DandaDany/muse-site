@@ -153,8 +153,36 @@ function showtimeCount(feature) {
   return Array.isArray(props.showtimes) ? props.showtimes.length : 0;
 }
 
+function timeFiltersActive() {
+  return timeEarliest > 0 || timePeriod !== "all";
+}
+
+// 回傳目前時間條件下真正會顯示的場次。Logo 徽章、Logo 大小、搜尋候選、
+// 場次資訊卡與頁首摘要都共用這個來源，避免各處顯示不同的數字。
+function showtimeMatchesTimeFilter(showtime) {
+  const minutes = showtimeMinutes(showtime);
+  if (!Number.isFinite(minutes) || minutes < 0 || minutes >= 1440) return false;
+  if (timeEarliest > 0 && minutes < timeEarliest) return false;
+
+  if (timePeriod !== "all") {
+    const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
+    if (minutes < periodStart || minutes >= periodEnd) return false;
+  }
+
+  return true;
+}
+
+function visibleShowtimes(feature) {
+  const list = Array.isArray(feature.properties.showtimes) ? feature.properties.showtimes : [];
+  return timeFiltersActive() ? list.filter(showtimeMatchesTimeFilter) : list;
+}
+
+function visibleShowtimeCount(feature) {
+  return visibleShowtimes(feature).length;
+}
+
 function markerSize(feature) {
-  const count = showtimeCount(feature);
+  const count = visibleShowtimeCount(feature);
   if (count <= 0) return MIN_MARKER_SIZE;
   return Math.round(clamp(MIN_MARKER_SIZE + Math.sqrt(count) * 4.5, MIN_MARKER_SIZE, MAX_MARKER_SIZE));
 }
@@ -167,6 +195,7 @@ function markerZIndexOffset(feature) {
 function createIcon(feature) {
   const props = feature.properties;
   const size = markerSize(feature);
+  const count = visibleShowtimeCount(feature);
   const fontSize = Math.round(clamp(size * 0.38, 11, 16));
   const stem = Math.max(6, Math.round(size * 0.24));
   const groundHeight = 4;
@@ -181,7 +210,7 @@ function createIcon(feature) {
       props.chain_name,
     )} ${logoClass}" aria-label="${escapeHtml(
       props.chain_name,
-    )}" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span><span class="pin-stem"></span><span class="pin-ground"></span></span>`,
+    )}，今天 ${count} 場" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span><span class="cinema-showtime-count" aria-hidden="true">${count}</span><span class="pin-stem"></span><span class="pin-ground"></span></span>`,
     iconSize: [size, totalHeight],
     iconAnchor: [size / 2, totalHeight - Math.round(groundHeight / 2)],
     popupAnchor: [0, -totalHeight + 2],
@@ -338,7 +367,7 @@ function popupHtml(feature) {
     ? `<p class="popup-address"><span>${escapeHtml(props.address)}</span>${pin}</p>`
     : "";
   const dateText = props.show_date ? `當日 ${escapeHtml(props.show_date).replaceAll("-", "/")}` : "當日場次";
-  const showtimes = Array.isArray(props.showtimes) ? props.showtimes : [];
+  const showtimes = visibleShowtimes(feature);
   const showtimeBlock = showtimes.length
     ? `
         <div class="popup-showtimes">
@@ -610,33 +639,10 @@ function selectMovie(movieTitle) {
   applyFilters();
 }
 
-// 時間篩選：時間軸（最早場次）與快速時段各自獨立判斷，互不牽制。
-// 只要影城有任一場次通過「時間軸門檻」，且有任一場次落在「時段區間」即可，
-// 不再把兩者夾成單一區間，避免拖曳時間軸時被時段上限卡住而整個消失。
+// 時間篩選以單一場次為單位套用：同一場必須同時通過「最早場次」與
+// 「快速時段」。如此 Logo 徽章的數字就是使用者點進去後實際看到的場次數。
 function passesTimeFilter(feature) {
-  const list = feature.properties.showtimes;
-  const hasShowtimes = Array.isArray(list) && list.length > 0;
-
-  // 時間軸：最早場次（0＝不限）
-  if (timeEarliest > 0) {
-    if (!hasShowtimes || !list.some((showtime) => showtimeMinutes(showtime) >= timeEarliest)) {
-      return false;
-    }
-  }
-
-  // 快速時段：是否有場次落在指定時段區間
-  if (timePeriod !== "all") {
-    const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
-    const inPeriod = (showtime) => {
-      const minutes = showtimeMinutes(showtime);
-      return minutes >= periodStart && minutes < periodEnd;
-    };
-    if (!hasShowtimes || !list.some(inPeriod)) {
-      return false;
-    }
-  }
-
-  return true;
+  return !timeFiltersActive() || visibleShowtimeCount(feature) > 0;
 }
 
 // 拆成各自獨立的判斷式，方便分面計數時「排除自己這一項」重新計算
@@ -749,7 +755,7 @@ function renderSearchSuggestions(filtered) {
     button.dataset.id = props.location_id;
     button.innerHTML = `
       <span class="suggestion-name">${escapeHtml(props.location_name)}</span>
-      <span class="suggestion-count">${showtimeCount(feature)} 場</span>
+      <span class="suggestion-count">${visibleShowtimeCount(feature)} 場</span>
       ${ARROW_SVG}
     `;
     button.addEventListener("click", () => {
@@ -769,9 +775,11 @@ function renderMarkers(filtered) {
   for (const feature of filtered) {
     const props = feature.properties;
     const [lng, lat] = feature.geometry.coordinates;
+    const baseZIndexOffset = markerZIndexOffset(feature);
     const marker = L.marker([lat, lng], {
       icon: createIcon(feature),
-      zIndexOffset: markerZIndexOffset(feature),
+      zIndexOffset: baseZIndexOffset,
+      cinemaBaseZIndexOffset: baseZIndexOffset,
     });
     marker.bindPopup(popupHtml(feature), {
       className: "band-popup",
@@ -799,7 +807,23 @@ function renderMarkers(filtered) {
       else toggleFeatureZoom(feature);
     });
     marker.addTo(markerLayer);
+    // Leaflet 的 divIcon 由 JavaScript 動態產生，因此 hover 狀態也在 marker
+    // 建立後綁定；只允許有滑鼠 hover 能力的桌機觸發，避免觸控裝置黏住。
+    const setMarkerHover = (hovered) => {
+      if (isMobile() || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+      marker.getElement()?.querySelector(".cinema-marker")?.classList.toggle("is-hovered", hovered);
+      marker.setZIndexOffset(hovered ? baseZIndexOffset + 100000 : baseZIndexOffset);
+    };
+    marker.on("mouseover", () => setMarkerHover(true));
+    marker.on("mouseout", () => setMarkerHover(false));
     markerById.set(props.location_id, marker);
+  }
+
+  // 篩選會重建所有 Leaflet marker；若手機資訊 sheet 仍開著，重建後也要
+  // 把目前影城的選取外觀套回去。若該影城已被篩掉，則一併收起 sheet。
+  if (isMobile() && appShell.classList.contains("sheet-open")) {
+    if (markerById.has(zoomedInId)) updateMobileMarkerSelection(zoomedInId);
+    else closeMobileSheet();
   }
 }
 
@@ -809,7 +833,7 @@ function applyFilters() {
   const filtered = features.filter(matchesFilters);
   renderMarkers(filtered);
   renderSearchSuggestions(filtered);
-  const totalShowtimes = filtered.reduce((sum, feature) => sum + showtimeCount(feature), 0);
+  const totalShowtimes = filtered.reduce((sum, feature) => sum + visibleShowtimeCount(feature), 0);
   const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";
   summaryText.textContent = `${moviePrefix}${filtered.length} 影城上映中，共 ${totalShowtimes} 場次`;
 }
@@ -911,12 +935,27 @@ function refreshSheetLayout() {
 // sheet 開啟時地圖仍是滿版，只是下方 70% 被 sheet 蓋住，可視帶＝上方 30%
 const MAP_STRIP_RATIO = 0.3;
 
+// 手機點選影城後，讓唯一的作用中 Logo 維持放大並浮到最上層；關閉 sheet、
+// 點地圖空白處或改選其他影城時，舊 Logo 會在同一處恢復原始大小與圖層。
+function updateMobileMarkerSelection(selectedId = null) {
+  for (const [id, marker] of markerById) {
+    const selected = isMobile() && selectedId !== null && id === selectedId;
+    const markerElement = marker.getElement()?.querySelector(".cinema-marker");
+    markerElement?.classList.toggle("is-mobile-selected", selected);
+    if (markerElement) markerElement.setAttribute("aria-current", selected ? "true" : "false");
+
+    const baseZIndexOffset = marker.options.cinemaBaseZIndexOffset ?? marker.options.zIndexOffset ?? 0;
+    marker.setZIndexOffset(selected ? baseZIndexOffset + 200000 : baseZIndexOffset);
+  }
+}
+
 function openMobileSheet(feature) {
   const id = feature.properties.location_id;
   const marker = markerById.get(id);
   if (!marker) return;
   setActive(id);
   zoomedInId = id;
+  updateMobileMarkerSelection(id);
   mSheetBody.innerHTML = popupHtml(feature);
   mSheetBody.scrollTop = 0;
   appShell.classList.add("sheet-open");
@@ -932,10 +971,10 @@ function openMobileSheet(feature) {
 }
 
 function closeMobileSheet() {
-  if (!appShell.classList.contains("sheet-open")) return;
   appShell.classList.remove("sheet-open");
   mSheet.setAttribute("aria-hidden", "true");
   zoomedInId = null;
+  updateMobileMarkerSelection();
 }
 
 // 再次點同一個 logo → sheet 往下收起、地圖縮回縣市層級；點別的 logo → 換該影城並保持開啟
