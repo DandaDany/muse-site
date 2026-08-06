@@ -9,7 +9,6 @@ function activeMaxBounds() {
 }
 const DATA_URL = "data/locations.geojson";
 const LOGO_URL = "data/chain_logos.json";
-const EVENTS_URL = "data/floating_events.json";
 const ZOOM_BUTTON_STEP = 0.5;
 const ZOOM_SNAP_STEP = 0.25;
 const MIN_MARKER_SIZE = 24;
@@ -102,8 +101,6 @@ let selectedMovieTitle = "";
 let chainLogoByName = new Map();
 let markerById = new Map();
 let activeId = null;
-let floatingEvents = [];
-let activeEventId = null;
 let selectedChain = "";
 let selectedCity = "";
 
@@ -689,7 +686,6 @@ function focusFeature(feature) {
     openMobileSheet(feature);
     return;
   }
-  closeEventCard();
   const props = feature.properties;
   const marker = markerById.get(props.location_id);
   if (!marker) return;
@@ -825,9 +821,7 @@ function renderMarkers(filtered) {
 
   // 篩選會重建所有 Leaflet marker；若手機資訊 sheet 仍開著，重建後也要
   // 把目前影城的選取外觀套回去。若該影城已被篩掉，則一併收起 sheet。
-  // 活動 sheet（activeEventId）與影城 sheet 共用同一個 mSheet，但和篩選無關，
-  // 篩選重繪時不要把它收起；只有影城 sheet 才需要跟著篩選同步或關閉。
-  if (isMobile() && appShell.classList.contains("sheet-open") && !activeEventId) {
+  if (isMobile() && appShell.classList.contains("sheet-open")) {
     if (markerById.has(zoomedInId)) updateMobileMarkerSelection(zoomedInId);
     else closeMobileSheet();
   }
@@ -959,11 +953,6 @@ function openMobileSheet(feature) {
   const id = feature.properties.location_id;
   const marker = markerById.get(id);
   if (!marker) return;
-  // 從活動 sheet 切到影城 sheet 時，清掉活動選取狀態
-  if (activeEventId) {
-    activeEventId = null;
-    updateEventRailSelection();
-  }
   setActive(id);
   zoomedInId = id;
   updateMobileMarkerSelection(id);
@@ -985,10 +974,6 @@ function closeMobileSheet() {
   appShell.classList.remove("sheet-open");
   mSheet.setAttribute("aria-hidden", "true");
   zoomedInId = null;
-  if (activeEventId) {
-    activeEventId = null;
-    updateEventRailSelection();
-  }
   updateMobileMarkerSelection();
 }
 
@@ -1124,147 +1109,8 @@ window.addEventListener("resize", () => {
 // 切換手機／桌機時重繪，並套用對應的地圖可視範圍（手機南端多留白）
 mobileQuery.addEventListener("change", () => {
   if (!isMobile()) closeMobileSheet();
-  closeEventCard();
   map.invalidateSize({ animate: false });
   applyMaxBounds();
-});
-
-/* ============================================================
-   多店活動：獨立懸浮圓圈（有別於地圖 pin）
-   排在 home 鍵下方，記錄「多店、但無詳細地址」的活動。
-   點開跳出與影城相同風格的資訊卡：桌機用浮動卡片、手機沿用底部 sheet，
-   地址一律顯示「請至官方網站查詢地點」，並提供官方網站連結。
-   ============================================================ */
-const mapWrap = document.querySelector(".map-wrap");
-const eventRail = document.querySelector("#eventRail");
-const eventCard = document.querySelector("#eventCard");
-const eventCardBody = document.querySelector("#eventCardBody");
-const eventCardClose = document.querySelector("#eventCardClose");
-
-const EVENT_LOCATION_TEXT = "請至官方網站查詢地點";
-
-// 圓圈備援文字：無 logo 時取活動名稱首字
-function eventLabel(name) {
-  return String(name ?? "").trim().slice(0, 1).toUpperCase();
-}
-
-// 活動資訊卡 HTML：與影城 popupHtml 同結構（頁首標題＋地址、白底連結）
-function eventPopupHtml(event) {
-  const official = event.official_url
-    ? `<a class="popup-link popup-link-primary" href="${escapeHtml(
-        event.official_url,
-      )}" target="_blank" rel="noreferrer">${GLOBE_SVG}官方網站</a>`
-    : "";
-  return `
-    <div class="pop-head">
-      <h2 class="popup-title">${escapeHtml(event.name)}</h2>
-      <p class="popup-address"><span>${escapeHtml(EVENT_LOCATION_TEXT)}</span></p>
-    </div>
-    <div class="pop-body">
-      <div class="popup-links">${official}</div>
-    </div>
-  `;
-}
-
-function updateEventRailSelection() {
-  for (const circle of eventRail.querySelectorAll(".event-circle")) {
-    const selected = circle.dataset.id === activeEventId;
-    circle.classList.toggle("is-active", selected);
-    circle.setAttribute("aria-current", selected ? "true" : "false");
-  }
-}
-
-function closeEventCard() {
-  eventCard.hidden = true;
-  if (activeEventId && !isMobile()) {
-    activeEventId = null;
-    updateEventRailSelection();
-  }
-}
-
-// 桌機：把資訊卡浮在圓圈左側，垂直對齊被點的圓圈（超出地圖時夾住）
-function openEventCard(event, circleEl) {
-  closeMobileSheet();
-  eventCardBody.innerHTML = eventPopupHtml(event);
-  eventCard.hidden = false;
-  activeEventId = event.id;
-  updateEventRailSelection();
-
-  // 卡片靠右（與圓圈同側），落在被點圓圈的正下方，避開上方置中的搜尋列
-  const wrapRect = mapWrap.getBoundingClientRect();
-  const circleRect = circleEl.getBoundingClientRect();
-  const cardHeight = eventCard.offsetHeight;
-  const top = clamp(
-    circleRect.bottom - wrapRect.top + 10,
-    12,
-    Math.max(12, wrapRect.height - cardHeight - 12),
-  );
-  eventCard.style.top = `${top}px`;
-}
-
-// 手機：沿用影城的底部 sheet，只是換成活動內容、不做地圖平移
-function openEventSheet(event) {
-  activeEventId = event.id;
-  updateEventRailSelection();
-  updateMobileMarkerSelection();
-  zoomedInId = null;
-  mSheetBody.innerHTML = eventPopupHtml(event);
-  mSheetBody.scrollTop = 0;
-  appShell.classList.add("sheet-open");
-  mSheet.setAttribute("aria-hidden", "false");
-}
-
-function openEvent(event, circleEl) {
-  if (window.trackEvent) window.trackEvent("select_event", { event: event.name || "" });
-  if (isMobile()) openEventSheet(event);
-  else openEventCard(event, circleEl);
-}
-
-function renderEventRail() {
-  const fragment = document.createDocumentFragment();
-  floatingEvents.forEach((event, index) => {
-    const id = event.id != null ? String(event.id) : `event-${index}`;
-    event.id = id;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "event-circle";
-    button.dataset.id = id;
-    button.title = event.name || "多店活動";
-    button.setAttribute("aria-label", `${event.name || "多店活動"}（多店活動）`);
-    if (event.logo) {
-      button.classList.add("has-logo");
-      button.style.setProperty("--event-logo", `url('${event.logo}')`);
-    }
-    button.textContent = eventLabel(event.name);
-    button.addEventListener("click", () => {
-      if (activeEventId === id && !eventCard.hidden) {
-        closeEventCard();
-      } else {
-        openEvent(event, button);
-      }
-    });
-    fragment.appendChild(button);
-  });
-  eventRail.replaceChildren(fragment);
-  updateEventRailSelection();
-}
-
-async function loadFloatingEvents() {
-  const response = await fetch(EVENTS_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error(`多店活動資料載入失敗：${response.status}`);
-  const data = await response.json();
-  const list = Array.isArray(data) ? data : Array.isArray(data.events) ? data.events : [];
-  floatingEvents = list.filter((event) => event && event.name);
-  renderEventRail();
-}
-
-eventCardClose.addEventListener("click", closeEventCard);
-// 桌機點地圖（含空白處）收起活動卡；手機的 map click 已由既有處理收 sheet
-map.on("click", () => {
-  if (!isMobile()) closeEventCard();
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeEventCard();
 });
 
 updateMinZoomForBounds();
@@ -1279,9 +1125,3 @@ loadData()
     summaryText.textContent = error.message;
     console.error(error);
   });
-
-loadFloatingEvents().catch((error) => {
-  console.warn(error);
-  floatingEvents = [];
-  renderEventRail();
-});

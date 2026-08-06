@@ -148,22 +148,6 @@ This file records technical choices that are considered confirmed for this proje
 - Search-suggestion clicks always zoom in (never toggle out).
 - Selecting a city filter flies the map to that city's centroid (averaged cinema coordinates) at `CITY_ZOOM` (11).
 
-## Multi-store Events (Floating Circles)
-
-- Some activities screen at **many stores but have no single fixed address**. These are shown as **independent floating circles** (`.event-circle`), not map pins.
-  - Reason: they have no coordinates, so a map marker would be misleading. A floating UI chip keeps them visible without pretending to be a place.
-- The circles stack in a vertical rail (`.event-rail`) anchored to the top-right of the map, **directly below the home (`⌂`) button** on mobile (below `.m-home`) and top-right on desktop.
-- Data source: `web/data/floating_events.json`, an object `{ "events": [ ... ] }`. Each event:
-  - `id` (optional; auto-filled by index if omitted)
-  - `name` — shown as the card title and as the circle's fallback first-letter label
-  - `logo` — optional path (e.g. `assets/logos/xxx.jpg`) shown as the circle background; empty → the name's first character on an orange circle
-  - `official_url` — the link for the 官方網站 button
-  - The events are **independent of the movie dropdown and all filters** (they always show).
-- Clicking a circle opens the **same-style info card** as cinemas: orange band header + white body.
-  - The address line is always the fixed text `請至官方網站查詢地點` (no real address).
-  - Desktop uses a floating `.event-card` positioned below the clicked circle (kept clear of the centered floating search bar); mobile reuses the cinema bottom sheet (`.m-sheet`).
-  - `activeEventId` tracks the open event so a filter-driven marker re-render does not close the shared mobile sheet, and so cinema/event selection stay mutually exclusive.
-
 ## Files That Should Stay Out Of Git
 
 - `data/movie_map.sqlite`
