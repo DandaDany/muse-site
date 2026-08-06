@@ -1,0 +1,10 @@
+{
+  "events": [
+    {
+      "id": "sample-event",
+      "name": "多店活動範例",
+      "logo": "",
+      "official_url": "https://example.com"
+    }
+  ]
+}
