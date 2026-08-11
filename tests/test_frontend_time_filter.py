@@ -1,1 +1,25 @@
-aW1wb3J0IHNodXRpbAppbXBvcnQgc3VicHJvY2VzcwppbXBvcnQgdW5pdHRlc3QKZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgoKY2xhc3MgRnJvbnRlbmRUaW1lRmlsdGVyVGVzdHModW5pdHRlc3QuVGVzdENhc2UpOgogICAgZGVmIHRlc3RfdGltZV9maWx0ZXJfcmVncmVzc2lvbnMoc2VsZik6CiAgICAgICAgbm9kZSA9IHNodXRpbC53aGljaCgibm9kZSIpCiAgICAgICAgaWYgbm90IG5vZGU6CiAgICAgICAgICAgIHNlbGYuc2tpcFRlc3QoIk5vZGUuanMgaXMgdW5hdmFpbGFibGUiKQoKICAgICAgICByZXBvX3Jvb3QgPSBQYXRoKF9fZmlsZV9fKS5yZXNvbHZlKCkucGFyZW50c1sxXQogICAgICAgIHJlc3VsdCA9IHN1YnByb2Nlc3MucnVuKAogICAgICAgICAgICBbbm9kZSwgc3RyKHJlcG9fcm9vdCAvICJ0ZXN0cyIgLyAiZnJvbnRlbmRfdGltZV9maWx0ZXJfdGVzdC5qcyIpXSwKICAgICAgICAgICAgY3dkPXJlcG9fcm9vdCwKICAgICAgICAgICAgY2hlY2s9RmFsc2UsCiAgICAgICAgICAgIGNhcHR1cmVfb3V0cHV0PVRydWUsCiAgICAgICAgICAgIHRleHQ9VHJ1ZSwKICAgICAgICApCiAgICAgICAgc2VsZi5hc3NlcnRFcXVhbChyZXN1bHQucmV0dXJuY29kZSwgMCwgcmVzdWx0LnN0ZG91dCArIHJlc3VsdC5zdGRlcnIpCgoKaWYgX19uYW1lX18gPT0gIl9fbWFpbl9fIjoKICAgIHVuaXR0ZXN0Lm1haW4oKQo=
+import shutil
+import subprocess
+import unittest
+from pathlib import Path
+
+
+class FrontendTimeFilterTests(unittest.TestCase):
+    def test_time_filter_regressions(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is unavailable")
+
+        repo_root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [node, str(repo_root / "tests" / "frontend_time_filter_test.js")],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()
