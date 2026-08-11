@@ -10,7 +10,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="styles.css?v=20260802c" />
+    <link rel="stylesheet" href="styles.css?v=20260811a" />
 
     <!-- Google Analytics 4（GA4）— 免費網站流量分析。
          啟用步驟：到 https://analytics.google.com 建立 GA4 資源，取得「評估 ID」
@@ -38,7 +38,7 @@
             <h1>木棉花電影全台上映地圖</h1>
             <p id="summaryText">載入中</p>
           </div>
-          <button class="icon-button" id="resetViewButton" type="button" title="回到台灣視角" aria-label="回到台灣視角">
+          <button class="icon-button" id="resetViewButton" type="button" title="清除篩選並回到台灣視角" aria-label="清除篩選並回到台灣視角">
             ⌂
           </button>
         </header>
@@ -75,20 +75,20 @@
         </label>
         <div id="searchSuggestions" class="search-suggestions" hidden></div>
 
-        <!-- 手機時間面板（時間軸滑桿＋快速時段）：只在手機的「時間」分頁顯示 -->
-        <section class="m-panel" id="mTimePanel" aria-label="時間篩選">
+        <!-- 手機與桌機共用的時間面板；手機在「時間」分頁顯示，桌機固定顯示於側欄 -->
+        <section class="m-panel" id="timeFilterPanel" aria-label="時間篩選">
           <div class="m-time-head">
-            <span>最早場次</span>
-            <span class="m-time-cap" id="mTimeCap">全部場次</span>
+            <span>現在可看場次</span>
+            <span class="m-time-cap" id="timeFilterCaption">載入現在時間</span>
           </div>
-          <div class="m-slider" id="mSlider">
+          <div class="m-slider" id="timeSlider">
             <div class="m-track">
-              <div class="m-fill" id="mFill"></div>
-              <button class="m-knob" id="mKnob" type="button" aria-label="拖曳選擇最早場次時間">不限</button>
+              <div class="m-fill" id="timeSliderFill"></div>
+              <button class="m-knob" id="timeSliderKnob" type="button" aria-label="拖曳選擇最早場次時間">--:--</button>
             </div>
           </div>
           <div class="filter-head"><span>快速時段</span></div>
-          <div class="m-period" id="mPeriod">
+          <div class="m-period" id="timePeriodButtons">
             <button type="button" data-period="all" class="is-selected">全天</button>
             <button type="button" data-period="morning">上午</button>
             <button type="button" data-period="afternoon">下午</button>
@@ -126,7 +126,7 @@
           <button class="m-search-clear" id="mSearchClear" type="button" aria-label="清除搜尋" hidden>✕</button>
         </div>
         <div id="mSearchSuggestions" class="m-suggestions" hidden></div>
-        <button class="m-home" id="mHome" type="button" title="回到台灣視角" aria-label="回到台灣視角">⌂</button>
+        <button class="m-home" id="mHome" type="button" title="清除篩選並回到台灣視角" aria-label="清除篩選並回到台灣視角">⌂</button>
       </section>
 
       <!-- 手機影城資訊底部 sheet（點 logo 開啟，佔畫面 70%，地圖留 30%）：只在手機顯示 -->
@@ -144,6 +144,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="app.js?v=20260802b"></script>
+    <script src="time-filter.js?v=20260811a"></script>
+    <script src="app.js?v=20260811a"></script>
   </body>
 </html>
