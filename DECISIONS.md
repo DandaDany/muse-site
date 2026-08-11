@@ -127,11 +127,21 @@ This file records technical choices that are considered confirmed for this proje
 - A **segmented control** (`.m-seg`, tabs 電影／地區／時間／影城) switches the sheet body via `mtab-*` classes on `.app-shell`:
   - 電影 → `#mMovieList` (片名＋場次, single-select, mirrors the desktop `<select>` through `selectMovie`).
   - 地區 → reuses `#cityFilterList` (縣市 chips).
-  - 時間 → `#mTimePanel`: a time-axis slider (`最早場次 HH:MM 之後`, `timeEarliest`) plus quick-period chips 全天／上午／下午／晚上 (`timePeriod`). A cinema passes when it has a showtime in `[max(periodStart, earliest), periodEnd)`; both default to no-op so desktop is unaffected.
+  - 時間 → 共用 `#timeFilterPanel`：手機在時間分頁顯示，桌機固定顯示於側欄；兩端使用同一份時間狀態與 `visibleShowtimes()` 結果。
   - 影城 → reuses `#chainFilterList` (品牌 chips).
 - Search state routes through `activeSearchInput()` / `activeSuggestions()` so the same filter/suggestion code serves the desktop input or the mobile map search depending on `isMobile()`.
 - After the transform transition, JS calls `map.invalidateSize()` so Leaflet re-renders tiles at the new container size.
-- Desktop is untouched — all of the above is scoped to the `max-width: 760px` media query (mobile-only elements are `display:none` by default) and mobile-only JS guards.
+- Except for the explicitly shared time panel and floating search, mobile-only sheet layout remains scoped to the `max-width: 760px` media query and mobile JS guards.
+
+## Current Showtime Filter
+
+- Initial state is AUTO: the shared time slider follows the current minute in `Asia/Taipei`, regardless of the device time zone.
+- A showtime equal to the current minute is already started and excluded (`showtime > now`).
+- Dragging the shared slider enters MANUAL and snaps to 15-minute steps. The manual boundary is inclusive (`showtime >= manualEarliest`) while the current-time boundary always remains active.
+- When Taipei now reaches the manual boundary, time state returns to AUTO.
+- The timer aligns itself to wall-clock minute boundaries and re-syncs on `visibilitychange`; it does not accumulate drift from a page-load-based interval.
+- The existing home buttons clear city, chain, search, quick period, and manual time state, then restore AUTO at the current Taipei minute and reset the Taiwan map view. Movie selection is preserved.
+- `visibleShowtimes()` remains the single source for marker visibility, badge/size, facet counts, search results, popup/sheet rows, and page totals.
 
 ## Location Popup
 
