@@ -94,6 +94,14 @@ const clearSearchButton = document.querySelector("#clearSearchButton");
 const searchSuggestions = document.querySelector("#searchSuggestions");
 const resetViewButton = document.querySelector("#resetViewButton");
 
+const {
+  formatMinutes,
+  manualTimeReached,
+  showtimePassesTimeState,
+  snapManualMinutes,
+  taipeiNowMinutes,
+} = window.MuseTimeFilter;
+
 let features = [];
 let movieSummaries = [];
 let movieFeaturesByTitle = new Map();
@@ -104,8 +112,11 @@ let activeId = null;
 let selectedChain = "";
 let selectedCity = "";
 
-// 手機「時間」分頁的篩選狀態（桌機沒有 UI，預設不篩選）
-let timeEarliest = 0; // 最早場次（分鐘，0＝不限）
+// 手機與桌機共用同一份時間狀態。AUTO 跟隨台灣現在時間；MANUAL 保存使用者
+// 選擇的 15 分鐘級距。現在時間另存，避免混淆 > now 與 >= manual 的邊界。
+let timeMode = "auto";
+let taipeiCurrentMinute = taipeiNowMinutes();
+let timeEarliest = taipeiCurrentMinute;
 let timePeriod = "all"; // 快速時段
 const PERIOD_RANGES = {
   all: [0, 1440],
@@ -153,28 +164,25 @@ function showtimeCount(feature) {
   return Array.isArray(props.showtimes) ? props.showtimes.length : 0;
 }
 
-function timeFiltersActive() {
-  return timeEarliest > 0 || timePeriod !== "all";
-}
-
 // 回傳目前時間條件下真正會顯示的場次。Logo 徽章、Logo 大小、搜尋候選、
 // 場次資訊卡與頁首摘要都共用這個來源，避免各處顯示不同的數字。
 function showtimeMatchesTimeFilter(showtime) {
   const minutes = showtimeMinutes(showtime);
-  if (!Number.isFinite(minutes) || minutes < 0 || minutes >= 1440) return false;
-  if (timeEarliest > 0 && minutes < timeEarliest) return false;
-
-  if (timePeriod !== "all") {
-    const [periodStart, periodEnd] = PERIOD_RANGES[timePeriod] || [0, 1440];
-    if (minutes < periodStart || minutes >= periodEnd) return false;
-  }
-
-  return true;
+  return showtimePassesTimeState(
+    minutes,
+    {
+      nowMinutes: taipeiCurrentMinute,
+      mode: timeMode,
+      manualEarliest: timeEarliest,
+      period: timePeriod,
+    },
+    PERIOD_RANGES,
+  );
 }
 
 function visibleShowtimes(feature) {
   const list = Array.isArray(feature.properties.showtimes) ? feature.properties.showtimes : [];
-  return timeFiltersActive() ? list.filter(showtimeMatchesTimeFilter) : list;
+  return list.filter(showtimeMatchesTimeFilter);
 }
 
 function visibleShowtimeCount(feature) {
@@ -642,7 +650,7 @@ function selectMovie(movieTitle) {
 // 時間篩選以單一場次為單位套用：同一場必須同時通過「最早場次」與
 // 「快速時段」。如此 Logo 徽章的數字就是使用者點進去後實際看到的場次數。
 function passesTimeFilter(feature) {
-  return !timeFiltersActive() || visibleShowtimeCount(feature) > 0;
+  return visibleShowtimeCount(feature) > 0;
 }
 
 // 拆成各自獨立的判斷式，方便分面計數時「排除自己這一項」重新計算
@@ -842,6 +850,34 @@ function resetView() {
   map.setView(TAIWAN_CENTER, 8, { animate: true });
 }
 
+function setQuickPeriod(period) {
+  timePeriod = period;
+  for (const child of timePeriodButtons.children) {
+    child.classList.toggle("is-selected", child.dataset.period === period);
+  }
+}
+
+function clearFiltersAndResetView() {
+  selectedChain = "";
+  selectedCity = "";
+  searchInput.value = "";
+  clearSearchButton.hidden = true;
+  mSearchInput.value = "";
+  mSearchClear.hidden = true;
+  searchSuggestions.replaceChildren();
+  searchSuggestions.hidden = true;
+  mSearchSuggestions.replaceChildren();
+  mSearchSuggestions.hidden = true;
+  setQuickPeriod("all");
+  setAutoTimeMode(false);
+  map.closePopup();
+  closeMobileSheet();
+  activeId = null;
+  zoomedInId = null;
+  applyFilters();
+  resetView();
+}
+
 async function loadLogos() {
   const response = await fetch(LOGO_URL, { cache: "no-store" });
   if (!response.ok) {
@@ -880,26 +916,28 @@ clearSearchButton.addEventListener("click", () => {
   applyFilters();
   searchInput.focus();
 });
-resetViewButton.addEventListener("click", resetView);
+resetViewButton.addEventListener("click", clearFiltersAndResetView);
 map.on("resize", updateMinZoomForBounds);
 
 /* ============================================================
-   手機版：分段控制、上方搜尋、時間軸滑桿、固定 4:6 底盤
+   共用時間篩選＋手機版分段控制、上方搜尋與固定 4:6 底盤
    底盤高度由 CSS 固定成 40dvh（地圖 60 / 底盤 4），不可拖曳調整；
-   各分頁內容在固定高度內各自捲動。桌機完全不受影響。
+   手機各分頁內容在固定高度內各自捲動。
    ============================================================ */
 const appShell = document.querySelector(".app-shell");
 const mobileQuery = window.matchMedia("(max-width: 760px)");
 
-// 手機專用元件
+// 手機分段控制與電影清單
 const mSeg = document.querySelector("#mSeg");
 const mMovieList = document.querySelector("#mMovieList");
-const mSlider = document.querySelector("#mSlider");
-const mTrack = mSlider.querySelector(".m-track");
-const mFill = document.querySelector("#mFill");
-const mKnob = document.querySelector("#mKnob");
-const mTimeCap = document.querySelector("#mTimeCap");
-const mPeriod = document.querySelector("#mPeriod");
+// 手機與桌機共用的時間面板元件
+const timeSlider = document.querySelector("#timeSlider");
+const timeSliderTrack = timeSlider.querySelector(".m-track");
+const timeSliderFill = document.querySelector("#timeSliderFill");
+const timeSliderKnob = document.querySelector("#timeSliderKnob");
+const timeFilterCaption = document.querySelector("#timeFilterCaption");
+const timePeriodButtons = document.querySelector("#timePeriodButtons");
+// 浮動搜尋與首頁控制在手機、桌機都會顯示
 const mSearchInput = document.querySelector("#mSearchInput");
 const mSearchClear = document.querySelector("#mSearchClear");
 const mSearchSuggestions = document.querySelector("#mSearchSuggestions");
@@ -1030,57 +1068,96 @@ function renderMobileMovies() {
   mMovieList.replaceChildren(fragment);
 }
 
-/* ---- 時間軸滑桿 ---- */
-function formatMinutes(minutes) {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+/* ---- 手機／桌機共用時間軸 ---- */
+function renderTimeControls() {
+  const displayedMinute = timeMode === "manual" ? timeEarliest : taipeiCurrentMinute;
+  const frac = displayedMinute / 1440;
+  timeSliderFill.style.width = `${frac * 100}%`;
+  timeSliderKnob.style.left = `${frac * 100}%`;
+  timeSliderKnob.textContent = formatMinutes(displayedMinute);
+  timeFilterCaption.textContent =
+    timeMode === "manual" ? `${formatMinutes(timeEarliest)} 起` : `${formatMinutes(taipeiCurrentMinute)} 後`;
 }
 
-function setEarliest(minutes, apply = true) {
-  timeEarliest = clamp(Math.round(minutes / 30) * 30, 0, 1410);
-  const frac = timeEarliest / 1440;
-  mFill.style.width = `${frac * 100}%`;
-  mKnob.style.left = `${frac * 100}%`;
-  const noLimit = timeEarliest <= 0;
-  mKnob.textContent = noLimit ? "不限" : formatMinutes(timeEarliest);
-  mTimeCap.textContent = noLimit ? "全部場次" : `${formatMinutes(timeEarliest)} 之後`;
+function setAutoTimeMode(apply = true) {
+  taipeiCurrentMinute = taipeiNowMinutes();
+  timeMode = "auto";
+  timeEarliest = taipeiCurrentMinute;
+  renderTimeControls();
   if (apply) applyFilters();
+}
+
+function setManualEarliest(minutes, apply = true) {
+  taipeiCurrentMinute = taipeiNowMinutes();
+  const snappedMinute = snapManualMinutes(minutes);
+  if (snappedMinute <= taipeiCurrentMinute) {
+    setAutoTimeMode(apply);
+    return;
+  }
+  timeMode = "manual";
+  timeEarliest = snappedMinute;
+  renderTimeControls();
+  if (apply) applyFilters();
+}
+
+function refreshCurrentTime(apply = true) {
+  const nextMinute = taipeiNowMinutes();
+  const minuteChanged = nextMinute !== taipeiCurrentMinute;
+  taipeiCurrentMinute = nextMinute;
+  if (timeMode === "manual" && manualTimeReached(taipeiCurrentMinute, timeEarliest)) {
+    timeMode = "auto";
+    timeEarliest = taipeiCurrentMinute;
+  } else if (timeMode === "auto") {
+    timeEarliest = taipeiCurrentMinute;
+  }
+  renderTimeControls();
+  if (apply && minuteChanged) applyFilters();
+}
+
+let minuteTimerId = null;
+
+function scheduleMinuteBoundaryUpdate() {
+  window.clearTimeout(minuteTimerId);
+  const delay = 60000 - (Date.now() % 60000) + 25;
+  minuteTimerId = window.setTimeout(() => {
+    refreshCurrentTime();
+    scheduleMinuteBoundaryUpdate();
+  }, delay);
 }
 
 let sliderDragging = false;
 
 function sliderFromClientX(clientX) {
-  const rect = mTrack.getBoundingClientRect();
+  const rect = timeSliderTrack.getBoundingClientRect();
   if (!rect.width) return;
   const frac = clamp((clientX - rect.left) / rect.width, 0, 1);
-  setEarliest(frac * 1440);
+  setManualEarliest(frac * 1440);
 }
 
-mKnob.addEventListener("pointerdown", (event) => {
+timeSliderKnob.addEventListener("pointerdown", (event) => {
   sliderDragging = true;
-  mKnob.setPointerCapture?.(event.pointerId);
+  timeSliderKnob.setPointerCapture?.(event.pointerId);
 });
-mKnob.addEventListener("pointermove", (event) => {
+timeSliderKnob.addEventListener("pointermove", (event) => {
   if (sliderDragging) sliderFromClientX(event.clientX);
 });
-mKnob.addEventListener("pointerup", (event) => {
+timeSliderKnob.addEventListener("pointerup", (event) => {
   sliderDragging = false;
-  mKnob.releasePointerCapture?.(event.pointerId);
+  timeSliderKnob.releasePointerCapture?.(event.pointerId);
 });
-mSlider.addEventListener("pointerdown", (event) => {
-  if (event.target === mKnob) return;
+timeSliderKnob.addEventListener("pointercancel", () => {
+  sliderDragging = false;
+});
+timeSlider.addEventListener("pointerdown", (event) => {
+  if (event.target === timeSliderKnob) return;
   sliderFromClientX(event.clientX);
 });
 
 /* ---- 快速時段 ---- */
-mPeriod.addEventListener("click", (event) => {
+timePeriodButtons.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-period]");
   if (!button) return;
-  timePeriod = button.dataset.period;
-  for (const child of mPeriod.children) {
-    child.classList.toggle("is-selected", child === button);
-  }
+  setQuickPeriod(button.dataset.period);
   applyFilters();
 });
 
@@ -1096,8 +1173,14 @@ mSearchClear.addEventListener("click", () => {
   mSearchInput.focus();
 });
 mHome.addEventListener("click", () => {
-  closeMobileSheet();
-  resetView();
+  clearFiltersAndResetView();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    refreshCurrentTime();
+    scheduleMinuteBoundaryUpdate();
+  }
 });
 
 window.addEventListener("resize", () => {
@@ -1116,7 +1199,8 @@ mobileQuery.addEventListener("change", () => {
 updateMinZoomForBounds();
 createTileLayer(BASEMAP).addTo(map).bringToBack();
 setMobileTab("movie");
-setEarliest(0, false);
+setAutoTimeMode(false);
+scheduleMinuteBoundaryUpdate();
 refreshSheetLayout();
 
 loadData()
