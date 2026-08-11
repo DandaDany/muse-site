@@ -686,6 +686,7 @@ function setActive(id) {
 const FOCUS_ZOOM = 14; // 點 logo 放大到的據點層級
 const CITY_ZOOM = 11; // 再點一下縮回的縣市層級
 let zoomedInId = null;
+let activeDesktopPopupId = null;
 
 // 放大聚焦某據點並開啟資訊卡片（搜尋清單與第一次點 logo 都走這條）
 // 手機一律改開底部 sheet（含搜尋推薦），桌機維持 popup。
@@ -778,6 +779,7 @@ function renderSearchSuggestions(filtered) {
 }
 
 function renderMarkers(filtered) {
+  const desktopPopupIdToRestore = !isMobile() ? activeDesktopPopupId : null;
   markerLayer.clearLayers();
   markerById = new Map();
   for (const feature of filtered) {
@@ -803,6 +805,12 @@ function renderMarkers(filtered) {
     // 若保留它，手機點 logo 時 popup 會自動開啟並 autoPan 平移地圖，
     // 蓋掉我們把 logo 置中的 setView，導致 logo 落到 sheet 後方。
     marker.off("click", marker._openPopup, marker);
+    marker.on("popupopen", () => {
+      activeDesktopPopupId = props.location_id;
+    });
+    marker.on("popupclose", () => {
+      if (activeDesktopPopupId === props.location_id) activeDesktopPopupId = null;
+    });
     marker.on("click", () => {
       if (window.trackEvent)
         window.trackEvent("select_cinema", {
@@ -830,8 +838,15 @@ function renderMarkers(filtered) {
   // 篩選會重建所有 Leaflet marker；若手機資訊 sheet 仍開著，重建後也要
   // 把目前影城的選取外觀套回去。若該影城已被篩掉，則一併收起 sheet。
   if (isMobile() && appShell.classList.contains("sheet-open")) {
-    if (markerById.has(zoomedInId)) updateMobileMarkerSelection(zoomedInId);
-    else closeMobileSheet();
+    const selectedFeature = filtered.find((feature) => feature.properties.location_id === zoomedInId);
+    if (selectedFeature && markerById.has(zoomedInId)) {
+      const previousScrollTop = mSheetBody.scrollTop;
+      mSheetBody.innerHTML = popupHtml(selectedFeature);
+      mSheetBody.scrollTop = previousScrollTop;
+      updateMobileMarkerSelection(zoomedInId);
+    } else closeMobileSheet();
+  } else if (desktopPopupIdToRestore && markerById.has(desktopPopupIdToRestore)) {
+    markerById.get(desktopPopupIdToRestore).openPopup();
   }
 }
 
