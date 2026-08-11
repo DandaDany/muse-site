@@ -14,13 +14,14 @@
 #
 # 說明：資料庫初始化放在 build.sh 而非 preDeployCommand，因為 Render 免費方案
 # 不支援 preDeployCommand；build 階段已可存取 DATABASE_URL。
-# 注意：Render 免費 Postgres 約 30 天到期，正式使用請升級付費方案。
+# 注意：正式後台使用付費 Postgres，避免免費資料庫到期後中斷服務。
 
 databases:
   - name: muse-backend-db
     databaseName: muse
     user: muse
-    plan: free
+    plan: basic-256mb
+    diskSizeGB: 1
 
 services:
   - type: web
