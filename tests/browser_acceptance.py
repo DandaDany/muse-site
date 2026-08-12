@@ -58,6 +58,7 @@ def click_filter(page: Page, container: str, label: str) -> None:
 
 def run_desktop(page: Page, report: dict) -> None:
     checks = report["desktop"]
+    debug = report.setdefault("debug", {})
     page.goto("http://127.0.0.1:8765/", wait_until="networkidle")
     page.locator("#summaryText").filter(has_text="電影 A").wait_for()
 
@@ -102,6 +103,13 @@ def run_desktop(page: Page, report: dict) -> None:
     page.locator(".leaflet-popup").wait_for()
     page.get_by_role("button", name="明天 8/13").click()
     page.wait_for_timeout(100)
+    debug["popup_after_813"] = {
+        "count": page.locator(".leaflet-popup").count(),
+        "text": page.locator(".leaflet-popup").all_text_contents(),
+        "state": page.evaluate(
+            "() => ({ activeDesktopPopupId, markerIds: [...markerById.keys()], selectedDate })"
+        ),
+    }
     checks["popup_refresh"] = (
         page.locator(".leaflet-popup").count() == 1
         and "明天 8/13" in page.locator(".leaflet-popup").inner_text()
@@ -109,6 +117,13 @@ def run_desktop(page: Page, report: dict) -> None:
     )
     page.get_by_role("button", name="五 8/14").click()
     page.wait_for_timeout(100)
+    debug["popup_after_814"] = {
+        "count": page.locator(".leaflet-popup").count(),
+        "text": page.locator(".leaflet-popup").all_text_contents(),
+        "state": page.evaluate(
+            "() => ({ activeDesktopPopupId, markerIds: [...markerById.keys()], selectedDate })"
+        ),
+    }
     checks["popup_closes_when_missing"] = page.locator(".leaflet-popup").count() == 0
 
     page.get_by_role("button", name="明天 8/13").click()
