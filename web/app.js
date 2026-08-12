@@ -849,6 +849,10 @@ function renderSearchSuggestions(filtered) {
 
 function renderMarkers(filtered) {
   const desktopPopupIdToRestore = !isMobile() ? activeDesktopPopupId : null;
+  // Leaflet 在 clearLayers() 時不保證同步移除 map 上已開啟的 popup。
+  // 先明確關閉舊內容，再於 markers 重建後只恢復仍存在的同一影城，
+  // 才能讓跨日內容刷新，並在下一日期無該影城時確實關閉。
+  if (desktopPopupIdToRestore) map.closePopup();
   markerLayer.clearLayers();
   markerById = new Map();
   for (const feature of filtered) {
