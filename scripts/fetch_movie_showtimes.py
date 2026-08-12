@@ -22,6 +22,7 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 from playwright.sync_api import sync_playwright
 
 from init_db import DEFAULT_DB_PATH, init_db
+from showtime_availability import source_supports_offset
 
 
 # Windows 排程／主控台可能仍採 CP950；來源名稱含非 CP950 字元時不可中斷整次更新。
@@ -75,6 +76,13 @@ NANTOU_URL = "https://www.nantoutheater.com/movie_order?search_date={show_date}&
 SHANMING_URL = "https://www.shanmingcinema.com.tw/showtimes.php"
 TIMES_URL = "https://www.timescinema.com.tw/times.php"
 
+_REQUEST_CACHE: dict[tuple[object, ...], bytes] = {}
+_RENDER_CACHE: dict[tuple[str, int], str] = {}
+_DATE_RENDER_CACHE: dict[tuple[str, str], str] = {}
+_SKCINEMAS_HEADERS_CACHE: dict[str, str] | None = None
+_MULTI_DATE_CRAWL = False
+_VIESHOW_HTML_CACHE: dict[int, str] = {}
+
 
 @dataclass(frozen=True)
 class ShowtimeRecord:
@@ -124,6 +132,15 @@ def request_bytes(
     headers: dict[str, str] | None = None,
     verify_ssl: bool = True,
 ) -> bytes:
+    cache_key = (
+        url,
+        method,
+        data,
+        tuple(sorted((headers or {}).items())),
+        verify_ssl,
+    )
+    if cache_key in _REQUEST_CACHE:
+        return _REQUEST_CACHE[cache_key]
     base_headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -136,7 +153,9 @@ def request_bytes(
     request = urllib.request.Request(url, data=data, headers=base_headers, method=method)
     context = None if verify_ssl else ssl._create_unverified_context()
     with urllib.request.urlopen(request, timeout=45, context=context) as response:
-        return response.read()
+        raw = response.read()
+    _REQUEST_CACHE[cache_key] = raw
+    return raw
 
 
 def request_text(url: str, *, headers: dict[str, str] | None = None, verify_ssl: bool = True) -> str:
@@ -220,6 +239,7 @@ def records_from_text_block(
     source_url: str,
     booking_url: str | None,
     format_text: str | None = None,
+    strict_date_sections: bool = False,
 ) -> list[ShowtimeRecord]:
     if not movie_matches(text, aliases):
         return []
@@ -228,10 +248,29 @@ def records_from_text_block(
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     title_line = next((line for line in lines if movie_matches(line, aliases)), format_text or "")
     records: list[ShowtimeRecord] = []
+    active_section_date: str | None = None
 
     for index, line in enumerate(lines):
+        if strict_date_sections:
+            full_date = normalize_show_date(line)
+            month_day = re.search(r"(?<!\d)(\d{1,2})\s*(?:/|月)\s*(\d{1,2})(?:\s*日)?", line)
+            if full_date:
+                active_section_date = full_date
+            elif month_day and not re.search(r"\d{1,2}:\d{2}", line):
+                reference = date.fromisoformat(show_date)
+                month, day = (int(value) for value in month_day.groups())
+                candidates = [
+                    date(reference.year + delta, month, day)
+                    for delta in (-1, 0, 1)
+                ]
+                active_section_date = min(
+                    candidates,
+                    key=lambda candidate: abs((candidate - reference).days),
+                ).isoformat()
         times = re.findall(r"\b\d{1,2}:\d{2}\b", line)
         if not times:
+            continue
+        if strict_date_sections and active_section_date != show_date:
             continue
         nearby = "\n".join(lines[max(0, index - 8) : index + 9])
         if not has_date and not any(token in nearby for token in tokens):
@@ -335,13 +374,19 @@ def locations_by_chain_and_code(conn: sqlite3.Connection) -> dict[tuple[str, str
     return result
 
 
-def start_run(conn: sqlite3.Connection, movie_id: int, source_name: str, source_url: str) -> int:
+def start_run(
+    conn: sqlite3.Connection,
+    movie_id: int,
+    source_name: str,
+    source_url: str,
+    show_date: str,
+) -> int:
     cursor = conn.execute(
         """
-        INSERT INTO crawl_runs (run_type, movie_id, source_name, source_url)
-        VALUES ('showtimes', ?, ?, ?)
+        INSERT INTO crawl_runs (run_type, movie_id, source_name, source_url, show_date)
+        VALUES ('showtimes', ?, ?, ?, ?)
         """,
-        (movie_id, source_name, source_url),
+        (movie_id, source_name, source_url, show_date),
     )
     return int(cursor.lastrowid)
 
@@ -688,6 +733,7 @@ def fetch_skcinemas_atmovies(rows, aliases: list[str], show_date: str) -> list[S
 
 
 def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> list[ShowtimeRecord]:
+    global _SKCINEMAS_HEADERS_CACHE
     active_count = conn.execute(
         """
         SELECT COUNT(*)
@@ -724,7 +770,14 @@ def fetch_skcinemas(conn: sqlite3.Connection, aliases: list[str], show_date: str
             return []
 
     entry_url = f"{SKCINEMAS_FILMS_URL}?c={rows[0]['source_location_code']}"
-    try: headers = capture_skcinemas_headers(entry_url)
+    try:
+        if not _MULTI_DATE_CRAWL:
+            headers = capture_skcinemas_headers(entry_url)
+        elif _SKCINEMAS_HEADERS_CACHE is None:
+            _SKCINEMAS_HEADERS_CACHE = capture_skcinemas_headers(entry_url)
+            headers = _SKCINEMAS_HEADERS_CACHE
+        else:
+            headers = _SKCINEMAS_HEADERS_CACHE
     except Exception as official_error:
         try: return fetch_skcinemas_atmovies(rows, aliases, show_date)
         except Exception as fallback_error:
@@ -1366,7 +1419,7 @@ def fetch_centuryasia(conn: sqlite3.Connection, aliases: list[str], show_date: s
                 page_url = re.sub(r"([?&])page=\d+", r"\1page=" + str(page), source_url)
                 if "page=" not in page_url:
                     page_url = f"{source_url}{sep}page={page}"
-            html_text = render_page_html(page_url, wait_ms=6000)
+            html_text = render_date_control_html(page_url, show_date, wait_ms=3500)
             save_raw(f"centuryasia_{row['source_location_code'] or location_id}_p{page}", html_text, "html")
             page_records = parse_centuryasia(
                 html_text,
@@ -2106,16 +2159,27 @@ def fetch_uch(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> l
     ).fetchone()
     if not row:
         return []
-    raw = request_bytes(UCH_URL, headers={"Referer": "https://www.uch-movies.tw/"}, verify_ssl=False)
-    save_raw("uch_time", raw, "html")
-    soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
+    # The initial ASP.NET page contains only the date selector. Selecting a date
+    # performs a postback and renders that day's movies, so a plain GET cannot
+    # support multi-day data correctly.
+    html_text = render_select_option_html(UCH_URL, "#DropDownList1", show_date)
+    save_raw(f"uch_time_{show_date}", html_text, "html")
+    soup = BeautifulSoup(html_text, "html.parser")
+    selected_option = soup.select_one("#DropDownList1 option[selected]")
+    selected_date = normalize_show_date(selected_option.get("value") if selected_option else None)
+    if selected_date != show_date:
+        raise RuntimeError(
+            f"UCH date postback mismatch: requested={show_date} selected={selected_date or 'none'}"
+        )
     records: list[ShowtimeRecord] = []
     for block in html_blocks_with_movie(soup, aliases):
         records.extend(
             records_from_text_block(
                 location_id=int(row["id"]),
                 show_date=show_date,
-                text=block.get_text("\n", strip=True),
+                # The successful ASP.NET postback makes the selected option the
+                # page-level date boundary; individual movie blocks omit it.
+                text=f"{show_date}\n{block.get_text(chr(10), strip=True)}",
                 aliases=aliases,
                 source_url=UCH_URL,
                 booking_url=UCH_URL,
@@ -2179,8 +2243,21 @@ def fetch_luna(conn: sqlite3.Connection, aliases: list[str], show_date: str) -> 
     save_raw("luna_schedule", raw, "html")
     soup = BeautifulSoup(raw, "html.parser", from_encoding="utf-8")
     records: list[ShowtimeRecord] = []
+    date_node = next(
+        (
+            node
+            for node in soup.select("span[id$='SHOW_DATELabel']")
+            if normalize_show_date(node.get_text(" ", strip=True)) == show_date
+        ),
+        None,
+    )
+    if date_node is None:
+        return []
+    date_container = date_node.find_parent("td")
+    if date_container is None:
+        return []
     # 每個 NAME_CHTLabel 是一部電影；同一區塊的多個 TIMELabel 都要保留。
-    for title_node in soup.select("span[id$='NAME_CHTLabel']"):
+    for title_node in date_container.select("span[id$='NAME_CHTLabel']"):
         title = title_node.get_text(" ", strip=True)
         if not movie_matches(title, aliases):
             continue
@@ -2263,6 +2340,9 @@ def fetch_ilanmovie(conn: sqlite3.Connection, aliases: list[str], show_date: str
 
 
 def render_page_html(url: str, wait_ms: int = 4000) -> str:
+    cache_key = (url, wait_ms)
+    if cache_key in _RENDER_CACHE:
+        return _RENDER_CACHE[cache_key]
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
@@ -2270,6 +2350,60 @@ def render_page_html(url: str, wait_ms: int = 4000) -> str:
         page.wait_for_timeout(wait_ms)
         html_text = page.content()
         browser.close()
+    _RENDER_CACHE[cache_key] = html_text
+    return html_text
+
+
+def render_select_option_html(url: str, selector: str, value: str, wait_ms: int = 2500) -> str:
+    """Render a dynamic select/postback page at a specific option value."""
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
+        page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+        select = page.locator(selector)
+        if select.count() == 0:
+            browser.close()
+            return ""
+        options = select.locator("option").evaluate_all(
+            "options => options.map(option => option.value)"
+        )
+        if value not in options:
+            browser.close()
+            return ""
+        select.select_option(value, timeout=8000)
+        page.wait_for_timeout(wait_ms)
+        html_text = page.content()
+        browser.close()
+    return html_text
+
+
+def render_date_control_html(url: str, show_date: str, wait_ms: int = 2500) -> str:
+    """Render Century Asia's new/legacy date control at ``show_date``."""
+    cache_key = (url, show_date)
+    if cache_key in _DATE_RENDER_CACHE:
+        return _DATE_RENDER_CACHE[cache_key]
+    year, month, day = show_date.split("-")
+    slash_date = f"{year}/{month}/{day}"
+    month_day = re.compile(rf"\b0?{int(month)}[./]0?{int(day)}\b")
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(locale="zh-TW", timezone_id="Asia/Taipei")
+        page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+        page.wait_for_timeout(1200)
+        legacy = page.locator(f"span.tdd_d[value='{slash_date}']")
+        if legacy.count():
+            legacy.first.locator("xpath=ancestor::li[1]").click(timeout=8000)
+        else:
+            candidates = page.locator(".weektable .booktime")
+            for index in range(candidates.count()):
+                candidate = candidates.nth(index)
+                if month_day.search(candidate.inner_text()):
+                    candidate.click(timeout=8000)
+                    break
+        page.wait_for_timeout(wait_ms)
+        html_text = page.content()
+        browser.close()
+    _DATE_RENDER_CACHE[cache_key] = html_text
     return html_text
 
 
@@ -2530,6 +2664,27 @@ def fetch_vieshow(conn: sqlite3.Connection, aliases: list[str], show_date: str) 
     if not rows:
         return []
 
+    if _MULTI_DATE_CRAWL and _VIESHOW_HTML_CACHE:
+        records: list[ShowtimeRecord] = []
+        for row in rows:
+            html_text = _VIESHOW_HTML_CACHE.get(int(row["id"]))
+            if not html_text:
+                continue
+            soup = BeautifulSoup(html_text, "html.parser")
+            for block in html_blocks_with_movie(soup, aliases):
+                records.extend(
+                    records_from_text_block(
+                        location_id=int(row["id"]),
+                        show_date=show_date,
+                        text=block.get_text("\n", strip=True),
+                        aliases=aliases,
+                        source_url=VIESHOW_URL,
+                        booking_url=VIESHOW_URL,
+                        strict_date_sections=True,
+                    )
+                )
+        return records
+
     records: list[ShowtimeRecord] = []
 
     with sync_playwright() as playwright:
@@ -2553,7 +2708,14 @@ def fetch_vieshow(conn: sqlite3.Connection, aliases: list[str], show_date: str) 
         page.goto(VIESHOW_URL, wait_until="domcontentloaded", timeout=60_000)
         page.wait_for_timeout(8000)
 
-        if "Access Denied" in page.content():
+        initial_html = page.content()
+        save_raw("vieshow_initial", initial_html, "html")
+        unavailable_text = f"{page.url}\n{initial_html}".lower()
+        if "queue-it" in unavailable_text or "正在為您安排進入頁面" in initial_html:
+            context.close()
+            browser.close()
+            raise RuntimeError("VIESHOW source unavailable: Queue-it waiting room")
+        if "Access Denied" in initial_html:
             context.close()
             browser.close()
             raise RuntimeError("VIESHOW ShowTimes returned Access Denied in automated browser.")
@@ -2571,6 +2733,8 @@ def fetch_vieshow(conn: sqlite3.Connection, aliases: list[str], show_date: str) 
                 continue
 
             html_text = page.content()
+            if _MULTI_DATE_CRAWL:
+                _VIESHOW_HTML_CACHE[int(row["id"])] = html_text
             save_raw(f"vieshow_{code}", html_text, "html")
 
             soup = BeautifulSoup(html_text, "html.parser")
@@ -2586,6 +2750,7 @@ def fetch_vieshow(conn: sqlite3.Connection, aliases: list[str], show_date: str) 
                         aliases=aliases,
                         source_url=VIESHOW_URL,
                         booking_url=VIESHOW_URL,
+                        strict_date_sections=True,
                     )
                 )
 
@@ -2637,7 +2802,7 @@ def run_source(
     show_date: str,
     keep_existing: bool = False,
 ) -> tuple[int, int, str | None]:
-    run_id = start_run(conn, movie_id, source_name, source_url)
+    run_id = start_run(conn, movie_id, source_name, source_url, show_date)
     try:
         records = fetcher(conn, aliases, show_date)
         # 只有成功抓到（未拋例外）才清掉此來源的舊資料，再寫入新資料。
@@ -2655,14 +2820,24 @@ def run_source(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Fetch today's showtimes for a movie from official cinema sources.")
+    global _MULTI_DATE_CRAWL
+    parser = argparse.ArgumentParser(description="Fetch one or more days of showtimes for a movie from official cinema sources.")
     parser.add_argument("movie_title", help="Canonical movie title to save in the database.")
-    parser.add_argument("--date", default=date.today().isoformat(), help="Show date, defaults to today.")
+    parser.add_argument(
+        "--date",
+        action="append",
+        default=[],
+        help="Show date. Can be repeated; defaults to today.",
+    )
     parser.add_argument("--alias", action="append", default=[], help="Additional movie title alias. Can be repeated.")
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH, help="SQLite database path.")
     parser.add_argument("--keep-existing", action="store_true", help="完全不刪任何舊場次（各來源都用 upsert 疊加）。")
     parser.add_argument("--wipe-all", action="store_true", help="舊行為：開頭把該電影/日期所有場次全刪再重抓（一次失敗會誤傷好資料，不建議）。預設改為各來源成功時才清自己的舊資料。")
     args = parser.parse_args()
+    requested_dates = list(dict.fromkeys(args.date or [date.today().isoformat()]))
+    _MULTI_DATE_CRAWL = len(requested_dates) > 1
+    primary_date = requested_dates[0]
+    primary_day = date.fromisoformat(primary_date)
 
     aliases = [args.movie_title, *args.alias]
     if args.movie_title in {"玩具總動員5", "玩具總動員 5", "Toy Story 5"}:
@@ -2686,7 +2861,7 @@ def main() -> None:
         ("微風影城", BREEZE_URL, fetch_breeze),
         ("總督數位影城", GOVERNOR_URL, fetch_governor),
         ("誠品電影院", ESLITE_URL, fetch_eslite),
-        ("南投戲院", NANTOU_URL.format(show_date=args.date), fetch_nantou),
+        ("南投戲院", NANTOU_URL.format(show_date=primary_date), fetch_nantou),
         ("埔里山明影城", SHANMING_URL, fetch_shanming),
         ("清水時代影城", TIMES_URL, fetch_timescinema),
         ("威尼斯影城", VENICE_URL.format(page=1), fetch_venice),
@@ -2695,7 +2870,7 @@ def main() -> None:
         ("環球中華影城", UCH_URL, fetch_uch),
         ("百老匯影城", "https://www.broadway-cineplex.com.tw/book.html", fetch_broadway),
         ("高雄環球影城", UMOVIE_URL, fetch_umovie),
-        ("中影屏東影城", PTCINEMA_URL.format(show_date=args.date), fetch_ptcinema),
+        ("中影屏東影城", PTCINEMA_URL.format(show_date=primary_date), fetch_ptcinema),
         ("新月豪華影城", LUNA_URL, fetch_luna),
         ("日新戲院 / 宜蘭電影資訊網", ILANMOVIE_URL, fetch_ilanmovie),
         ("金獅影城", WINDLION_URL, fetch_windlion),
@@ -2708,31 +2883,50 @@ def main() -> None:
         movie_id = get_movie_id(conn, args.movie_title)
         if args.wipe_all and not args.keep_existing:
             # 舊行為（可選）：開頭把整個電影/日期全刪，再重抓所有來源。
-            clear_existing(conn, movie_id, args.date)
+            for show_date in requested_dates:
+                clear_existing(conn, movie_id, show_date)
             conn.commit()
 
         total_found = 0
         total_saved = 0
-        failures: list[tuple[str, str]] = []
+        failures: list[tuple[str, str, str]] = []
         for source_name, source_url, fetcher in sources:
-            found, saved, error = run_source(
-                conn, movie_id, source_name, source_url, fetcher, aliases, args.date,
-                keep_existing=args.keep_existing,
-            )
-            total_found += found
-            total_saved += saved
-            if error:
-                failures.append((source_name, error))
-            print(f"{source_name}: found={found} saved={saved}" + (f" error={error}" if error else ""))
+            for show_date in requested_dates:
+                day_offset = (date.fromisoformat(show_date) - primary_day).days
+                if len(requested_dates) > 1 and not source_supports_offset(source_name, day_offset):
+                    continue
+                dated_source_url = source_url
+                if source_name == "南投戲院":
+                    dated_source_url = NANTOU_URL.format(show_date=show_date)
+                elif source_name == "中影屏東影城":
+                    dated_source_url = PTCINEMA_URL.format(show_date=show_date)
+                found, saved, error = run_source(
+                    conn,
+                    movie_id,
+                    source_name,
+                    dated_source_url,
+                    fetcher,
+                    aliases,
+                    show_date,
+                    keep_existing=args.keep_existing,
+                )
+                total_found += found
+                total_saved += saved
+                if error:
+                    failures.append((source_name, show_date, error))
+                print(
+                    f"{source_name} [{show_date}]: found={found} saved={saved}"
+                    + (f" error={error}" if error else "")
+                )
 
         print(f"Movie: {args.movie_title}")
-        print(f"Date: {args.date}")
+        print(f"Dates: {', '.join(requested_dates)}")
         print(f"Total found: {total_found}")
         print(f"Total saved: {total_saved}")
         if failures:
             print("Failures:")
-            for source_name, error in failures:
-                print(f"- {source_name}: {error}")
+            for source_name, show_date, error in failures:
+                print(f"- {source_name} [{show_date}]: {error}")
 
 
 if __name__ == "__main__":

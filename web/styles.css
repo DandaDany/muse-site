@@ -147,6 +147,46 @@ h1 {
   gap: 6px;
 }
 
+.date-chips {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 1px 5px;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+
+.date-chip {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1.5px solid var(--card-line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  padding: 7px 12px;
+  scroll-snap-align: start;
+  white-space: nowrap;
+}
+
+.date-chip:hover {
+  border-color: color-mix(in srgb, var(--flame) 55%, var(--card-line));
+}
+
+.date-chip.is-selected {
+  border-color: var(--flame);
+  background: var(--peach-tint);
+  color: var(--flame-deep);
+}
+
+.date-chip:focus-visible {
+  outline: 3px solid rgba(245, 100, 30, 0.2);
+  outline-offset: 2px;
+}
+
 .field span {
   color: var(--flame);
   font-size: 15px;
@@ -1212,6 +1252,19 @@ input[type="search"]::-webkit-search-cancel-button {
 
   .panel-head .icon-button {
     display: none;
+  }
+
+  .date-chips {
+    margin: 0 -2px;
+    padding-bottom: 3px;
+  }
+
+  .date-chip {
+    min-height: 34px;
+    border-color: #ded9d1;
+    background: #fff;
+    font-size: 12.5px;
+    padding: 6px 11px;
   }
 
   /* ---- 分段控制（底線分頁，樣式 C） ---- */

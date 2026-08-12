@@ -21,11 +21,12 @@ import secrets
 import sqlite3
 import subprocess
 import sys
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import muse_api  # noqa: E402
+from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS  # noqa: E402
 from update_map import read_movie_titles  # noqa: E402
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -54,8 +55,8 @@ def max_crawl_run_id() -> int:
         return 0
 
 
-def collect_sources(pre_max_id: int):
-    """從本次新增的 crawl_runs（id > pre_max_id）依來源彙總。"""
+def collect_sources(pre_max_id: int, primary_show_date: str):
+    """只彙總本次 primary date 的 crawl runs，未來日期另留在 log。"""
     sources: dict[str, dict] = {}
     if not DB_PATH.exists():
         return []
@@ -63,8 +64,8 @@ def collect_sources(pre_max_id: int):
     con.row_factory = sqlite3.Row
     rows = con.execute(
         "SELECT source_name, status, rows_found, rows_saved, error_message "
-        "FROM crawl_runs WHERE id > ?",
-        (pre_max_id,),
+        "FROM crawl_runs WHERE id > ? AND show_date = ?",
+        (pre_max_id, primary_show_date),
     ).fetchall()
     con.close()
     for r in rows:
@@ -89,6 +90,36 @@ def collect_sources(pre_max_id: int):
         s["status"] = status
         result.append(s)
     return result
+
+
+def existing_export_dates(primary_show_date: str) -> list[str]:
+    """找出 P0 連續窗口內 SQLite 真正存在場次的日期，供 --no-crawl 重出。"""
+    if not DB_PATH.exists():
+        return [primary_show_date]
+    start = date.fromisoformat(primary_show_date)
+    end = start + timedelta(days=MAX_SOURCE_LOOKAHEAD_DAYS)
+    try:
+        con = sqlite3.connect(str(DB_PATH))
+        rows = con.execute(
+            "SELECT DISTINCT show_date FROM showtimes "
+            "WHERE show_date BETWEEN ? AND ? ORDER BY show_date",
+            (start.isoformat(), end.isoformat()),
+        ).fetchall()
+        con.close()
+    except sqlite3.Error:
+        return [primary_show_date]
+    observed = [row[0] for row in rows if row[0]]
+    return list(dict.fromkeys([primary_show_date, *observed]))
+
+
+def build_no_crawl_export_args(titles: list[str], primary_show_date: str) -> list[str]:
+    export_args = ["scripts/export_geojson.py", "--date", primary_show_date]
+    for show_date in existing_export_dates(primary_show_date):
+        if show_date != primary_show_date:
+            export_args.extend(["--additional-date", show_date])
+    for title in titles:
+        export_args.extend(["--movie-title", title])
+    return export_args
 
 
 def showtime_coverage(show_date: str):
@@ -200,12 +231,10 @@ def main() -> None:
         run([sys.executable, "scripts/update_map.py", "--date", args.date])
     else:
         titles = read_movie_titles(MOVIE_LIST)
-        export_args = ["scripts/export_geojson.py", "--date", args.date]
-        for t in titles:
-            export_args.extend(["--movie-title", t])
+        export_args = build_no_crawl_export_args(titles, args.date)
         run([sys.executable, *export_args])
 
-    sources = collect_sources(pre_max)
+    sources = collect_sources(pre_max, args.date)
     summary = build_summary(sources, args.date)
 
     # 3) 發佈
