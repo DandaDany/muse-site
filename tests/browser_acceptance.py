@@ -180,6 +180,7 @@ def run_mobile(page: Page, report: dict) -> None:
     page.screenshot(path=str(REPO / "artifacts" / "mobile.png"), full_page=True)
     page.locator("#mSheetClose").click()
     page.locator("#mSheet[aria-hidden='true']").wait_for()
+    page.wait_for_timeout(400)  # wait for the Bottom Sheet close transition
     page.screenshot(path=str(REPO / "artifacts" / "mobile-future.png"), full_page=True)
 
 
