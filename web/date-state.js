@@ -35,5 +35,27 @@
     return `${prefix} ${target.getUTCMonth() + 1}/${target.getUTCDate()}`;
   }
 
-  return { TAIPEI_TIME_ZONE, dateChipLabel, taipeiToday };
+  function availableDatesForMovie(byDate) {
+    if (!byDate) return [];
+    const entries = byDate instanceof Map ? [...byDate.entries()] : Object.entries(byDate);
+    return entries
+      .filter(([showDate, features]) => showDate && Array.isArray(features) && features.length > 0)
+      .map(([showDate]) => showDate)
+      .sort();
+  }
+
+  function selectedDateForMovie(currentDate, movieDates, today = taipeiToday()) {
+    const dates = [...new Set(Array.isArray(movieDates) ? movieDates.filter(Boolean) : [])].sort();
+    if (dates.includes(currentDate)) return currentDate;
+    if (dates.includes(today)) return today;
+    return dates[0] || today;
+  }
+
+  return {
+    TAIPEI_TIME_ZONE,
+    availableDatesForMovie,
+    dateChipLabel,
+    selectedDateForMovie,
+    taipeiToday,
+  };
 });

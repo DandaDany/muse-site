@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS crawl_runs (
     movie_id INTEGER,
     source_name TEXT,
     source_url TEXT,
+    show_date TEXT,
     started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     finished_at TEXT,
     status TEXT NOT NULL DEFAULT 'running'

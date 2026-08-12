@@ -102,7 +102,7 @@ const {
   snapManualMinutes,
   taipeiNowMinutes,
 } = window.MuseTimeFilter;
-const { dateChipLabel, taipeiToday } = window.MuseDateState;
+const { availableDatesForMovie, dateChipLabel, selectedDateForMovie, taipeiToday } = window.MuseDateState;
 
 let features = [];
 let movieSummaries = [];
@@ -599,7 +599,6 @@ function mergeFeatures(rawFeatures) {
 function normalizeMovieData(data) {
   movieFeaturesByTitle = new Map();
   movieFeaturesByTitleAndDate = new Map();
-  const dateSet = new Set(Array.isArray(data.available_dates) ? data.available_dates : []);
 
   if (Array.isArray(data.movies) && data.movies.length && data.movie_features) {
     for (const movie of data.movies) {
@@ -611,13 +610,11 @@ function normalizeMovieData(data) {
         for (const [showDate, rawFeatures] of Object.entries(rawByDate)) {
           if (!Array.isArray(rawFeatures)) continue;
           byDate.set(showDate, mergeFeatures(rawFeatures));
-          dateSet.add(showDate);
         }
       } else {
         const showDate = movie.show_date || data.show_date || taipeiToday();
         const rawFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
         byDate.set(showDate, mergeFeatures(rawFeatures));
-        dateSet.add(showDate);
       }
       movieFeaturesByTitleAndDate.set(title, byDate);
     }
@@ -628,13 +625,12 @@ function normalizeMovieData(data) {
       title,
       new Map([[showDate, mergeFeatures(Array.isArray(data.features) ? data.features : [])]]),
     );
-    dateSet.add(showDate);
   }
 
-  availableDates = [...dateSet].filter(Boolean).sort();
   const today = taipeiToday();
-  selectedDate = availableDates.includes(today) ? today : data.show_date || availableDates[0] || today;
   selectedMovieTitle = movieFeaturesByTitleAndDate.keys().next().value || "";
+  availableDates = availableDatesForMovie(movieFeaturesByTitleAndDate.get(selectedMovieTitle));
+  selectedDate = selectedDateForMovie(data.show_date, availableDates, today);
   refreshMovieDateData();
 }
 
@@ -701,10 +697,18 @@ function selectMovie(movieTitle) {
   if (!movieFeaturesByTitleAndDate.has(movieTitle)) return;
   if (window.trackEvent) window.trackEvent("select_movie", { movie_title: movieTitle });
   selectedMovieTitle = movieTitle;
-  features = movieFeaturesByTitleAndDate.get(movieTitle)?.get(selectedDate) || [];
+  availableDates = availableDatesForMovie(movieFeaturesByTitleAndDate.get(movieTitle));
+  const nextDate = selectedDateForMovie(selectedDate, availableDates);
+  if (nextDate !== selectedDate) {
+    selectedDate = nextDate;
+    setQuickPeriod("all");
+    setAutoTimeMode(selectedDate === taipeiToday());
+  }
+  refreshMovieDateData();
   activeId = null;
   selectedChain = "";
   selectedCity = "";
+  renderDateChips();
   renderMovieOptions();
   renderFilters();
   applyFilters();

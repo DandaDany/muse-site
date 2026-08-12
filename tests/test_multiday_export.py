@@ -71,6 +71,57 @@ class MultiDayExportTests(unittest.TestCase):
                 "2026-08-13",
             )
 
+    def test_legacy_single_day_payload_remains_supported(self) -> None:
+        repo = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            db = Path(temp_dir) / "map.sqlite"
+            output = Path(temp_dir) / "locations.geojson"
+            subprocess.run(
+                [sys.executable, str(repo / "scripts" / "init_db.py"), "--db", str(db)],
+                check=True,
+                cwd=repo,
+                capture_output=True,
+            )
+            with sqlite3.connect(db) as conn:
+                chain_id = conn.execute(
+                    "INSERT INTO cinema_chains (chain_name) VALUES (?)", ("測試影城",)
+                ).lastrowid
+                location_id = conn.execute(
+                    """INSERT INTO cinema_locations
+                       (chain_id, location_name, latitude, longitude)
+                       VALUES (?, ?, ?, ?)""",
+                    (chain_id, "測試店", 25.0, 121.5),
+                ).lastrowid
+                movie_id = conn.execute(
+                    "INSERT INTO movies (title) VALUES (?)", ("單日電影",)
+                ).lastrowid
+                conn.execute(
+                    """INSERT INTO showtimes
+                       (movie_id, location_id, show_date, start_time)
+                       VALUES (?, ?, ?, ?)""",
+                    (movie_id, location_id, "2026-08-12", "20:00"),
+                )
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(repo / "scripts" / "export_geojson.py"),
+                    "--db",
+                    str(db),
+                    "--output",
+                    str(output),
+                    "--movie-title",
+                    "單日電影",
+                    "--date",
+                    "2026-08-12",
+                ],
+                check=True,
+                cwd=repo,
+                capture_output=True,
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["available_dates"], ["2026-08-12"])
+            self.assertEqual(payload["features"], payload["movie_features"]["單日電影"])
+
 
 if __name__ == "__main__":
     unittest.main()

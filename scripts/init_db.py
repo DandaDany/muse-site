@@ -15,6 +15,9 @@ MIGRATIONS = {
         "source_location_code": "ALTER TABLE cinema_locations ADD COLUMN source_location_code TEXT",
         "notes": "ALTER TABLE cinema_locations ADD COLUMN notes TEXT",
     },
+    "crawl_runs": {
+        "show_date": "ALTER TABLE crawl_runs ADD COLUMN show_date TEXT",
+    },
 }
 
 

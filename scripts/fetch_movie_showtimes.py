@@ -374,13 +374,19 @@ def locations_by_chain_and_code(conn: sqlite3.Connection) -> dict[tuple[str, str
     return result
 
 
-def start_run(conn: sqlite3.Connection, movie_id: int, source_name: str, source_url: str) -> int:
+def start_run(
+    conn: sqlite3.Connection,
+    movie_id: int,
+    source_name: str,
+    source_url: str,
+    show_date: str,
+) -> int:
     cursor = conn.execute(
         """
-        INSERT INTO crawl_runs (run_type, movie_id, source_name, source_url)
-        VALUES ('showtimes', ?, ?, ?)
+        INSERT INTO crawl_runs (run_type, movie_id, source_name, source_url, show_date)
+        VALUES ('showtimes', ?, ?, ?, ?)
         """,
-        (movie_id, source_name, source_url),
+        (movie_id, source_name, source_url, show_date),
     )
     return int(cursor.lastrowid)
 
@@ -2781,7 +2787,7 @@ def run_source(
     show_date: str,
     keep_existing: bool = False,
 ) -> tuple[int, int, str | None]:
-    run_id = start_run(conn, movie_id, source_name, source_url)
+    run_id = start_run(conn, movie_id, source_name, source_url, show_date)
     try:
         records = fetcher(conn, aliases, show_date)
         # 只有成功抓到（未拋例外）才清掉此來源的舊資料，再寫入新資料。

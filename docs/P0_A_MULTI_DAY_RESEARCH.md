@@ -5,7 +5,7 @@
 - 先以雲端 Chrome 實際開啟每一個官方場次入口，查看／操作可見日期控制。
 - 再以現有 crawler 的官方 HTML、JSON/API 與程式碼交叉核對資料取得方式及日期隔離能力。
 - `+N` 代表以 2026-08-12 為第 0 天，最遠可見到 N 天後。
-- 官網的預售特殊場次可能比一般週表更遠；前端只顯示 GeoJSON 真的有資料的日期，不依下表固定產生日期。
+- P0 日期列只服務「連續一般上映時刻窗口」。零散遠期特殊預售不納入日期 chips，也不擴張一般週表 horizon。
 - 「無法確認」不是「不支援」：代表當次被 502、Cloudflare、Queue-it、連線逾時或瀏覽器 URL policy 阻擋。
 
 ## 來源矩陣
@@ -16,7 +16,7 @@
 | 秀泰 | 8/22（+10） | 是 | JSON bootstrap API | 已依 `listedAt` 過濾 | 多日共用 API response cache |
 | 國賓 | 8/20（+8） | 是 | URL `DT=YYYY/MM/DD` + HTML | 已支援 | 逐日 URL，保留原名稱／場次結構 |
 | 新光 | 官網 502；無法以瀏覽器確認 | 是（API 有 BusinessDate/ShowDate） | 動態 API + 短效 headers | 已依日期過濾，但每次重取 headers | 未驗到 horizon，P0 只抓今天；adapter 已可共用 headers |
-| in89 | 一般週表至 8/16；API另有 8/22、8/29、9/13 預售 | 是 | JSON API | 已依 date key 過濾 | 多日共用 API response；P0 一般查詢窗仍以規則上限抓取，特殊預售列風險 |
+| in89 | 一般週表至 8/16；API另有 8/22、8/29、9/13 預售 | 是 | JSON API | 已依 date key 過濾 | 多日共用 API response；P0 保留一般週表 +4，零散特殊預售明確排除於日期列 |
 | 喜樂時代 | 無法在入口頁直接確認 | 是 | Playwright；新版/舊版 JS active date | parser 會驗 active date，但不會切換 | 新增日期控制 adapter；未驗到 horizon，P0 只抓今天 |
 | 美麗新 | 選館後才顯示；入口未顯示最遠日 | 是 | HTML 內嵌 JSON | 已依 `ShowDateISO` 過濾 | 未驗到 horizon，P0 只抓今天 |
 | 天台 | 8/16（+4） | 不需切換 | 同一 HTML 直接列多日 | 文字日期鄰近過濾 | 多日共用 HTML cache |
@@ -49,10 +49,10 @@
 - 同一來源跨日期通常沿用相同中文／英文片名與相同 session schema。
 - 真正的差異在日期容器：URL parameter、API date key、HTML date block、active JS state、ASP.NET postback 五種不能混用。
 - 新月豪華已證明「同一 HTML 多日」若只把請求日寫進 record，會產生跨日污染；P0-A 因此以 source date 作為必須驗證的資料邊界。
-- 特殊預售可能產生不連續日期。GeoJSON 的 `available_dates` 是實際資料集合，不假設日期必然連續。
+- 特殊預售可能產生不連續日期，但不屬於 P0 日期列產品範圍；未來若要支援，應另行設計「預售場次」，不得混入一般日期列。
 
 ## P0 抓取上限與後續風險
 
 `scripts/showtime_availability.py` 記錄本輪觀察到的一般週表上限，作為網路請求 ceiling；它不決定 UI 天數。UI 只讀匯出後真正存在的日期。
 
-in89 已看到 9 月特殊預售日期，說明固定 lookahead ceiling 仍可能漏掉遠期預售。若 P1 要完整涵蓋預售，應把各 source adapter 改為先回傳「可用日期集合」，再以集合驅動 crawl，而不是再把全站上限改成更大的常數。
+in89 已看到 9 月特殊預售日期，但這不是 P0 漏抓：P0 的產品範圍刻意只涵蓋連續一般週表。若未來要支援預售，應建立獨立的「預售場次」資訊與互動，不把零散遠期日期混入本日期列。
