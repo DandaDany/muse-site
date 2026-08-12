@@ -82,12 +82,13 @@ jobs:
         # CSV 自動同步（import_cinema_csv），故後台已含這些代碼。
         run: python scripts/pull_cinema_master.py --require-codes
 
-      - name: Overlay version-controlled cinema codes and verify Shin Kong
-        # 後台還沒部署最新主檔時，使用 repo 的自然鍵 CSV 補齊代碼。這只會
-        # 更新既存據點的非空欄位，保留後台地址、座標與 URL，也不會建立幽靈據點。
+      - name: Overlay version-controlled cinema data and verify Shin Kong
+        # 後台還沒部署最新主檔時，使用 repo 的自然鍵 CSV 補齊代碼及人工確認的據點資料。
+        # 只更新既存據點的非空欄位，不會建立幽靈據點。
         run: |
           python scripts/import_cinema_sources.py data/input/cinema_codes.csv --overlay-existing --chain "新光影城" --require-existing
           python scripts/verify_cinema_codes.py --csv data/input/cinema_codes.csv --chain "新光影城"
+          python scripts/import_cinema_sources.py data/input/manual_location_urls.csv --overlay-existing --chain "秀泰影城" --require-existing
 
       - name: Refresh scraped-chain location codes (新光/in89/國賓/秀泰/美麗新)
         # 需要 source_location_code 的 7 家中，威秀/百老匯是靜態（後台已存）；其餘 5 家

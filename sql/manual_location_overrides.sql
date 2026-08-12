@@ -36,7 +36,7 @@ WHERE location_name = '新光影城台南西門';
 -- 台中站前秀泰維持原值（已與維基百科標註一致），故不列入。
 UPDATE cinema_locations SET latitude = 25.0441, longitude = 121.5606 WHERE location_name = '大巨蛋秀泰影城';
 UPDATE cinema_locations SET latitude = 25.0536, longitude = 121.5262 WHERE location_name = '台北欣欣秀泰影城';
-UPDATE cinema_locations SET latitude = 24.9839, longitude = 121.4447 WHERE location_name = '土城秀泰影城';
+UPDATE cinema_locations SET latitude = 24.97894864459214, longitude = 121.44515751534473 WHERE location_name = '土城秀泰影城';
 UPDATE cinema_locations SET latitude = 24.9930, longitude = 121.4277 WHERE location_name = '樹林秀泰影城';
 UPDATE cinema_locations SET latitude = 24.1291, longitude = 120.6472 WHERE location_name = '台中文心秀泰影城';
 UPDATE cinema_locations SET latitude = 24.3292, longitude = 120.6974 WHERE location_name = '台中麗寶秀泰影城';
