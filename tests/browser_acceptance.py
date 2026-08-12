@@ -75,6 +75,7 @@ def run_desktop(page: Page, report: dict) -> None:
     checks["summary_future"] = (
         page.locator("#summaryText").inner_text() == "未來場次將持續更新 · 更新於 8/12 07:05"
     )
+    page.screenshot(path=str(REPO / "artifacts" / "desktop-future.png"), full_page=True)
     checks["date_switch_markers_badges"] = marker_count(page) == 2 and sorted(
         int(value) for value in page.locator(".cinema-showtime-count").all_text_contents()
     ) == [2, 3]
@@ -177,6 +178,9 @@ def run_mobile(page: Page, report: dict) -> None:
     checks["sheet_no_overflow"] = page.locator("#mSheetBody").evaluate("el => el.scrollWidth <= el.clientWidth")
 
     page.screenshot(path=str(REPO / "artifacts" / "mobile.png"), full_page=True)
+    page.locator("#mSheetClose").click()
+    page.locator("#mSheet[aria-hidden='true']").wait_for()
+    page.screenshot(path=str(REPO / "artifacts" / "mobile-future.png"), full_page=True)
 
 
 def main() -> int:
