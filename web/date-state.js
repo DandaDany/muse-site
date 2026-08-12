@@ -35,6 +35,37 @@
     return `${prefix} ${target.getUTCMonth() + 1}/${target.getUTCDate()}`;
   }
 
+  function formatUpdatedAt(value) {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "";
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: TAIPEI_TIME_ZONE,
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      })
+        .formatToParts(parsed)
+        .filter((part) => ["month", "day", "hour", "minute"].includes(part.type))
+        .map((part) => [part.type, part.value]),
+    );
+    return `${Number(parts.month)}/${Number(parts.day)} ${parts.hour}:${parts.minute}`;
+  }
+
+  function summaryTextForDate(showDate, updatedAt, today = taipeiToday()) {
+    const target = parseIsoDate(showDate);
+    const base = parseIsoDate(today);
+    const isFuture = Boolean(target && base && target > base);
+    const formatted = formatUpdatedAt(updatedAt);
+    if (isFuture) {
+      return formatted ? `未來場次將持續更新 · 更新於 ${formatted}` : "未來場次將持續更新";
+    }
+    return formatted ? `更新於 ${formatted}` : "";
+  }
+
   function availableDatesForMovie(byDate) {
     if (!byDate) return [];
     const entries = byDate instanceof Map ? [...byDate.entries()] : Object.entries(byDate);
@@ -55,7 +86,9 @@
     TAIPEI_TIME_ZONE,
     availableDatesForMovie,
     dateChipLabel,
+    formatUpdatedAt,
     selectedDateForMovie,
+    summaryTextForDate,
     taipeiToday,
   };
 });

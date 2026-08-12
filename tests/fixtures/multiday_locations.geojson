@@ -2,6 +2,7 @@
   "type": "FeatureCollection",
   "name": "P0-A deterministic browser acceptance fixture",
   "show_date": "2026-08-12",
+  "updated_at": "2026-08-12T07:05:23+08:00",
   "available_dates": ["2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15"],
   "movies": [
     {"title": "電影 A", "show_date": "2026-08-12", "available_dates": ["2026-08-12", "2026-08-13", "2026-08-14"], "feature_count": 3},

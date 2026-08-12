@@ -102,7 +102,13 @@ const {
   snapManualMinutes,
   taipeiNowMinutes,
 } = window.MuseTimeFilter;
-const { availableDatesForMovie, dateChipLabel, selectedDateForMovie, taipeiToday } = window.MuseDateState;
+const {
+  availableDatesForMovie,
+  dateChipLabel,
+  selectedDateForMovie,
+  summaryTextForDate,
+  taipeiToday,
+} = window.MuseDateState;
 
 let features = [];
 let movieSummaries = [];
@@ -111,6 +117,7 @@ let movieFeaturesByTitleAndDate = new Map();
 let selectedMovieTitle = "";
 let availableDates = [];
 let selectedDate = taipeiToday();
+let dataUpdatedAt = "";
 let chainLogoByName = new Map();
 let markerById = new Map();
 let activeId = null;
@@ -170,7 +177,7 @@ function showtimeCount(feature) {
 }
 
 // 回傳目前時間條件下真正會顯示的場次。Logo 徽章、Logo 大小、搜尋候選、
-// 場次資訊卡與頁首摘要都共用這個來源，避免各處顯示不同的數字。
+// 場次資訊卡共用這個來源，避免各處顯示不同的數字。
 function showtimeMatchesTimeFilter(showtime) {
   const minutes = showtimeMinutes(showtime);
   return showtimePassesTimeState(
@@ -597,6 +604,7 @@ function mergeFeatures(rawFeatures) {
 }
 
 function normalizeMovieData(data) {
+  dataUpdatedAt = typeof data.updated_at === "string" ? data.updated_at : "";
   movieFeaturesByTitle = new Map();
   movieFeaturesByTitleAndDate = new Map();
 
@@ -923,15 +931,19 @@ function renderMarkers(filtered) {
   }
 }
 
+function renderSummaryText(message = null) {
+  const text = message ?? summaryTextForDate(selectedDate, dataUpdatedAt);
+  summaryText.textContent = text;
+  summaryText.hidden = !text;
+}
+
 function applyFilters() {
   // 先重繪地區／影城膠囊，讓分面數字隨當前所有篩選連動更新
   renderFilters();
   const filtered = features.filter(matchesFilters);
   renderMarkers(filtered);
   renderSearchSuggestions(filtered);
-  const totalShowtimes = filtered.reduce((sum, feature) => sum + visibleShowtimeCount(feature), 0);
-  const moviePrefix = selectedMovieTitle ? `${selectedMovieTitle}：` : "";
-  summaryText.textContent = `${moviePrefix}${filtered.length} 影城上映中，共 ${totalShowtimes} 場次`;
+  renderSummaryText();
 }
 
 function resetView() {
@@ -1307,6 +1319,6 @@ refreshSheetLayout();
 loadData()
   .then(refreshSheetLayout)
   .catch((error) => {
-    summaryText.textContent = error.message;
+    renderSummaryText(error.message);
     console.error(error);
   });

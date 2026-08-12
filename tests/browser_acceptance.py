@@ -59,8 +59,10 @@ def click_filter(page: Page, container: str, label: str) -> None:
 def run_desktop(page: Page, report: dict) -> None:
     checks = report["desktop"]
     page.goto("http://127.0.0.1:8765/", wait_until="networkidle")
-    page.locator("#summaryText").filter(has_text="電影 A").wait_for()
+    page.locator("#summaryText").filter(has_text="更新於 8/12 07:05").wait_for()
 
+    checks["summary_today"] = page.locator("#summaryText").inner_text() == "更新於 8/12 07:05"
+    checks["supply_summary_removed"] = "影城上映中，共" not in page.locator("body").inner_text()
     checks["date_chips"] = chip_texts(page) == ["今天 8/12", "明天 8/13", "五 8/14"]
     checks["today_auto_now"] = page.locator("#timeFilterCaption").inner_text() == "15:20 後"
     checks["today_markers_and_badges"] = marker_count(page) == 3 and sorted(
@@ -70,6 +72,9 @@ def run_desktop(page: Page, report: dict) -> None:
     map_before = center(page)
     page.get_by_role("button", name="明天 8/13").click()
     page.wait_for_timeout(150)
+    checks["summary_future"] = (
+        page.locator("#summaryText").inner_text() == "未來場次將持續更新 · 更新於 8/12 07:05"
+    )
     checks["date_switch_markers_badges"] = marker_count(page) == 2 and sorted(
         int(value) for value in page.locator(".cinema-showtime-count").all_text_contents()
     ) == [2, 3]
@@ -117,12 +122,12 @@ def run_desktop(page: Page, report: dict) -> None:
     page.mouse.click(slider["x"] + slider["width"] * 0.75, slider["y"] + slider["height"] / 2)
     checks["future_manual_time"] = (
         page.locator("#timeFilterCaption").inner_text() == "18:00 起"
-        and "1 影城上映中，共 2 場次" in page.locator("#summaryText").inner_text()
+        and page.locator("#summaryText").inner_text() == "未來場次將持續更新 · 更新於 8/12 07:05"
     )
     page.get_by_role("button", name="今天 8/12").click()
     checks["return_today_auto"] = (
         page.locator("#timeFilterCaption").inner_text() == "15:20 後"
-        and "3 影城上映中，共 4 場次" in page.locator("#summaryText").inner_text()
+        and page.locator("#summaryText").inner_text() == "更新於 8/12 07:05"
     )
 
     page.get_by_role("button", name="五 8/14").click()
@@ -144,7 +149,7 @@ def run_desktop(page: Page, report: dict) -> None:
 def run_mobile(page: Page, report: dict) -> None:
     checks = report["mobile"]
     page.goto("http://127.0.0.1:8765/", wait_until="networkidle")
-    page.locator("#summaryText").filter(has_text="電影 A").wait_for()
+    page.locator("#summaryText").filter(has_text="更新於 8/12 07:05").wait_for()
 
     overflow = page.locator("#dateChips").evaluate("el => getComputedStyle(el).overflowX")
     checks["chips_horizontal_scroll"] = overflow == "auto"
@@ -159,6 +164,10 @@ def run_mobile(page: Page, report: dict) -> None:
 
     page.locator("#dateChips button[data-date='2026-08-13']").dispatch_event("click")
     page.wait_for_timeout(100)
+    checks["future_summary"] = (
+        page.locator("#summaryText").inner_text() == "未來場次將持續更新 · 更新於 8/12 07:05"
+    )
+    checks["summary_no_overflow"] = page.locator("#summaryText").evaluate("el => el.scrollWidth <= el.clientWidth")
     checks["bottom_sheet_date_refresh"] = (
         page.locator("#mSheet[aria-hidden='false']").count() == 1
         and "明天 8/13" in page.locator("#mSheetBody").inner_text()

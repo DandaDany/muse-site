@@ -4,14 +4,16 @@ import argparse
 import json
 import sqlite3
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from init_db import DEFAULT_DB_PATH, init_db
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = PROJECT_DIR / "web" / "data" / "locations.geojson"
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
 def normalize_city(value: str | None) -> str | None:
@@ -345,6 +347,7 @@ def main() -> None:
         "type": "FeatureCollection",
         "name": collection_name,
         "generated_at": date.today().isoformat(),
+        "updated_at": datetime.now(TAIPEI_TZ).isoformat(timespec="seconds"),
         "movie_title": movie_titles[0] if movie_titles else None,
         "show_date": args.date if movie_titles else None,
         "movies": movies,

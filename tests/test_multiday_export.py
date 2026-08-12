@@ -4,6 +4,7 @@ import json
 import sqlite3
 import subprocess
 import sys
+from datetime import datetime
 import tempfile
 import unittest
 from pathlib import Path
@@ -65,6 +66,14 @@ class MultiDayExportTests(unittest.TestCase):
             )
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["available_dates"], ["2026-08-12", "2026-08-13"])
+            self.assertRegex(
+                payload["updated_at"],
+                r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$",
+            )
+            self.assertEqual(
+                datetime.fromisoformat(payload["updated_at"]).utcoffset().total_seconds(),
+                8 * 60 * 60,
+            )
             self.assertEqual(payload["features"], payload["movie_features"]["測試電影"])
             self.assertEqual(
                 payload["movie_features_by_date"]["測試電影"]["2026-08-13"][0]["properties"]["show_date"],
