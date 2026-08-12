@@ -95,7 +95,10 @@ def run_desktop(page: Page, report: dict) -> None:
     click_filter(page, "#chainFilterList", "測試影城")
 
     page.get_by_role("button", name="今天 8/12").click()
-    page.locator(".cinema-marker").first.click()
+    # Leaflet markers can geometrically overlap; dispatch the marker's real DOM
+    # click event so the product handler runs without Playwright selecting the
+    # visually topmost neighbouring marker instead.
+    page.locator(".cinema-marker").first.dispatch_event("click")
     page.locator(".leaflet-popup").wait_for()
     page.get_by_role("button", name="明天 8/13").click()
     checks["popup_refresh"] = (
@@ -147,7 +150,7 @@ def run_mobile(page: Page, report: dict) -> None:
     tab_boxes = [page.locator(f"#mSeg button:nth-child({index})").bounding_box() for index in range(1, 5)]
     checks["tabs_not_compressed"] = all(box and box["width"] >= 80 for box in tab_boxes)
 
-    page.locator(".cinema-marker").first.click()
+    page.locator(".cinema-marker").first.dispatch_event("click")
     page.locator("#mSheet[aria-hidden='false']").wait_for()
     selected = page.locator(".cinema-marker.is-mobile-selected")
     checks["marker_opens_bottom_sheet"] = selected.count() == 1 and "今天 8/12" in page.locator("#mSheetBody").inner_text()
