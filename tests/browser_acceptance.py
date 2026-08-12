@@ -98,15 +98,17 @@ def run_desktop(page: Page, report: dict) -> None:
     # Leaflet markers can geometrically overlap; dispatch the marker's real DOM
     # click event so the product handler runs without Playwright selecting the
     # visually topmost neighbouring marker instead.
-    page.locator(".cinema-marker").first.dispatch_event("click")
+    page.locator(".cinema-marker[aria-label^='威秀影城']").dispatch_event("click")
     page.locator(".leaflet-popup").wait_for()
     page.get_by_role("button", name="明天 8/13").click()
+    page.wait_for_timeout(100)
     checks["popup_refresh"] = (
         page.locator(".leaflet-popup").count() == 1
         and "明天 8/13" in page.locator(".leaflet-popup").inner_text()
         and "09:00" in page.locator(".leaflet-popup").inner_text()
     )
     page.get_by_role("button", name="五 8/14").click()
+    page.wait_for_timeout(100)
     checks["popup_closes_when_missing"] = page.locator(".leaflet-popup").count() == 0
 
     page.get_by_role("button", name="明天 8/13").click()
@@ -150,12 +152,13 @@ def run_mobile(page: Page, report: dict) -> None:
     tab_boxes = [page.locator(f"#mSeg button:nth-child({index})").bounding_box() for index in range(1, 5)]
     checks["tabs_not_compressed"] = all(box and box["width"] >= 80 for box in tab_boxes)
 
-    page.locator(".cinema-marker").first.dispatch_event("click")
+    page.locator(".cinema-marker[aria-label^='威秀影城']").dispatch_event("click")
     page.locator("#mSheet[aria-hidden='false']").wait_for()
     selected = page.locator(".cinema-marker.is-mobile-selected")
     checks["marker_opens_bottom_sheet"] = selected.count() == 1 and "今天 8/12" in page.locator("#mSheetBody").inner_text()
 
-    page.get_by_role("button", name="明天 8/13").click()
+    page.locator("#dateChips button[data-date='2026-08-13']").dispatch_event("click")
+    page.wait_for_timeout(100)
     checks["bottom_sheet_date_refresh"] = (
         page.locator("#mSheet[aria-hidden='false']").count() == 1
         and "明天 8/13" in page.locator("#mSheetBody").inner_text()
