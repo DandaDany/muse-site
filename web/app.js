@@ -93,6 +93,7 @@ const cityFilterList = document.querySelector("#cityFilterList");
 const clearSearchButton = document.querySelector("#clearSearchButton");
 const searchSuggestions = document.querySelector("#searchSuggestions");
 const resetViewButton = document.querySelector("#resetViewButton");
+const dateChips = document.querySelector("#dateChips");
 
 const {
   formatMinutes,
@@ -101,11 +102,15 @@ const {
   snapManualMinutes,
   taipeiNowMinutes,
 } = window.MuseTimeFilter;
+const { dateChipLabel, taipeiToday } = window.MuseDateState;
 
 let features = [];
 let movieSummaries = [];
 let movieFeaturesByTitle = new Map();
+let movieFeaturesByTitleAndDate = new Map();
 let selectedMovieTitle = "";
+let availableDates = [];
+let selectedDate = taipeiToday();
 let chainLogoByName = new Map();
 let markerById = new Map();
 let activeId = null;
@@ -171,7 +176,7 @@ function showtimeMatchesTimeFilter(showtime) {
   return showtimePassesTimeState(
     minutes,
     {
-      nowMinutes: taipeiCurrentMinute,
+      nowMinutes: selectedDate === taipeiToday() ? taipeiCurrentMinute : -1,
       mode: timeMode,
       manualEarliest: timeEarliest,
       period: timePeriod,
@@ -218,7 +223,7 @@ function createIcon(feature) {
       props.chain_name,
     )} ${logoClass}" aria-label="${escapeHtml(
       props.chain_name,
-    )}，今天 ${count} 場" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span><span class="cinema-showtime-count" aria-hidden="true">${count}</span><span class="pin-stem"></span><span class="pin-ground"></span></span>`,
+    )}，${escapeHtml(dateChipLabel(selectedDate))} ${count} 場" style="--marker-font-size: ${fontSize}px;${logoStyle}">${markerContent}</span><span class="cinema-showtime-count" aria-hidden="true">${count}</span><span class="pin-stem"></span><span class="pin-ground"></span></span>`,
     iconSize: [size, totalHeight],
     iconAnchor: [size / 2, totalHeight - Math.round(groundHeight / 2)],
     popupAnchor: [0, -totalHeight + 2],
@@ -374,7 +379,9 @@ function popupHtml(feature) {
   const address = props.address
     ? `<p class="popup-address"><span>${escapeHtml(props.address)}</span>${pin}</p>`
     : "";
-  const dateText = props.show_date ? `當日 ${escapeHtml(props.show_date).replaceAll("-", "/")}` : "當日場次";
+  const dateText = props.show_date
+    ? `${escapeHtml(dateChipLabel(props.show_date))} ${escapeHtml(props.show_date).replaceAll("-", "/")}`
+    : "當日場次";
   const showtimes = visibleShowtimes(feature);
   const showtimeBlock = showtimes.length
     ? `
@@ -590,34 +597,90 @@ function mergeFeatures(rawFeatures) {
 }
 
 function normalizeMovieData(data) {
-  movieSummaries = [];
   movieFeaturesByTitle = new Map();
-
-  const summarize = (title, showDate, movieFeatures) => {
-    const showtimeTotal = movieFeatures.reduce((sum, feature) => sum + showtimeCount(feature), 0);
-    movieSummaries.push({
-      title,
-      showDate,
-      featureCount: movieFeatures.length,
-      showtimeTotal,
-    });
-    movieFeaturesByTitle.set(title, movieFeatures);
-  };
+  movieFeaturesByTitleAndDate = new Map();
+  const dateSet = new Set(Array.isArray(data.available_dates) ? data.available_dates : []);
 
   if (Array.isArray(data.movies) && data.movies.length && data.movie_features) {
     for (const movie of data.movies) {
       const title = movie.title;
       if (!title) continue;
-      const rawFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
-      summarize(title, movie.show_date || data.show_date || "", mergeFeatures(rawFeatures));
+      const byDate = new Map();
+      const rawByDate = data.movie_features_by_date?.[title];
+      if (rawByDate && typeof rawByDate === "object") {
+        for (const [showDate, rawFeatures] of Object.entries(rawByDate)) {
+          if (!Array.isArray(rawFeatures)) continue;
+          byDate.set(showDate, mergeFeatures(rawFeatures));
+          dateSet.add(showDate);
+        }
+      } else {
+        const showDate = movie.show_date || data.show_date || taipeiToday();
+        const rawFeatures = Array.isArray(data.movie_features[title]) ? data.movie_features[title] : [];
+        byDate.set(showDate, mergeFeatures(rawFeatures));
+        dateSet.add(showDate);
+      }
+      movieFeaturesByTitleAndDate.set(title, byDate);
     }
   } else {
     const title = data.movie_title || data.name || "目前資料";
-    summarize(title, data.show_date || "", mergeFeatures(Array.isArray(data.features) ? data.features : []));
+    const showDate = data.show_date || taipeiToday();
+    movieFeaturesByTitleAndDate.set(
+      title,
+      new Map([[showDate, mergeFeatures(Array.isArray(data.features) ? data.features : [])]]),
+    );
+    dateSet.add(showDate);
   }
 
-  selectedMovieTitle = movieSummaries[0]?.title || "";
+  availableDates = [...dateSet].filter(Boolean).sort();
+  const today = taipeiToday();
+  selectedDate = availableDates.includes(today) ? today : data.show_date || availableDates[0] || today;
+  selectedMovieTitle = movieFeaturesByTitleAndDate.keys().next().value || "";
+  refreshMovieDateData();
+}
+
+function refreshMovieDateData() {
+  movieSummaries = [];
+  movieFeaturesByTitle = new Map();
+  for (const [title, byDate] of movieFeaturesByTitleAndDate) {
+    const movieFeatures = byDate.get(selectedDate) || [];
+    const showtimeTotal = movieFeatures.reduce((sum, feature) => sum + showtimeCount(feature), 0);
+    movieSummaries.push({
+      title,
+      showDate: selectedDate,
+      featureCount: movieFeatures.length,
+      showtimeTotal,
+    });
+    movieFeaturesByTitle.set(title, movieFeatures);
+  }
   features = movieFeaturesByTitle.get(selectedMovieTitle) || [];
+}
+
+function renderDateChips() {
+  const fragment = document.createDocumentFragment();
+  for (const showDate of availableDates) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "date-chip";
+    button.dataset.date = showDate;
+    button.classList.toggle("is-selected", showDate === selectedDate);
+    button.setAttribute("aria-pressed", showDate === selectedDate ? "true" : "false");
+    button.textContent = dateChipLabel(showDate);
+    fragment.appendChild(button);
+  }
+  dateChips.replaceChildren(fragment);
+  dateChips.hidden = availableDates.length <= 1;
+}
+
+function selectDate(showDate) {
+  if (!availableDates.includes(showDate) || showDate === selectedDate) return;
+  if (window.trackEvent) window.trackEvent("select_show_date", { show_date: showDate });
+  selectedDate = showDate;
+  setQuickPeriod("all");
+  setAutoTimeMode(false);
+  refreshMovieDateData();
+  renderDateChips();
+  renderMovieOptions();
+  applyFilters();
 }
 
 function renderMovieOptions() {
@@ -635,10 +698,10 @@ function renderMovieOptions() {
 }
 
 function selectMovie(movieTitle) {
-  if (!movieFeaturesByTitle.has(movieTitle)) return;
+  if (!movieFeaturesByTitleAndDate.has(movieTitle)) return;
   if (window.trackEvent) window.trackEvent("select_movie", { movie_title: movieTitle });
   selectedMovieTitle = movieTitle;
-  features = movieFeaturesByTitle.get(movieTitle) || [];
+  features = movieFeaturesByTitleAndDate.get(movieTitle)?.get(selectedDate) || [];
   activeId = null;
   selectedChain = "";
   selectedCity = "";
@@ -915,12 +978,17 @@ async function loadData() {
   const data = await response.json();
   normalizeMovieData(data);
   auditShowtimeSpecs();
+  renderDateChips();
   renderMovieOptions();
   renderFilters();
   applyFilters();
 }
 
 movieSelect.addEventListener("change", () => selectMovie(movieSelect.value));
+dateChips.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-date]");
+  if (button) selectDate(button.dataset.date);
+});
 searchInput.addEventListener("input", () => {
   clearSearchButton.hidden = !searchInput.value;
   applyFilters();
@@ -1085,19 +1153,23 @@ function renderMobileMovies() {
 
 /* ---- 手機／桌機共用時間軸 ---- */
 function renderTimeControls() {
-  const displayedMinute = timeMode === "manual" ? timeEarliest : taipeiCurrentMinute;
+  const isToday = selectedDate === taipeiToday();
+  const displayedMinute = timeMode === "manual" ? timeEarliest : isToday ? taipeiCurrentMinute : 0;
   const frac = displayedMinute / 1440;
   timeSliderFill.style.width = `${frac * 100}%`;
   timeSliderKnob.style.left = `${frac * 100}%`;
   timeSliderKnob.textContent = formatMinutes(displayedMinute);
-  timeFilterCaption.textContent =
-    timeMode === "manual" ? `${formatMinutes(timeEarliest)} 起` : `${formatMinutes(taipeiCurrentMinute)} 後`;
+  timeFilterCaption.textContent = timeMode === "manual"
+    ? `${formatMinutes(timeEarliest)} 起`
+    : isToday
+      ? `${formatMinutes(taipeiCurrentMinute)} 後`
+      : "全天";
 }
 
 function setAutoTimeMode(apply = true) {
   taipeiCurrentMinute = taipeiNowMinutes();
   timeMode = "auto";
-  timeEarliest = taipeiCurrentMinute;
+  timeEarliest = selectedDate === taipeiToday() ? taipeiCurrentMinute : 0;
   renderTimeControls();
   if (apply) applyFilters();
 }
@@ -1105,7 +1177,7 @@ function setAutoTimeMode(apply = true) {
 function setManualEarliest(minutes, apply = true) {
   taipeiCurrentMinute = taipeiNowMinutes();
   const snappedMinute = snapManualMinutes(minutes);
-  if (snappedMinute <= taipeiCurrentMinute) {
+  if (selectedDate === taipeiToday() && snappedMinute <= taipeiCurrentMinute) {
     setAutoTimeMode(apply);
     return;
   }
@@ -1119,6 +1191,10 @@ function refreshCurrentTime(apply = true) {
   const nextMinute = taipeiNowMinutes();
   const minuteChanged = nextMinute !== taipeiCurrentMinute;
   taipeiCurrentMinute = nextMinute;
+  if (selectedDate !== taipeiToday()) {
+    renderTimeControls();
+    return;
+  }
   if (timeMode === "manual" && manualTimeReached(taipeiCurrentMinute, timeEarliest)) {
     timeMode = "auto";
     timeEarliest = taipeiCurrentMinute;

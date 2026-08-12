@@ -238,16 +238,23 @@ def fetch_unavailable_showtime_features(
     return features
 
 
-def movie_payload(conn: sqlite3.Connection, movie_title: str, show_date: str) -> dict[str, object]:
+def movie_payload(
+    conn: sqlite3.Connection,
+    movie_title: str,
+    show_date: str,
+    *,
+    include_unavailable: bool = True,
+) -> dict[str, object]:
     features = fetch_showtime_features(conn, movie_title, show_date)
-    features.extend(
-        fetch_unavailable_showtime_features(
-            conn,
-            movie_title,
-            show_date,
-            {int(feature["properties"]["location_id"]) for feature in features},
+    if include_unavailable:
+        features.extend(
+            fetch_unavailable_showtime_features(
+                conn,
+                movie_title,
+                show_date,
+                {int(feature["properties"]["location_id"]) for feature in features},
+            )
         )
-    )
     return {
         "title": movie_title,
         "show_date": show_date,
@@ -262,6 +269,12 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="Output GeoJSON path.")
     parser.add_argument("--movie-title", action="append", default=[], help="Export showtimes for this movie. Can be repeated.")
     parser.add_argument("--date", default=date.today().isoformat(), help="Show date for showtime export.")
+    parser.add_argument(
+        "--additional-date",
+        action="append",
+        default=[],
+        help="Additional show date to include in the multi-day payload. Can be repeated.",
+    )
     args = parser.parse_args()
 
     init_db(args.db)
@@ -270,24 +283,63 @@ def main() -> None:
         conn.row_factory = sqlite3.Row
         movie_titles = [title for title in args.movie_title if title]
         if movie_titles:
-            movie_payloads = [movie_payload(conn, movie_title, args.date) for movie_title in movie_titles]
-            first_movie = movie_payloads[0]
+            show_dates = list(dict.fromkeys([args.date, *args.additional_date]))
+            movie_payloads_by_date = {
+                movie_title: {
+                    show_date: movie_payload(
+                        conn,
+                        movie_title,
+                        show_date,
+                        include_unavailable=show_date == args.date,
+                    )
+                    for show_date in show_dates
+                }
+                for movie_title in movie_titles
+            }
+            first_movie = movie_payloads_by_date[movie_titles[0]][args.date]
             features = first_movie["features"]
             collection_name = "木棉花電影全台上映地圖"
             movies = [
                 {
-                    "title": item["title"],
-                    "show_date": item["show_date"],
-                    "feature_count": item["feature_count"],
+                    "title": movie_title,
+                    "show_date": args.date,
+                    "available_dates": [
+                        show_date
+                        for show_date in show_dates
+                        if movie_payloads_by_date[movie_title][show_date]["feature_count"] > 0
+                    ],
+                    "feature_count": movie_payloads_by_date[movie_title][args.date]["feature_count"],
                 }
-                for item in movie_payloads
+                for movie_title in movie_titles
             ]
-            movie_features = {str(item["title"]): item["features"] for item in movie_payloads}
+            # Legacy contract: old frontends continue to receive the primary date here.
+            movie_features = {
+                movie_title: movie_payloads_by_date[movie_title][args.date]["features"]
+                for movie_title in movie_titles
+            }
+            movie_features_by_date = {
+                movie_title: {
+                    show_date: payload["features"]
+                    for show_date, payload in by_date.items()
+                    if payload["feature_count"] > 0
+                }
+                for movie_title, by_date in movie_payloads_by_date.items()
+            }
+            available_dates = [
+                show_date
+                for show_date in show_dates
+                if any(
+                    movie_payloads_by_date[movie_title][show_date]["feature_count"] > 0
+                    for movie_title in movie_titles
+                )
+            ]
         else:
             features = fetch_location_features(conn)
             collection_name = "cinema_locations"
             movies = []
             movie_features = {}
+            movie_features_by_date = {}
+            available_dates = []
 
     payload = {
         "type": "FeatureCollection",
@@ -297,6 +349,8 @@ def main() -> None:
         "show_date": args.date if movie_titles else None,
         "movies": movies,
         "movie_features": movie_features,
+        "movie_features_by_date": movie_features_by_date,
+        "available_dates": available_dates,
         "feature_count": len(features),
         "features": features,
     }

@@ -4,8 +4,10 @@ import argparse
 import re
 import subprocess
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
+
+from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -43,7 +45,12 @@ def main() -> None:
     print("Kapok movie map update")
     print("========================================")
     print(f"Movie list: {movie_list_path}")
-    print(f"Date      : {args.date}")
+    start_date = date.fromisoformat(args.date)
+    show_dates = [
+        (start_date + timedelta(days=offset)).isoformat()
+        for offset in range(MAX_SOURCE_LOOKAHEAD_DAYS + 1)
+    ]
+    print(f"Dates     : {show_dates[0]} through {show_dates[-1]}")
     print("Movies:")
     for index, movie_title in enumerate(movie_titles, start=1):
         print(f"  {index}. {movie_title}")
@@ -51,12 +58,17 @@ def main() -> None:
 
     for movie_title in movie_titles:
         print(f"Fetching showtimes: {movie_title}")
-        run_step(["scripts/fetch_movie_showtimes.py", movie_title, "--date", args.date])
+        fetch_args = ["scripts/fetch_movie_showtimes.py", movie_title]
+        for show_date in show_dates:
+            fetch_args.extend(["--date", show_date])
+        run_step(fetch_args)
         print()
 
     print()
     print("Exporting web/data/locations.geojson ...")
     export_args = ["scripts/export_geojson.py", "--date", args.date]
+    for show_date in show_dates[1:]:
+        export_args.extend(["--additional-date", show_date])
     for movie_title in movie_titles:
         export_args.extend(["--movie-title", movie_title])
     run_step(export_args)
