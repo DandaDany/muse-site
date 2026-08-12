@@ -702,7 +702,9 @@ function selectMovie(movieTitle) {
   if (nextDate !== selectedDate) {
     selectedDate = nextDate;
     setQuickPeriod("all");
-    setAutoTimeMode(selectedDate === taipeiToday());
+    // refreshMovieDateData() 尚未切換 features；此處只更新時間 state，
+    // 最後由本函式既有的 applyFilters() 統一 render，避免舊 features 閃現一次。
+    setAutoTimeMode(false);
   }
   refreshMovieDateData();
   activeId = null;

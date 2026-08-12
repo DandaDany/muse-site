@@ -1,0 +1,128 @@
+name: P0-A PR acceptance
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0a-pr-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 25
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Taipei
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium and Xvfb
+        run: |
+          python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts/live-pages
+
+      - name: Automated validation
+        id: automated
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          {
+            python -m unittest discover -s tests -v
+            python -m compileall -q scripts tests
+            node --check web/app.js
+            node --check web/date-state.js
+            node tests/frontend_date_state_test.js
+            node tests/frontend_time_filter_test.js
+            git diff --check
+          } 2>&1 | tee artifacts/automated-tests.log
+
+      - name: Start local web server
+        run: |
+          cd web
+          python -m http.server 8765 --bind 127.0.0.1 > ../artifacts/http-server.log 2>&1 &
+          echo $! > ../artifacts/http-server.pid
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8765/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Desktop and mobile browser E2E
+        id: browser
+        continue-on-error: true
+        run: python tests/browser_acceptance.py --report artifacts/browser-report.json
+
+      - name: Live crawler smoke — VieShow, Century Asia, Universal Chung-Hwa
+        id: live
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args="-screen 0 1366x900x24" \
+            python scripts/live_acceptance.py \
+              --db artifacts/live-acceptance.sqlite \
+              --artifact-dir artifacts/live-pages \
+              --log artifacts/live-validation.json \
+            2>&1 | tee artifacts/live-validation.log
+
+      - name: Upload acceptance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0a-pr-acceptance-${{ github.run_id }}
+          path: |
+            artifacts/desktop*.png
+            artifacts/mobile*.png
+            artifacts/browser-report.json
+            artifacts/automated-tests.log
+            artifacts/live-validation.json
+            artifacts/live-validation.log
+            artifacts/live-vieshow.json
+            artifacts/live-centuryasia.json
+            artifacts/live-uch.json
+            artifacts/live-pages/**
+            artifacts/http-server.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Acceptance gate
+        if: always()
+        run: |
+          echo "automated=${{ steps.automated.outcome }}"
+          echo "browser=${{ steps.browser.outcome }}"
+          echo "live=${{ steps.live.outcome }}"
+          test "${{ steps.automated.outcome }}" = "success"
+          test "${{ steps.browser.outcome }}" = "success"
+          test "${{ steps.live.outcome }}" = "success"

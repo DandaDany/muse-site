@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "name": "P0-A deterministic browser acceptance fixture",
+  "show_date": "2026-08-12",
+  "available_dates": ["2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15"],
+  "movies": [
+    {"title": "電影 A", "show_date": "2026-08-12", "available_dates": ["2026-08-12", "2026-08-13", "2026-08-14"], "feature_count": 3},
+    {"title": "電影 B", "show_date": "2026-08-12", "available_dates": ["2026-08-12", "2026-08-15"], "feature_count": 2}
+  ],
+  "movie_features": {"電影 A": [], "電影 B": []},
+  "movie_features_by_date": {
+    "電影 A": {
+      "2026-08-12": [
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5654,25.0330]},"properties":{"location_id":101,"chain_name":"威秀影城 / VIESHOW","location_name":"信義測試館","map_name":"威秀 信義測試館","address":"臺北市信義區測試路1號","city":"臺北市","movie_title":"電影 A","show_date":"2026-08-12","showtime_count":3,"showtimes":[{"time":"14:00","format":"數位","booking_url":"https://example.test/a101/1400"},{"time":"16:00","format":"數位","booking_url":"https://example.test/a101/1600"},{"time":"20:00","format":"數位","booking_url":"https://example.test/a101/2000"}]}},
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5070,25.0460]},"properties":{"location_id":102,"chain_name":"喜樂時代影城","location_name":"西門測試館","map_name":"喜樂 西門測試館","address":"臺北市萬華區測試路2號","city":"臺北市","movie_title":"電影 A","show_date":"2026-08-12","showtime_count":2,"showtimes":[{"time":"15:00","format":"日語","booking_url":"https://example.test/a102/1500"},{"time":"18:30","format":"日語","booking_url":"https://example.test/a102/1830"}]}},
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.4600,25.0120]},"properties":{"location_id":103,"chain_name":"環球中華影城","location_name":"板橋測試館","map_name":"環球 板橋測試館","address":"新北市板橋區測試路3號","city":"新北市","movie_title":"電影 A","show_date":"2026-08-12","showtime_count":2,"showtimes":[{"time":"10:00","format":"國語","booking_url":"https://example.test/a103/1000"},{"time":"21:00","format":"國語","booking_url":"https://example.test/a103/2100"}]}}
+      ],
+      "2026-08-13": [
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5654,25.0330]},"properties":{"location_id":101,"chain_name":"威秀影城 / VIESHOW","location_name":"信義測試館","map_name":"威秀 信義測試館","address":"臺北市信義區測試路1號","city":"臺北市","movie_title":"電影 A","show_date":"2026-08-13","showtime_count":2,"showtimes":[{"time":"09:00","format":"數位","booking_url":"https://example.test/a101/0900"},{"time":"13:00","format":"數位","booking_url":"https://example.test/a101/1300"}]}},
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[120.3014,22.6273]},"properties":{"location_id":104,"chain_name":"測試影城","location_name":"高雄測試館","map_name":"測試影城 高雄測試館","address":"高雄市測試路4號","city":"高雄市","movie_title":"電影 A","show_date":"2026-08-13","showtime_count":3,"showtimes":[{"time":"10:00","format":"數位","booking_url":"https://example.test/a104/1000"},{"time":"18:00","format":"數位","booking_url":"https://example.test/a104/1800"},{"time":"22:00","format":"數位","booking_url":"https://example.test/a104/2200"}]}}
+      ],
+      "2026-08-14": [
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5070,25.0460]},"properties":{"location_id":102,"chain_name":"喜樂時代影城","location_name":"西門測試館","map_name":"喜樂 西門測試館","address":"臺北市萬華區測試路2號","city":"臺北市","movie_title":"電影 A","show_date":"2026-08-14","showtime_count":2,"showtimes":[{"time":"11:00","format":"日語","booking_url":"https://example.test/a102/1100"},{"time":"19:00","format":"日語","booking_url":"https://example.test/a102/1900"}]}}
+      ]
+    },
+    "電影 B": {
+      "2026-08-12": [
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5654,25.0330]},"properties":{"location_id":201,"chain_name":"威秀影城 / VIESHOW","location_name":"信義 B 館","map_name":"威秀 信義 B 館","address":"臺北市信義區測試路5號","city":"臺北市","movie_title":"電影 B","show_date":"2026-08-12","showtime_count":2,"showtimes":[{"time":"16:30","format":"數位","booking_url":"https://example.test/b201/1630"},{"time":"20:30","format":"數位","booking_url":"https://example.test/b201/2030"}]}},
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[120.6736,24.1477]},"properties":{"location_id":202,"chain_name":"測試影城","location_name":"台中 B 館","map_name":"測試影城 台中 B 館","address":"臺中市測試路6號","city":"臺中市","movie_title":"電影 B","show_date":"2026-08-12","showtime_count":1,"showtimes":[{"time":"18:00","format":"數位","booking_url":"https://example.test/b202/1800"}]}}
+      ],
+      "2026-08-15": [
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[121.5654,25.0330]},"properties":{"location_id":201,"chain_name":"威秀影城 / VIESHOW","location_name":"信義 B 館","map_name":"威秀 信義 B 館","address":"臺北市信義區測試路5號","city":"臺北市","movie_title":"電影 B","show_date":"2026-08-15","showtime_count":1,"showtimes":[{"time":"12:00","format":"數位","booking_url":"https://example.test/b201/1200"}]}},
+        {"type":"Feature","geometry":{"type":"Point","coordinates":[120.6736,24.1477]},"properties":{"location_id":202,"chain_name":"測試影城","location_name":"台中 B 館","map_name":"測試影城 台中 B 館","address":"臺中市測試路6號","city":"臺中市","movie_title":"電影 B","show_date":"2026-08-15","showtime_count":2,"showtimes":[{"time":"09:30","format":"數位","booking_url":"https://example.test/b202/0930"},{"time":"19:30","format":"數位","booking_url":"https://example.test/b202/1930"}]}}
+      ]
+    }
+  },
+  "features": []
+}
