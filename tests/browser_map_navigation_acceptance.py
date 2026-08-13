@@ -161,14 +161,22 @@ def run_desktop(browser: Browser, report: dict) -> None:
         page.locator(".map-home-control-button").click()
         page.wait_for_timeout(500)
         home_state = viewport(page)
-        checks["home_resets_view_and_filters"] = (
-            is_taiwan_overview(home_state)
-            and page.evaluate(
-                "() => selectedCity === '' && selectedChain === '' && timeMode === 'auto' && timePeriod === 'all'"
-            )
-            and page.locator("#mSearchInput").input_value() == ""
-            and page.locator(".leaflet-popup").count() == 0
+        checks["home_resets_view"] = is_taiwan_overview(home_state)
+        checks["home_clears_city_chain"] = page.evaluate(
+            "() => selectedCity === '' && selectedChain === ''"
         )
+        checks["home_resets_time_auto"] = page.evaluate(
+            "() => timeMode === 'auto' && timePeriod === 'all'"
+        )
+        checks["home_clears_search"] = (
+            page.locator("#mSearchInput").input_value() == ""
+            and page.locator("#searchInput").input_value() == ""
+        )
+        checks["home_closes_popup_sheet"] = (
+            page.locator(".leaflet-popup").count() == 0
+            and page.locator("#mSheet").get_attribute("aria-hidden") == "true"
+        )
+        checks["home_restores_visible_markers"] = page.locator(".cinema-marker").count() == 3
         page.screenshot(path=str(REPO / "artifacts" / "map-navigation-desktop.png"), full_page=True)
     finally:
         context.close()
