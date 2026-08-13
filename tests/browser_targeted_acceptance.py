@@ -47,8 +47,8 @@ def assert_ambassador_popup(page: Page, expected_date: str) -> None:
     container.wait_for()
     assert container.locator(".pst-date").inner_text() == expected_date
     text = container.inner_text()
-    assert "數位‧日文版" in text
-    assert "數位‧中文版" in text
+    assert "日語" in text
+    assert "國語" in text
     assert "今天 8/12 2026/08/12" not in text
     assert "明天 8/13 2026/08/13" not in text
 
