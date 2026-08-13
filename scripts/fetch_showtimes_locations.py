@@ -144,8 +144,9 @@ def save_locations(locations: list[dict[str, object]], db_path: Path) -> None:
                 ON CONFLICT(chain_id, location_name) DO UPDATE SET
                     address = COALESCE(excluded.address, cinema_locations.address),
                     city = COALESCE(excluded.city, cinema_locations.city),
-                    latitude = COALESCE(excluded.latitude, cinema_locations.latitude),
-                    longitude = COALESCE(excluded.longitude, cinema_locations.longitude),
+                    -- 已存在據點的主檔／人工座標優先；官方 bootstrap 只在座標缺漏時補值。
+                    latitude = COALESCE(cinema_locations.latitude, excluded.latitude),
+                    longitude = COALESCE(cinema_locations.longitude, excluded.longitude),
                     source_location_code = excluded.source_location_code,
                     location_url = excluded.location_url,
                     source_url = excluded.source_url,
