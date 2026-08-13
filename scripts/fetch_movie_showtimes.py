@@ -958,7 +958,7 @@ def fetch_ambassador_location(location: sqlite3.Row, aliases: list[str], show_da
             if seat_list is None:
                 continue
             raw_format_text = tag_node.get_text(" ", strip=True)
-            version_match = re.match(r"^[（(]\\s*([^）)]+?)\\s*[）)]", raw_format_text)
+            version_match = re.match(r"^[（(]\s*([^）)]+?)\s*[）)]", raw_format_text)
             format_text = version_match.group(1).strip() if version_match else raw_format_text
             for li in seat_list.select("li"):
                 time_node = li.find("h6")

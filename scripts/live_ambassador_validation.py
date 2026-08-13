@@ -28,7 +28,7 @@ def official_groups(item) -> list[dict[str, str | None]]:
         if seat_list is None:
             continue
         raw_format_text = tag.get_text(" ", strip=True)
-        version_match = re.match(r"^[（(]\\s*([^）)]+?)\\s*[）)]", raw_format_text)
+        version_match = re.match(r"^[（(]\s*([^）)]+?)\s*[）)]", raw_format_text)
         format_text = version_match.group(1).strip() if version_match else raw_format_text
         for time_node in seat_list.select("li h6"):
             start_time = time_node.get_text(" ", strip=True).zfill(5)
