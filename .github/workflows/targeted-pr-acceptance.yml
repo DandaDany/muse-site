@@ -68,12 +68,18 @@ jobs:
           exit 1
 
       - name: Existing browser acceptance
+        id: browser_existing
+        continue-on-error: true
         run: python tests/browser_acceptance.py --report artifacts/browser-report.json
 
       - name: Targeted desktop and mobile acceptance
+        id: browser_targeted
+        continue-on-error: true
         run: python tests/browser_targeted_acceptance.py --report artifacts/targeted-browser-report.json
 
       - name: Ambassador live multi-language comparison
+        id: ambassador_live
+        continue-on-error: true
         run: |
           python scripts/live_ambassador_validation.py             --artifact-dir artifacts/live-pages             --log artifacts/ambassador-live-validation.json             2>&1 | tee artifacts/ambassador-live-validation.log
 
@@ -89,3 +95,13 @@ jobs:
             artifacts/live-pages/**
           if-no-files-found: error
           retention-days: 14
+
+      - name: Acceptance gate
+        if: always()
+        run: |
+          echo "browser_existing=${{ steps.browser_existing.outcome }}"
+          echo "browser_targeted=${{ steps.browser_targeted.outcome }}"
+          echo "ambassador_live=${{ steps.ambassador_live.outcome }}"
+          test "${{ steps.browser_existing.outcome }}" = "success"
+          test "${{ steps.browser_targeted.outcome }}" = "success"
+          test "${{ steps.ambassador_live.outcome }}" = "success"
