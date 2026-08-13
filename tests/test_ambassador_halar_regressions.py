@@ -60,10 +60,10 @@ class AmbassadorHalarRegressionTests(unittest.TestCase):
         self.assertEqual(
             [(r.start_time, r.format, r.language) for r in sorted(records, key=lambda r: r.start_time)],
             [
-                ("10:50", "(數位‧日文版)測試雙語電影", "日語"),
-                ("15:15", "(數位‧日文版)測試雙語電影", "日語"),
-                ("17:20", "(數位‧中文版)測試雙語電影", "國語"),
-                ("19:00", "(數位‧日文版)測試雙語電影", "日語"),
+                ("10:50", "數位‧日文版", "日語"),
+                ("15:15", "數位‧日文版", "日語"),
+                ("17:20", "數位‧中文版", "國語"),
+                ("19:00", "數位‧日文版", "日語"),
             ],
         )
         self.assertTrue(all(r.show_date == SHOW_DATE for r in records))
@@ -124,10 +124,10 @@ class AmbassadorHalarRegressionTests(unittest.TestCase):
             self.assertEqual(
                 [(s["time"], s["format"], s["language"]) for s in ambassador["properties"]["showtimes"]],
                 [
-                    ("10:50", "(數位‧日文版)測試雙語電影", "日語"),
-                    ("15:15", "(數位‧日文版)測試雙語電影", "日語"),
-                    ("17:20", "(數位‧中文版)測試雙語電影", "國語"),
-                    ("19:00", "(數位‧日文版)測試雙語電影", "日語"),
+                    ("10:50", "數位‧日文版", "日語"),
+                    ("15:15", "數位‧日文版", "日語"),
+                    ("17:20", "數位‧中文版", "國語"),
+                    ("19:00", "數位‧日文版", "日語"),
                 ],
             )
             self.assertEqual(halar["properties"]["location_url"], showtimes.HALAR_URL)

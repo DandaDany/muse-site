@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -26,7 +27,9 @@ def official_groups(item) -> list[dict[str, str | None]]:
         seat_list = tag.find_next_sibling("ul", class_="seat-list")
         if seat_list is None:
             continue
-        format_text = tag.get_text(" ", strip=True)
+        raw_format_text = tag.get_text(" ", strip=True)
+        version_match = re.match(r"^[（(]\\s*([^）)]+?)\\s*[）)]", raw_format_text)
+        format_text = version_match.group(1).strip() if version_match else raw_format_text
         for time_node in seat_list.select("li h6"):
             start_time = time_node.get_text(" ", strip=True).zfill(5)
             rows.append({"time": start_time, "format": format_text, "language": infer_language(format_text)})
