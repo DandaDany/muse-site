@@ -9,8 +9,8 @@ function activeMaxBounds() {
 }
 const DATA_URL = "data/locations.geojson";
 const LOGO_URL = "data/chain_logos.json";
-const ZOOM_BUTTON_STEP = 0.5;
-const ZOOM_SNAP_STEP = 0.25;
+const ZOOM_BUTTON_STEP = 1;
+const ZOOM_SNAP_STEP = 1;
 const MIN_MARKER_SIZE = 24;
 const MAX_MARKER_SIZE = 48;
 const CITY_ORDER = [
@@ -55,17 +55,56 @@ const map = L.map("map", {
   maxBounds: activeMaxBounds(),
   maxBoundsViscosity: 1,
   worldCopyJump: false,
-  zoomControl: true,
+  zoomControl: false,
   attributionControl: false,
   zoomDelta: ZOOM_BUTTON_STEP,
   zoomSnap: ZOOM_SNAP_STEP,
   scrollWheelZoom: true,
   wheelDebounceTime: 25,
-  wheelPxPerZoomLevel: 160,
+  wheelPxPerZoomLevel: 60,
   zoomAnimation: true,
   fadeAnimation: true,
   markerZoomAnimation: true,
 });
+
+let startupViewportCanceled = false;
+let startupLocationRequested = false;
+
+const mapContainer = map.getContainer();
+for (const eventName of ["pointerdown", "wheel", "touchstart"]) {
+  mapContainer.addEventListener(
+    eventName,
+    () => {
+      startupViewportCanceled = true;
+    },
+    { capture: true, passive: true },
+  );
+}
+
+const HomeControl = L.Control.extend({
+  options: { position: "topleft" },
+
+  onAdd() {
+    const container = L.DomUtil.create("div", "leaflet-bar map-home-control");
+    const link = L.DomUtil.create("a", "map-home-control-button", container);
+    link.href = "#";
+    link.title = "清除篩選並回到台灣視角";
+    link.setAttribute("role", "button");
+    link.setAttribute("aria-label", "清除篩選並回到台灣視角");
+    link.textContent = "⌂";
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+    L.DomEvent.on(link, "click", (event) => {
+      L.DomEvent.preventDefault(event);
+      startupViewportCanceled = true;
+      clearFiltersAndResetView();
+    });
+    return container;
+  },
+});
+
+new HomeControl().addTo(map);
+L.control.zoom({ position: "topleft" }).addTo(map);
 
 // 版本／圖資標示改放左上角一顆小圓標，避免壓在地圖與抽屜的接縫中間
 L.control.attribution({ position: "topleft", prefix: false }).addTo(map);
@@ -92,7 +131,6 @@ const chainFilterList = document.querySelector("#chainFilterList");
 const cityFilterList = document.querySelector("#cityFilterList");
 const clearSearchButton = document.querySelector("#clearSearchButton");
 const searchSuggestions = document.querySelector("#searchSuggestions");
-const resetViewButton = document.querySelector("#resetViewButton");
 const dateChips = document.querySelector("#dateChips");
 
 const {
@@ -978,6 +1016,32 @@ function clearFiltersAndResetView() {
   resetView();
 }
 
+function requestStartupLocation() {
+  if (startupLocationRequested) return;
+  startupLocationRequested = true;
+  if (!navigator.geolocation?.getCurrentPosition) return;
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      if (startupViewportCanceled) return;
+      const latitude = Number(position?.coords?.latitude);
+      const longitude = Number(position?.coords?.longitude);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+      const startupLocation = L.latLng(latitude, longitude);
+      if (!activeMaxBounds().contains(startupLocation)) return;
+      map.setView(startupLocation, 10, { animate: false });
+    },
+    () => {
+      // 定位失敗不阻擋載入，也不顯示錯誤；保留台灣全圖。
+    },
+    {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 300000,
+    },
+  );
+}
+
 async function loadLogos() {
   const response = await fetch(LOGO_URL, { cache: "no-store" });
   if (!response.ok) {
@@ -1021,7 +1085,6 @@ clearSearchButton.addEventListener("click", () => {
   applyFilters();
   searchInput.focus();
 });
-resetViewButton.addEventListener("click", clearFiltersAndResetView);
 map.on("resize", updateMinZoomForBounds);
 
 /* ============================================================
@@ -1042,11 +1105,10 @@ const timeSliderFill = document.querySelector("#timeSliderFill");
 const timeSliderKnob = document.querySelector("#timeSliderKnob");
 const timeFilterCaption = document.querySelector("#timeFilterCaption");
 const timePeriodButtons = document.querySelector("#timePeriodButtons");
-// 浮動搜尋與首頁控制在手機、桌機都會顯示
+// 浮動搜尋在手機、桌機共用
 const mSearchInput = document.querySelector("#mSearchInput");
 const mSearchClear = document.querySelector("#mSearchClear");
 const mSearchSuggestions = document.querySelector("#mSearchSuggestions");
-const mHome = document.querySelector("#mHome");
 
 // 手機影城資訊底部 sheet（點 logo 開啟，佔 70dvh，地圖留 30dvh）
 const mSheet = document.querySelector("#mSheet");
@@ -1285,9 +1347,6 @@ mSearchClear.addEventListener("click", () => {
   applyFilters();
   mSearchInput.focus();
 });
-mHome.addEventListener("click", () => {
-  clearFiltersAndResetView();
-});
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
@@ -1317,7 +1376,10 @@ scheduleMinuteBoundaryUpdate();
 refreshSheetLayout();
 
 loadData()
-  .then(refreshSheetLayout)
+  .then(() => {
+    refreshSheetLayout();
+    requestStartupLocation();
+  })
   .catch((error) => {
     renderSummaryText(error.message);
     console.error(error);
