@@ -43,7 +43,7 @@ def open_marker(page: Page, prefix: str) -> None:
 
 
 def assert_ambassador_popup(page: Page, expected_date: str) -> None:
-    container = page.locator(".leaflet-popup") if page.viewport_size["width"] > 390 else page.locator("#mSheetBody")
+    container = page.locator(".leaflet-popup").last if page.viewport_size["width"] > 390 else page.locator("#mSheetBody")
     container.wait_for()
     assert container.locator(".pst-date").inner_text() == expected_date
     text = container.inner_text()
@@ -71,7 +71,7 @@ def run(page: Page, mobile: bool, report: dict) -> None:
     page.locator("#dateChips button[data-date='2026-08-12']").dispatch_event("click")
     page.wait_for_timeout(400)
     open_marker(page, "哈拉影城")
-    container = page.locator("#mSheetBody") if mobile else page.locator(".leaflet-popup")
+    container = page.locator("#mSheetBody") if mobile else page.locator(".leaflet-popup").last
     link = container.get_by_role("link", name="場次入口")
     assert link.get_attribute("href") == HALAR_URL
     assert container.locator(".pst-date").inner_text() == "2026/08/12"
