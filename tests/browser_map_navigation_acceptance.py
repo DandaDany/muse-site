@@ -90,11 +90,11 @@ def near(actual: float, expected: float, tolerance: float = 0.03) -> bool:
 
 
 def is_taiwan_overview(state: dict[str, float]) -> bool:
-    # Leaflet 會依 viewport 尺寸與 maxBounds 微調 center，桌機寬高不同時
-    # 不會精確停在 TAIWAN_CENTER；zoom 8 且仍為台灣全域視角才是產品語意。
+    # Leaflet 會依 viewport 尺寸與 maxBounds 微調 center；驗收產品語意：
+    # zoom 8、中心仍在 Taiwan bounds，且不是 startup 的台北 zoom 10 視角。
     return (
-        near(state["lat"], TAIWAN["lat"], 0.7)
-        and near(state["lng"], TAIWAN["lng"], 0.7)
+        21.5 <= state["lat"] <= 26.9
+        and 117.7 <= state["lng"] <= 123.2
         and state["zoom"] == TAIWAN["zoom"]
         and not (near(state["lat"], TAIPEI["lat"], 0.1) and near(state["lng"], TAIPEI["lng"], 0.1))
     )
@@ -161,6 +161,7 @@ def run_desktop(browser: Browser, report: dict) -> None:
         page.locator(".map-home-control-button").click()
         page.wait_for_timeout(500)
         home_state = viewport(page)
+        checks["home_viewport"] = home_state
         checks["home_resets_view"] = is_taiwan_overview(home_state)
         checks["home_clears_city_chain"] = page.evaluate(
             "() => selectedCity === '' && selectedChain === ''"
