@@ -90,10 +90,13 @@ def near(actual: float, expected: float, tolerance: float = 0.03) -> bool:
 
 
 def is_taiwan_overview(state: dict[str, float]) -> bool:
+    # Leaflet 會依 viewport 尺寸與 maxBounds 微調 center，桌機寬高不同時
+    # 不會精確停在 TAIWAN_CENTER；zoom 8 且仍為台灣全域視角才是產品語意。
     return (
-        near(state["lat"], TAIWAN["lat"], 0.08)
-        and near(state["lng"], TAIWAN["lng"], 0.08)
+        near(state["lat"], TAIWAN["lat"], 0.7)
+        and near(state["lng"], TAIWAN["lng"], 0.7)
         and state["zoom"] == TAIWAN["zoom"]
+        and not (near(state["lat"], TAIPEI["lat"], 0.1) and near(state["lng"], TAIPEI["lng"], 0.1))
     )
 
 
