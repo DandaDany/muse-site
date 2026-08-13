@@ -62,7 +62,7 @@ ILANMOVIE_URL = "https://ilanmovie.com/index.php"
 WINDLION_URL = "https://cinemax.windlion.com.tw/movies.php"
 PTCINEMA_URL = "https://ptcinema.movie.com.tw/time?date={show_date}"
 PTCINEMA_ATMOVIES_URL = "https://www.atmovies.com.tw/showtime/t08701/a87/"
-HALAR_URL = "https://halarcity.com.tw/browsing/Cinemas/Details/0000000001"
+HALAR_URL = "https://halarcity.com.tw/Browsing/Cinemas/Details/0000000001"
 MIRAMAR_URL = "https://www.miramarcinemas.tw/timetable"
 NANTAI_URL = "https://www.nt-movie.com.tw/showtime.php"
 LUX_URL = "https://www.luxcinema.com.tw/web/2020.php?type=ShowTimes"
@@ -950,29 +950,35 @@ def fetch_ambassador_location(location: sqlite3.Row, aliases: list[str], show_da
         if not movie_matches(item_text, aliases):
             continue
         title_node = item.select_one("h3 a")
-        tag_node = item.select_one(".tag-seat")
-        format_text = tag_node.get_text(" ", strip=True) if tag_node else None
-        for li in item.select("ul.seat-list li"):
-            time_node = li.find("h6")
-            if not time_node:
+        theater_box = item.select_one(".theater-box") or item
+        # 國賓同一部電影會以同層的 tag-seat + seat-list 形成版本群組。
+        # 每個 tag 只能配對緊接其後的場次清單，避免第一個語言污染其他版本。
+        for tag_node in theater_box.select(":scope > .tag-seat"):
+            seat_list = tag_node.find_next_sibling("ul", class_="seat-list")
+            if seat_list is None:
                 continue
-            start_time = time_node.get_text(" ", strip=True)
-            if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
-                continue
-            info_node = li.select_one(".info")
-            records.append(
-                ShowtimeRecord(
-                    location_id=int(location["id"]),
-                    show_date=show_date,
-                    start_time=start_time.zfill(5),
-                    auditorium=info_node.get_text(" ", strip=True) if info_node else None,
-                    format=format_text,
-                    language=infer_language(format_text),
-                    booking_url=source_url,
-                    source_url=source_url,
-                    raw_text=f"{title_node.get_text(' ', strip=True) if title_node else ''} {format_text or ''}",
+            format_text = tag_node.get_text(" ", strip=True)
+            for li in seat_list.select("li"):
+                time_node = li.find("h6")
+                if not time_node:
+                    continue
+                start_time = time_node.get_text(" ", strip=True)
+                if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
+                    continue
+                info_node = li.select_one(".info")
+                records.append(
+                    ShowtimeRecord(
+                        location_id=int(location["id"]),
+                        show_date=show_date,
+                        start_time=start_time.zfill(5),
+                        auditorium=info_node.get_text(" ", strip=True) if info_node else None,
+                        format=format_text,
+                        language=infer_language(format_text),
+                        booking_url=source_url,
+                        source_url=source_url,
+                        raw_text=f"{title_node.get_text(' ', strip=True) if title_node else ''} {format_text}",
+                    )
                 )
-            )
     return records
 
 
@@ -1508,8 +1514,8 @@ def fetch_halar(conn: sqlite3.Connection, aliases: list[str], show_date: str) ->
                 start_time = time_node.get_text(strip=True)
                 if not re.fullmatch(r"\d{1,2}:\d{2}", start_time):
                     continue
-                href = time_link.get("href") or HALAR_URL
-                booking_url = urllib.parse.urljoin(HALAR_URL, href)
+                # 個別 session href 不保證是穩定的公開入口；Popup 永遠導向官方時刻頁。
+                booking_url = HALAR_URL
                 attributes = [image.get("alt", "").strip() for image in time_link.select("img[alt]")]
                 auditorium = " / ".join(value for value in attributes if value) or None
                 records.append(

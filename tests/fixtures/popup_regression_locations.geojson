@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "name": "Targeted popup acceptance",
+  "show_date": "2026-08-12",
+  "updated_at": "2026-08-12T07:05:23+08:00",
+  "available_dates": [
+    "2026-08-12",
+    "2026-08-13"
+  ],
+  "movies": [
+    {
+      "title": "修正驗收電影",
+      "show_date": "2026-08-12",
+      "available_dates": [
+        "2026-08-12",
+        "2026-08-13"
+      ],
+      "feature_count": 2
+    }
+  ],
+  "movie_features": {
+    "修正驗收電影": []
+  },
+  "movie_features_by_date": {
+    "修正驗收電影": {
+      "2026-08-12": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              121.55,
+              25.03
+            ]
+          },
+          "properties": {
+            "location_id": 301,
+            "chain_name": "國賓影城",
+            "location_name": "國賓驗收館",
+            "map_name": "國賓驗收館",
+            "address": "臺北市測試路1號",
+            "city": "臺北市",
+            "location_url": "https://www.ambassador.com.tw/home/Showtime",
+            "official_url": "https://www.ambassador.com.tw/",
+            "movie_title": "修正驗收電影",
+            "show_date": "2026-08-12",
+            "showtime_count": 2,
+            "showtimes": [
+              {
+                "time": "10:50",
+                "format": "數位‧日文版",
+                "language": "日語",
+                "booking_url": "https://www.ambassador.com.tw/home/Showtime"
+              },
+              {
+                "time": "17:20",
+                "format": "數位‧中文版",
+                "language": "國語",
+                "booking_url": "https://www.ambassador.com.tw/home/Showtime"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              121.6,
+              25.08
+            ]
+          },
+          "properties": {
+            "location_id": 302,
+            "chain_name": "哈拉影城",
+            "location_name": "哈拉影城",
+            "map_name": "哈拉影城",
+            "address": "臺北市測試路2號",
+            "city": "臺北市",
+            "location_url": "https://halarcity.com.tw/Browsing/Cinemas/Details/0000000001",
+            "official_url": "https://halarcity.com.tw/",
+            "movie_title": "修正驗收電影",
+            "show_date": "2026-08-12",
+            "showtime_count": 1,
+            "showtimes": [
+              {
+                "time": "13:30",
+                "format": "數位",
+                "booking_url": "https://halarcity.com.tw/Browsing/Cinemas/Details/0000000001"
+              }
+            ]
+          }
+        }
+      ],
+      "2026-08-13": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              121.55,
+              25.03
+            ]
+          },
+          "properties": {
+            "location_id": 301,
+            "chain_name": "國賓影城",
+            "location_name": "國賓驗收館",
+            "map_name": "國賓驗收館",
+            "address": "臺北市測試路1號",
+            "city": "臺北市",
+            "location_url": "https://www.ambassador.com.tw/home/Showtime",
+            "official_url": "https://www.ambassador.com.tw/",
+            "movie_title": "修正驗收電影",
+            "show_date": "2026-08-13",
+            "showtime_count": 2,
+            "showtimes": [
+              {
+                "time": "11:30",
+                "format": "數位‧日文版",
+                "language": "日語",
+                "booking_url": "https://www.ambassador.com.tw/home/Showtime"
+              },
+              {
+                "time": "18:10",
+                "format": "數位‧中文版",
+                "language": "國語",
+                "booking_url": "https://www.ambassador.com.tw/home/Showtime"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              121.6,
+              25.08
+            ]
+          },
+          "properties": {
+            "location_id": 302,
+            "chain_name": "哈拉影城",
+            "location_name": "哈拉影城",
+            "map_name": "哈拉影城",
+            "address": "臺北市測試路2號",
+            "city": "臺北市",
+            "location_url": "https://halarcity.com.tw/Browsing/Cinemas/Details/0000000001",
+            "official_url": "https://halarcity.com.tw/",
+            "movie_title": "修正驗收電影",
+            "show_date": "2026-08-13",
+            "showtime_count": 1,
+            "showtimes": [
+              {
+                "time": "14:30",
+                "format": "數位",
+                "booking_url": "https://halarcity.com.tw/Browsing/Cinemas/Details/0000000001"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "features": []
+}
