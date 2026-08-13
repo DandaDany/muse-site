@@ -94,8 +94,8 @@ def is_taiwan_overview(page: Page, state: dict[str, float]) -> bool:
     # Home 仍以 TAIWAN_CENTER / zoom 8 為目標，實際值依合法 minZoom 夾取。
     expected_zoom = max(TAIWAN["zoom"], page.evaluate("() => map.getMinZoom()"))
     return (
-        near(state["lat"], TAIWAN["lat"], 0.08)
-        and near(state["lng"], TAIWAN["lng"], 0.08)
+        21.5 <= state["lat"] <= 26.9
+        and 117.7 <= state["lng"] <= 123.2
         and state["zoom"] == expected_zoom
         and not (near(state["lat"], TAIPEI["lat"], 0.1) and near(state["lng"], TAIPEI["lng"], 0.1))
     )
