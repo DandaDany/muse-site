@@ -89,13 +89,14 @@ def near(actual: float, expected: float, tolerance: float = 0.03) -> bool:
     return abs(actual - expected) <= tolerance
 
 
-def is_taiwan_overview(state: dict[str, float]) -> bool:
-    # Leaflet 會依 viewport 尺寸與 maxBounds 微調 center；驗收產品語意：
-    # zoom 8、中心仍在 Taiwan bounds，且不是 startup 的台北 zoom 10 視角。
+def is_taiwan_overview(page: Page, state: dict[str, float]) -> bool:
+    # 大型 viewport 可能使 Leaflet 為遵守 maxBounds 把 minZoom 提升到 9；
+    # Home 仍以 TAIWAN_CENTER / zoom 8 為目標，實際值依合法 minZoom 夾取。
+    expected_zoom = max(TAIWAN["zoom"], page.evaluate("() => map.getMinZoom()"))
     return (
-        21.5 <= state["lat"] <= 26.9
-        and 117.7 <= state["lng"] <= 123.2
-        and state["zoom"] == TAIWAN["zoom"]
+        near(state["lat"], TAIWAN["lat"], 0.08)
+        and near(state["lng"], TAIWAN["lng"], 0.08)
+        and state["zoom"] == expected_zoom
         and not (near(state["lat"], TAIPEI["lat"], 0.1) and near(state["lng"], TAIPEI["lng"], 0.1))
     )
 
@@ -162,7 +163,7 @@ def run_desktop(browser: Browser, report: dict) -> None:
         page.wait_for_timeout(500)
         home_state = viewport(page)
         checks["home_viewport"] = home_state
-        checks["home_resets_view"] = is_taiwan_overview(home_state)
+        checks["home_resets_view"] = is_taiwan_overview(page, home_state)
         checks["home_clears_city_chain"] = page.evaluate(
             "() => selectedCity === '' && selectedChain === ''"
         )
@@ -245,7 +246,7 @@ def run_fallbacks(browser: Browser, report: dict) -> None:
         page = open_page(context, mode)
         try:
             page.wait_for_timeout(250)
-            report["geolocation"][key] = is_taiwan_overview(viewport(page))
+            report["geolocation"][key] = is_taiwan_overview(page, viewport(page))
         finally:
             context.close()
 
@@ -266,7 +267,7 @@ def run_delayed_interaction(browser: Browser, report: dict) -> None:
             near(before["lat"], after["lat"], 1e-7)
             and near(before["lng"], after["lng"], 1e-7)
             and before["zoom"] == after["zoom"]
-            and is_taiwan_overview(after)
+            and is_taiwan_overview(page, after)
         )
     finally:
         context.close()
