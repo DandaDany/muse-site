@@ -710,6 +710,30 @@ input[type="search"]::-webkit-search-cancel-button {
   border-radius: 0 0 8px 8px;
 }
 
+.map-home-control {
+  margin-bottom: 0 !important;
+  border-radius: 8px 8px 0 0;
+}
+
+.map-home-control .map-home-control-button {
+  border-radius: 8px 8px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.map-home-control + .leaflet-control-zoom {
+  margin-top: -1px;
+  border-radius: 0 0 8px 8px;
+}
+
+.map-home-control + .leaflet-control-zoom a:first-child {
+  border-radius: 0;
+}
+
+.map-home-control + .leaflet-control-zoom a:last-child {
+  border-radius: 0 0 8px 8px;
+}
+
 .leaflet-control-attribution {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.86);
@@ -1040,7 +1064,6 @@ input[type="search"]::-webkit-search-cancel-button {
 .m-panel,
 .m-search,
 .m-suggestions,
-.m-home,
 .m-sheet {
   display: none;
 }
@@ -1168,25 +1191,6 @@ input[type="search"]::-webkit-search-cancel-button {
 
   .m-suggestions[hidden] {
     display: none;
-  }
-
-  /* 回到台灣視角：地圖右上小圓鈕（取代抽屜內的 ⌂） */
-  .m-home {
-    display: grid;
-    position: absolute;
-    z-index: 945;
-    top: calc(64px + env(safe-area-inset-top, 0px));
-    right: 12px;
-    width: 38px;
-    height: 38px;
-    place-items: center;
-    border: 1px solid #e4e0d8;
-    border-radius: 11px;
-    background: #ffffff;
-    color: #3d3a34;
-    font-size: 18px;
-    box-shadow: 0 6px 14px -6px rgba(20, 20, 30, 0.35);
-    cursor: pointer;
   }
 
   /* ---- 底部抽屜：墨黑一點橘、米白紙感、左右留白浮起 ---- */
