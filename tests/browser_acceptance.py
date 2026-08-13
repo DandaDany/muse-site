@@ -110,7 +110,7 @@ def run_desktop(page: Page, report: dict) -> None:
     page.wait_for_timeout(400)  # wait for Leaflet's old-popup fade-out
     checks["popup_refresh"] = (
         page.locator(".leaflet-popup").count() == 1
-        and "明天 8/13" in page.locator(".leaflet-popup").inner_text()
+        and "2026/08/13" in page.locator(".leaflet-popup").inner_text()
         and "09:00" in page.locator(".leaflet-popup").inner_text()
     )
     page.get_by_role("button", name="五 8/14").click()
@@ -161,7 +161,7 @@ def run_mobile(page: Page, report: dict) -> None:
     page.locator(".cinema-marker[aria-label^='威秀影城']").dispatch_event("click")
     page.locator("#mSheet[aria-hidden='false']").wait_for()
     selected = page.locator(".cinema-marker.is-mobile-selected")
-    checks["marker_opens_bottom_sheet"] = selected.count() == 1 and "今天 8/12" in page.locator("#mSheetBody").inner_text()
+    checks["marker_opens_bottom_sheet"] = selected.count() == 1 and "2026/08/12" in page.locator("#mSheetBody").inner_text()
 
     page.locator("#dateChips button[data-date='2026-08-13']").dispatch_event("click")
     page.wait_for_timeout(100)
@@ -171,7 +171,7 @@ def run_mobile(page: Page, report: dict) -> None:
     checks["summary_no_overflow"] = page.locator("#summaryText").evaluate("el => el.scrollWidth <= el.clientWidth")
     checks["bottom_sheet_date_refresh"] = (
         page.locator("#mSheet[aria-hidden='false']").count() == 1
-        and "明天 8/13" in page.locator("#mSheetBody").inner_text()
+        and "2026/08/13" in page.locator("#mSheetBody").inner_text()
         and "09:00" in page.locator("#mSheetBody").inner_text()
     )
     checks["selected_marker_preserved"] = page.locator(".cinema-marker.is-mobile-selected").count() == 1

@@ -387,7 +387,7 @@ function popupHtml(feature) {
     ? `<p class="popup-address"><span>${escapeHtml(props.address)}</span>${pin}</p>`
     : "";
   const dateText = props.show_date
-    ? `${escapeHtml(dateChipLabel(props.show_date))} ${escapeHtml(props.show_date).replaceAll("-", "/")}`
+    ? escapeHtml(props.show_date).replaceAll("-", "/")
     : "當日場次";
   const showtimes = visibleShowtimes(feature);
   const showtimeBlock = showtimes.length
