@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_MOVIE_LIST = PROJECT_DIR / "電影清單.txt"
+DEFAULT_OUTPUT = PROJECT_DIR / "web" / "data" / "locations.geojson"
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
 def read_movie_titles(path: Path) -> list[str]:
@@ -31,6 +35,29 @@ def run_step(args: list[str]) -> None:
     subprocess.run([sys.executable, *args], cwd=PROJECT_DIR, check=True)
 
 
+def write_empty_movie_map(show_date: str, output: Path = DEFAULT_OUTPUT) -> None:
+    """輸出合法的空電影地圖狀態，不沿用昨天的電影或退回影城主檔模式。"""
+    payload = {
+        "type": "FeatureCollection",
+        "name": "木棉花電影全台上映地圖",
+        "generated_at": date.today().isoformat(),
+        "updated_at": datetime.now(TAIPEI_TZ).isoformat(timespec="seconds"),
+        "movie_title": None,
+        "show_date": show_date,
+        "movies": [],
+        "movie_features": {},
+        "movie_features_by_date": {},
+        "available_dates": [],
+        "feature_count": 0,
+        "features": [],
+        "empty_state": "no_movies_today",
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"GeoJSON exported: {output}")
+    print("Movies: 0 (today has no tracked theatrical movies)")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fetch showtimes and export the local web map GeoJSON.")
     parser.add_argument("--movie-list", type=Path, default=DEFAULT_MOVIE_LIST, help="Text file containing numbered movie titles.")
@@ -38,13 +65,20 @@ def main() -> None:
     args = parser.parse_args()
     movie_list_path = args.movie_list if args.movie_list.is_absolute() else PROJECT_DIR / args.movie_list
     movie_titles = read_movie_titles(movie_list_path)
-    if not movie_titles:
-        raise SystemExit(f"No movie titles found in {movie_list_path}")
 
     print("========================================")
     print("Kapok movie map update")
     print("========================================")
     print(f"Movie list: {movie_list_path}")
+
+    if not movie_titles:
+        print("Movies    : 0 — export empty movie state; no cinema crawler will run.")
+        write_empty_movie_map(args.date)
+        print()
+        print("[DONE] Map data updated.")
+        print("Output: web/data/locations.geojson")
+        return
+
     start_date = date.fromisoformat(args.date)
     show_dates = [
         (start_date + timedelta(days=offset)).isoformat()

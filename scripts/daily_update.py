@@ -3,8 +3,8 @@
 資料流（每次執行同步一次；雲端斷線仍可執行）：
 
     [執行前] 向雲端 Django 拉啟用片單（API）→ 原子寫入 電影清單.txt
-             （API 失敗 → 用上次快取；未設定 API → 用現有 txt）
-    [執行]   本機爬蟲 → 本機 SQLite → GeoJSON → git push（記錄各階段狀態）
+             （API 失敗 → 用上次快取；未設定 API → 用現有 txt；合法 0 部則清空）
+    [執行]   本機爬蟲 → 本機 SQLite → GeoJSON → git push（0 部時跳過影城爬蟲並輸出空地圖）
     [執行後] 組執行摘要（唯一 run_id）→ 先落地 pending_reports → POST 回雲端
              （outbox：上傳成功才刪檔；失敗下次重送，以 run_id 冪等不重複）
 
@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import muse_api  # noqa: E402
 from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS  # noqa: E402
-from update_map import read_movie_titles  # noqa: E402
+from update_map import read_movie_titles, write_empty_movie_map  # noqa: E402
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MOVIE_LIST = PROJECT_DIR / "電影清單.txt"
@@ -152,7 +152,10 @@ def build_summary(sources, show_date):
     }
 
 
-def overall_status(summary, crawled: bool) -> str:
+def overall_status(summary, crawled: bool, movie_count: int | None = None) -> str:
+    # 後台明確回傳 0 部電影是正常業務狀態：本輪沒有來源需要爬，但發布空地圖仍算成功。
+    if movie_count == 0:
+        return "success"
     if not crawled:
         return "skipped"
     total = summary["sources_total"]
@@ -224,18 +227,32 @@ def main() -> None:
               f"版本={movie_list_meta.get('version')} 數量={movie_list_meta.get('count')}"
               + (f" 錯誤={movie_list_meta['api_error']}" if movie_list_meta.get("api_error") else ""))
 
-    # 2) 爬蟲 + GeoJSON
+    titles = read_movie_titles(MOVIE_LIST)
+    movie_count = len(titles)
+
+    # 2) 爬蟲 + GeoJSON。0 部電影時 update_map 只輸出 empty state，不呼叫任何影城來源。
     pre_max = max_crawl_run_id()
     crawled = not args.no_crawl
     if crawled:
         run([sys.executable, "scripts/update_map.py", "--date", args.date])
-    else:
-        titles = read_movie_titles(MOVIE_LIST)
+    elif titles:
         export_args = build_no_crawl_export_args(titles, args.date)
         run([sys.executable, *export_args])
+    else:
+        write_empty_movie_map(args.date)
 
     sources = collect_sources(pre_max, args.date)
     summary = build_summary(sources, args.date)
+    if movie_count == 0:
+        summary.update({
+            "sources_total": 0,
+            "sources_success": 0,
+            "sources_failed": 0,
+            "showtimes_found": 0,
+            "showtimes_saved": 0,
+            "cinemas_with_showtimes": 0,
+            "movies_with_showtimes": 0,
+        })
 
     # 3) 發佈
     git = {"push_status": "skipped", "commit_sha": None}
@@ -250,7 +267,7 @@ def main() -> None:
         "started_at": started_at,
         "finished_at": muse_api.now_iso(),
         "show_date": args.date,
-        "status": overall_status(summary, crawled),
+        "status": overall_status(summary, crawled, movie_count),
         "movie_list": movie_list_meta,
         "summary": summary,
         "sources": sources,

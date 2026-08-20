@@ -2,7 +2,8 @@
 
 職責：
 - 拉片單：GET /api/tracked-movies/，驗證後原子更新 JSON 快取與 電影清單.txt；
-  失敗則退回上次快取（雲端斷線仍可執行）。
+  API 失敗則退回上次快取（雲端斷線仍可執行）。合法的空片單會正常寫入，
+  代表後台目前沒有追蹤中的上映電影。
 - 回傳報告：POST /api/crawl-report/，採 outbox 模式（先落地 pending_reports，
   上傳成功才刪檔），以 run_id 冪等避免重複。
 
@@ -143,8 +144,8 @@ def pull_movie_list():
     """取得要爬的片單。回傳 (movies|None, meta)。
 
     meta.source ∈ {api, cache, none}；並含 version/count/cache_age_seconds/api_error。
-    - api：成功且通過驗證，已更新快取。
-    - cache：API 失敗或回傳空清單，改用上次快取。
+    - api：API 成功且通過驗證，已更新快取；count=0 也是合法後台狀態。
+    - cache：只有 API 失敗或 payload 不合法時才改用上次快取。
     - none：未設定 API 或無快取，交由呼叫端使用現有 電影清單.txt。
     movies 為 None 表示呼叫端不要覆蓋現有 txt（沿用上次）。
     """
@@ -157,13 +158,6 @@ def pull_movie_list():
             raise RuntimeError(f"HTTP {status}")
         if not _valid_payload(payload):
             raise RuntimeError("payload 格式不合法")
-        if payload.get("count", 0) == 0:
-            # 空清單視為可疑：保留上次快取，不覆蓋 txt。
-            return None, {
-                "source": "cache", "version": None, "count": 0,
-                "cache_age_seconds": cache_age_seconds(),
-                "api_error": "API 回傳空清單，保留上次快取",
-            }
         _update_cache(payload)
         return payload["movies"], {
             "source": "api", "version": payload.get("version"),
