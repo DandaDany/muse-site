@@ -1,15 +1,118 @@
 {
   "type": "FeatureCollection",
   "name": "木棉花電影全台上映地圖",
-  "generated_at": "2026-08-20",
-  "updated_at": "2026-08-20T16:10:00+08:00",
-  "movie_title": null,
-  "show_date": "2026-08-20",
-  "movies": [],
-  "movie_features": {},
-  "movie_features_by_date": {},
-  "available_dates": [],
-  "feature_count": 0,
-  "features": [],
-  "empty_state": "no_movies_today"
+  "generated_at": "2026-08-21",
+  "updated_at": "2026-08-21T07:27:52+08:00",
+  "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+  "show_date": "2026-08-21",
+  "movies": [
+    {
+      "title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+      "show_date": "2026-08-21",
+      "available_dates": [
+        "2026-08-21"
+      ],
+      "feature_count": 1
+    }
+  ],
+  "movie_features": {
+    "魔法少女小圓劇場版［新篇］叛逆的物語": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            120.3253452,
+            22.6319673
+          ]
+        },
+        "properties": {
+          "location_id": 72,
+          "chain_name": "高雄環球影城",
+          "location_name": "高雄環球影城",
+          "map_name": "高雄環球影城 高雄環球影城",
+          "address": "高雄市苓雅區大順三路108號",
+          "city": "高雄市",
+          "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+          "official_url": "https://www.u-movie.com.tw/",
+          "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+          "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+          "show_date": "2026-08-21",
+          "showtime_count": 0,
+          "showtimes": [],
+          "start_times": "",
+          "showtime_unavailable": true,
+          "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
+        }
+      }
+    ]
+  },
+  "movie_features_by_date": {
+    "魔法少女小圓劇場版［新篇］叛逆的物語": {
+      "2026-08-21": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              120.3253452,
+              22.6319673
+            ]
+          },
+          "properties": {
+            "location_id": 72,
+            "chain_name": "高雄環球影城",
+            "location_name": "高雄環球影城",
+            "map_name": "高雄環球影城 高雄環球影城",
+            "address": "高雄市苓雅區大順三路108號",
+            "city": "高雄市",
+            "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+            "official_url": "https://www.u-movie.com.tw/",
+            "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+            "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+            "show_date": "2026-08-21",
+            "showtime_count": 0,
+            "showtimes": [],
+            "start_times": "",
+            "showtime_unavailable": true,
+            "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
+          }
+        }
+      ]
+    }
+  },
+  "available_dates": [
+    "2026-08-21"
+  ],
+  "feature_count": 1,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.3253452,
+          22.6319673
+        ]
+      },
+      "properties": {
+        "location_id": 72,
+        "chain_name": "高雄環球影城",
+        "location_name": "高雄環球影城",
+        "map_name": "高雄環球影城 高雄環球影城",
+        "address": "高雄市苓雅區大順三路108號",
+        "city": "高雄市",
+        "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+        "official_url": "https://www.u-movie.com.tw/",
+        "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-08-21",
+        "showtime_count": 0,
+        "showtimes": [],
+        "start_times": "",
+        "showtime_unavailable": true,
+        "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
+      }
+    }
+  ]
 }
