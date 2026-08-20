@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
@@ -24,6 +24,7 @@ from django.views.decorators.http import require_http_methods
 from .models import CinemaChain, CinemaLocation, CrawlReport, TrackedMovie
 
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+TRACKED_MOVIE_LOOKAHEAD_DAYS = 7
 
 
 def _check_token(request) -> JsonResponse | None:
@@ -48,17 +49,18 @@ def _aliases_list(raw: str | None) -> list[str]:
 
 @require_http_methods(["GET"])
 def tracked_movies(request):
-    """回傳啟用中的追蹤片單 + 版本（版本 = 所有片單 updated_at 最大值的 epoch）。"""
+    """回傳目前已上映或未來一週內上映的啟用追蹤片單 + 版本。"""
     denied = _check_token(request)
     if denied:
         return denied
 
-    # 上映日期閘門：只回「今天（台北）不早於上映日期」的電影；未到日期者跳過。
-    # 上映日期留空（target_date is null）= 不設限，一律納入。
+    # 爬蟲片單閘門：已上映電影持續追蹤；未上映電影在上映前 7 天起提前納入，
+    # 讓影城已釋出的預售／未來場次能先被抓到。上映日期留空 = 不設限，一律納入。
     today = datetime.now(TAIPEI_TZ).date()
+    crawl_horizon = today + timedelta(days=TRACKED_MOVIE_LOOKAHEAD_DAYS)
     qs = (
         TrackedMovie.objects.filter(is_active=True)
-        .filter(Q(target_date__isnull=True) | Q(target_date__lte=today))
+        .filter(Q(target_date__isnull=True) | Q(target_date__lte=crawl_horizon))
         .order_by("sort_order", "title")
     )
     # version 仍以「所有啟用片單」的 updated_at 最大值計，讓後台任何調整都會改版本。
