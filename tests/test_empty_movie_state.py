@@ -37,6 +37,26 @@ class EmptyMovieStateTests(unittest.TestCase):
         self.assertEqual(meta["cache_age_seconds"], 0)
         update_cache.assert_called_once_with(payload)
 
+    def test_real_api_failure_still_falls_back_to_cache(self) -> None:
+        cached = {
+            "version": 123,
+            "count": 1,
+            "movies": [{"title": "舊片保底"}],
+        }
+        with (
+            patch.object(muse_api, "api_base", return_value="https://example.test"),
+            patch.object(muse_api, "_request", side_effect=TimeoutError("timeout")),
+            patch.object(muse_api, "_load_cache", return_value=cached),
+            patch.object(muse_api, "cache_age_seconds", return_value=60),
+        ):
+            movies, meta = muse_api.pull_movie_list()
+
+        self.assertEqual(movies, cached["movies"])
+        self.assertEqual(meta["source"], "cache")
+        self.assertEqual(meta["count"], 1)
+        self.assertEqual(meta["cache_age_seconds"], 60)
+        self.assertIn("TimeoutError", meta["api_error"])
+
     def test_write_movie_list_txt_can_clear_the_list(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             movie_list = Path(temp_dir) / "電影清單.txt"
