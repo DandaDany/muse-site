@@ -1,7 +1,7 @@
 """Shared movie-title normalization and alias lookup for showtime crawlers.
 
 Typography differences between the backend title and cinema websites are treated
-as presentation noise.  NFKC normalization handles full-width/half-width forms
+as presentation noise. NFKC normalization handles full-width/half-width forms
 before the existing punctuation-insensitive substring comparison.
 """
 
@@ -14,7 +14,7 @@ import unicodedata
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-DEFAULT_MOVIE_CACHE = PROJECT_DIR / ".muse_cache" / "movie_list.json"
+DEFAULT_MOVIE_CACHE = PROJECT_DIR / "cache" / "tracked_movies.json"
 
 _PUNCTUATION_RE = re.compile(
     r"[\s　:：,，.。、/／()（）\[\]【】{}｛｝<>＜＞「」『』《》〈〉"
@@ -51,8 +51,9 @@ def aliases_for_titles(
 ) -> dict[str, list[str]]:
     """Read backend aliases from the existing tracked-movie API cache.
 
-    Missing or invalid cache data is intentionally non-fatal so local/manual
-    runs that only have ``電影清單.txt`` continue to work.
+    The daily worker already writes the complete ``/api/tracked-movies/``
+    payload to ``cache/tracked_movies.json`` before updating ``電影清單.txt``.
+    Missing or invalid cache data stays non-fatal for local/manual runs.
     """
     wanted = set(titles)
     result = {title: [] for title in titles}
