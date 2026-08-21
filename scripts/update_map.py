@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from movie_title_matching import aliases_for_titles
 from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS
 
 
@@ -33,6 +34,16 @@ def read_movie_titles(path: Path) -> list[str]:
 
 def run_step(args: list[str]) -> None:
     subprocess.run([sys.executable, *args], cwd=PROJECT_DIR, check=True)
+
+
+def build_fetch_args(movie_title: str, show_dates: list[str], aliases: list[str]) -> list[str]:
+    """Build the crawler command with backend aliases and all requested dates."""
+    args = ["scripts/fetch_movie_showtimes_runner.py", movie_title]
+    for alias in aliases:
+        args.extend(["--alias", alias])
+    for show_date in show_dates:
+        args.extend(["--date", show_date])
+    return args
 
 
 def write_empty_movie_map(show_date: str, output: Path = DEFAULT_OUTPUT) -> None:
@@ -84,17 +95,17 @@ def main() -> None:
         (start_date + timedelta(days=offset)).isoformat()
         for offset in range(MAX_SOURCE_LOOKAHEAD_DAYS + 1)
     ]
+    alias_map = aliases_for_titles(movie_titles)
     print(f"Dates     : {show_dates[0]} through {show_dates[-1]}")
     print("Movies:")
     for index, movie_title in enumerate(movie_titles, start=1):
-        print(f"  {index}. {movie_title}")
+        alias_count = len(alias_map.get(movie_title, []))
+        print(f"  {index}. {movie_title} (aliases={alias_count})")
     print()
 
     for movie_title in movie_titles:
         print(f"Fetching showtimes: {movie_title}")
-        fetch_args = ["scripts/fetch_movie_showtimes.py", movie_title]
-        for show_date in show_dates:
-            fetch_args.extend(["--date", show_date])
+        fetch_args = build_fetch_args(movie_title, show_dates, alias_map.get(movie_title, []))
         run_step(fetch_args)
         print()
 
