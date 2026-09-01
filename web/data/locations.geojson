@@ -3,25 +3,9 @@
   "name": "木棉花電影全台上映地圖",
   "generated_at": "2026-09-01",
   "updated_at": "2026-09-01T10:02:54+08:00",
-  "movie_title": "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉",
+  "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
   "show_date": "2026-09-01",
   "movies": [
-    {
-      "title": "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉",
-      "show_date": "2026-09-01",
-      "available_dates": [
-        "2026-09-01"
-      ],
-      "feature_count": 1
-    },
-    {
-      "title": "攻殼機動隊 2026",
-      "show_date": "2026-09-01",
-      "available_dates": [
-        "2026-09-01"
-      ],
-      "feature_count": 1
-    },
     {
       "title": "魔法少女小圓劇場版［新篇］叛逆的物語",
       "show_date": "2026-09-01",
@@ -34,66 +18,6 @@
     }
   ],
   "movie_features": {
-    "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            120.3253452,
-            22.6319673
-          ]
-        },
-        "properties": {
-          "location_id": 72,
-          "chain_name": "高雄環球影城",
-          "location_name": "高雄環球影城",
-          "map_name": "高雄環球影城 高雄環球影城",
-          "address": "高雄市苓雅區大順三路108號",
-          "city": "高雄市",
-          "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-          "official_url": "https://www.u-movie.com.tw/",
-          "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-          "movie_title": "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉",
-          "show_date": "2026-09-01",
-          "showtime_count": 0,
-          "showtimes": [],
-          "start_times": "",
-          "showtime_unavailable": true,
-          "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
-        }
-      }
-    ],
-    "攻殼機動隊 2026": [
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            120.3253452,
-            22.6319673
-          ]
-        },
-        "properties": {
-          "location_id": 72,
-          "chain_name": "高雄環球影城",
-          "location_name": "高雄環球影城",
-          "map_name": "高雄環球影城 高雄環球影城",
-          "address": "高雄市苓雅區大順三路108號",
-          "city": "高雄市",
-          "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-          "official_url": "https://www.u-movie.com.tw/",
-          "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-          "movie_title": "攻殼機動隊 2026",
-          "show_date": "2026-09-01",
-          "showtime_count": 0,
-          "showtimes": [],
-          "start_times": "",
-          "showtime_unavailable": true,
-          "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
-        }
-      }
-    ],
     "魔法少女小圓劇場版［新篇］叛逆的物語": [
       {
         "type": "Feature",
@@ -454,70 +378,6 @@
     ]
   },
   "movie_features_by_date": {
-    "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉": {
-      "2026-09-01": [
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [
-              120.3253452,
-              22.6319673
-            ]
-          },
-          "properties": {
-            "location_id": 72,
-            "chain_name": "高雄環球影城",
-            "location_name": "高雄環球影城",
-            "map_name": "高雄環球影城 高雄環球影城",
-            "address": "高雄市苓雅區大順三路108號",
-            "city": "高雄市",
-            "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-            "official_url": "https://www.u-movie.com.tw/",
-            "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-            "movie_title": "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉",
-            "show_date": "2026-09-01",
-            "showtime_count": 0,
-            "showtimes": [],
-            "start_times": "",
-            "showtime_unavailable": true,
-            "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
-          }
-        }
-      ]
-    },
-    "攻殼機動隊 2026": {
-      "2026-09-01": [
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [
-              120.3253452,
-              22.6319673
-            ]
-          },
-          "properties": {
-            "location_id": 72,
-            "chain_name": "高雄環球影城",
-            "location_name": "高雄環球影城",
-            "map_name": "高雄環球影城 高雄環球影城",
-            "address": "高雄市苓雅區大順三路108號",
-            "city": "高雄市",
-            "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-            "official_url": "https://www.u-movie.com.tw/",
-            "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-            "movie_title": "攻殼機動隊 2026",
-            "show_date": "2026-09-01",
-            "showtime_count": 0,
-            "showtimes": [],
-            "start_times": "",
-            "showtime_unavailable": true,
-            "showtime_unavailable_reason": "官方時刻表暫時無法自動取得，請前往場次入口查看。"
-          }
-        }
-      ]
-    },
     "魔法少女小圓劇場版［新篇］叛逆的物語": {
       "2026-09-01": [
         {
@@ -1668,8 +1528,336 @@
     "2026-09-02",
     "2026-09-03"
   ],
-  "feature_count": 1,
+  "feature_count": 9,
   "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.64456938796,
+          24.164671713563
+        ]
+      },
+      "properties": {
+        "location_id": 22,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "台中大遠百威秀影城",
+        "map_name": "威秀影城 / VIESHOW 台中大遠百威秀影城",
+        "address": "台中市西屯區台灣大道三段251號13樓",
+        "city": "臺中市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "17:15",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "17:15 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "21:15",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "21:15 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "17:15, 21:15"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.5184321,
+          25.0490792
+        ]
+      },
+      "properties": {
+        "location_id": 23,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "台北京站威秀影城",
+        "map_name": "威秀影城 / VIESHOW 台北京站威秀影城",
+        "address": "台北市大同區市民大道一段209號5樓",
+        "city": "臺北市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 1,
+        "showtimes": [
+          {
+            "time": "18:00",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "18:00 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "18:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.617582534262,
+          25.059344952488
+        ]
+      },
+      "properties": {
+        "location_id": 25,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "台北南港 LaLaport威秀影城",
+        "map_name": "威秀影城 / VIESHOW 台北南港 LaLaport威秀影城",
+        "address": "台北市南港區經貿二路131號5樓",
+        "city": "臺北市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "16:40",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "16:40 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "22:40",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "22:40 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "16:40, 22:40"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.205827131963,
+          22.995358795391
+        ]
+      },
+      "properties": {
+        "location_id": 30,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "台南大遠百威秀影城",
+        "map_name": "威秀影城 / VIESHOW 台南大遠百威秀影城",
+        "address": "台南市中西區公園路60號5樓",
+        "city": "臺南市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "15:25",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "15:25 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "22:15",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "22:15 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "15:25, 22:15"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.5468264,
+          24.9783596
+        ]
+      },
+      "properties": {
+        "location_id": 31,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "新店裕隆城威秀影城",
+        "map_name": "威秀影城 / VIESHOW 新店裕隆城威秀影城",
+        "address": "新北市新店區中興路三段128號7樓",
+        "city": "新北市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 1,
+        "showtimes": [
+          {
+            "time": "11:55",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "11:55 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "11:55"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.965210879671,
+          24.802185606585
+        ]
+      },
+      "properties": {
+        "location_id": 32,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "新竹大遠百威秀影城",
+        "map_name": "威秀影城 / VIESHOW 新竹大遠百威秀影城",
+        "address": "新竹市東區西大路323號8樓",
+        "city": "新竹市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "11:10",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "11:10 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "16:50",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "16:50 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "11:10, 16:50"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.312523000553,
+          24.991112991698
+        ]
+      },
+      "properties": {
+        "location_id": 38,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "桃園統領威秀影城",
+        "map_name": "威秀影城 / VIESHOW 桃園統領威秀影城",
+        "address": "桃園市桃園區中正路61號9樓",
+        "city": "桃園市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "16:45",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "16:45 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "21:40",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "21:40 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "16:45, 21:40"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.303548975058,
+          22.613424008067
+        ]
+      },
+      "properties": {
+        "location_id": 41,
+        "chain_name": "威秀影城 / VIESHOW",
+        "location_name": "高雄大遠百威秀影城",
+        "map_name": "威秀影城 / VIESHOW 高雄大遠百威秀影城",
+        "address": "高雄市苓雅區三多四路21號13樓",
+        "city": "高雄市",
+        "location_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "official_url": "https://www.vscinemas.com.tw/",
+        "crawl_url": "https://www.vscinemas.com.tw/ShowTimes/",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
+        "show_date": "2026-09-01",
+        "showtime_count": 2,
+        "showtimes": [
+          {
+            "time": "11:45",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "11:45 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          },
+          {
+            "time": "17:00",
+            "format": "(數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)",
+            "language": null,
+            "auditorium": null,
+            "booking_url": "https://www.vscinemas.com.tw/ShowTimes/",
+            "label": "17:00 (數位)魔法少女小圓劇場版 [新篇] 叛逆的物語+五分鐘開頭影像 (保護級)"
+          }
+        ],
+        "start_times": "11:45, 17:00"
+      }
+    },
     {
       "type": "Feature",
       "geometry": {
@@ -1689,7 +1877,7 @@
         "location_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
         "official_url": "https://www.u-movie.com.tw/",
         "crawl_url": "https://www.u-movie.com.tw/cinema/page.php?page_type=now&ver=tw&portal=cinema",
-        "movie_title": "劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉",
+        "movie_title": "魔法少女小圓劇場版［新篇］叛逆的物語",
         "show_date": "2026-09-01",
         "showtime_count": 0,
         "showtimes": [],
