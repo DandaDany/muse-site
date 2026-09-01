@@ -40,16 +40,49 @@ class MovieTitleMatchingTest(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "movie_list.json"
+            override_path = Path(temp_dir) / "aliases.json"
             cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            override_path.write_text("{}", encoding="utf-8")
             self.assertEqual(
-                aliases_for_titles(["主片名"], cache_path),
+                aliases_for_titles(["主片名"], cache_path, override_path),
                 {"主片名": ["別名 A", "別名 B"]},
             )
 
-    def test_missing_cache_is_non_fatal(self):
+    def test_versioned_aliases_supplement_backend_aliases(self):
+        payload = {"movies": [{"title": "攻殼機動隊 2026", "aliases": []}]}
+        overrides = {
+            "攻殼機動隊 2026": [
+                "攻殼機動隊(1995) 4K 數位修復版",
+                "攻殼機動隊 (1995) 4K數位修復版",
+            ]
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_path = Path(temp_dir) / "movie_list.json"
+            override_path = Path(temp_dir) / "aliases.json"
+            cache_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            override_path.write_text(json.dumps(overrides, ensure_ascii=False), encoding="utf-8")
+            aliases = aliases_for_titles(["攻殼機動隊 2026"], cache_path, override_path)
+
+        self.assertEqual(aliases["攻殼機動隊 2026"], overrides["攻殼機動隊 2026"])
+        self.assertTrue(
+            movie_matches(
+                "攻殼機動隊(1995) 4K 數位修復版",
+                ["攻殼機動隊 2026", *aliases["攻殼機動隊 2026"]],
+            )
+        )
+
+    def test_missing_cache_is_non_fatal_and_overrides_still_work(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "missing.json"
-            self.assertEqual(aliases_for_titles(["主片名"], cache_path), {"主片名": []})
+            override_path = Path(temp_dir) / "aliases.json"
+            override_path.write_text(
+                json.dumps({"主片名": ["正式片名"]}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                aliases_for_titles(["主片名"], cache_path, override_path),
+                {"主片名": ["正式片名"]},
+            )
 
     def test_fetch_args_pass_aliases_and_dates_to_runner(self):
         args = build_fetch_args(
