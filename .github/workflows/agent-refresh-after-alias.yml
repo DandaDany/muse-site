@@ -1,0 +1,106 @@
+name: Validate alias fix and refresh branch map
+
+on:
+  push:
+    branches:
+      - agent/fix-future-movie-default-state
+    paths:
+      - .github/workflows/agent-refresh-after-alias.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TZ: Asia/Taipei
+      MUSE_API_BASE_URL: ${{ secrets.MUSE_API_BASE_URL }}
+      MUSE_API_TOKEN: ${{ secrets.MUSE_API_TOKEN }}
+      MUSE_WORKER_NAME: github-actions-pr-validation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Run regression tests
+        run: |
+          python -m unittest tests.test_movie_title_matching tests.test_map_availability -v
+
+      - name: Build cinema master and movie list
+        run: |
+          python scripts/pull_cinema_master.py --require-codes
+          python scripts/import_cinema_sources.py data/input/cinema_codes.csv --overlay-existing --chain "新光影城" --require-existing
+          python scripts/verify_cinema_codes.py --csv data/input/cinema_codes.csv --chain "新光影城"
+          python scripts/import_cinema_sources.py data/input/manual_location_urls.csv --overlay-existing --chain "秀泰影城" --require-existing
+          python scripts/fetch_in89_locations.py || true
+          python scripts/fetch_ambassador_locations.py || true
+          python scripts/fetch_showtimes_locations.py || true
+          python scripts/fetch_misc_locations.py || true
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          import muse_api
+          movies, meta = muse_api.pull_movie_list()
+          if movies is None:
+              raise SystemExit(f"tracked movie API unavailable: {meta}")
+          muse_api.write_movie_list_txt(movies)
+          print('movie list:', [m['title'] for m in movies])
+          PY
+
+      - name: Crawl and export current map
+        env:
+          SKCINEMAS_HEADLESS: "false"
+        run: |
+          xvfb-run -a --server-args="-screen 0 1366x900x24" \
+            python scripts/update_map.py --date 2026-09-01
+
+      - name: Assert Attack has real showtimes
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path('web/data/locations.geojson').read_text(encoding='utf-8'))
+          title = '攻殼機動隊 2026'
+          by_date = data.get('movie_features_by_date', {}).get(title, {})
+          real = []
+          for show_date, features in by_date.items():
+              for feature in features:
+                  p = feature.get('properties') or {}
+                  if (p.get('showtime_count') or 0) > 0:
+                      real.append((show_date, p.get('chain_name'), p.get('location_name'), p.get('start_times')))
+          print('Attack real features:', real)
+          assert real, '攻殼機動隊 2026 still has no real showtimes after official-title alias fix'
+          assert any(item[1] == '秀泰影城' for item in real), 'ShowTimes/秀泰 still failed to match Attack official title'
+          assert any(item[2] == '高雄夢時代秀泰影城' for item in real), '高雄夢時代秀泰 Attack showtimes missing'
+
+          walpurgis = data.get('movie_features_by_date', {}).get('劇場版 魔法少女小圓〈瓦爾普吉斯的迴天〉', {})
+          print('Walpurgis available dates:', list(walpurgis))
+          print('default:', data.get('movie_title'))
+          print('movies:', [m.get('title') for m in data.get('movies', [])])
+          PY
+
+      - name: Commit refreshed branch map
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/data/locations.geojson 電影清單.txt
+          if git diff --cached --quiet; then
+            echo "No map change."
+          else
+            git commit -m "Refresh map after official title alias fix"
+            git push
+          fi
