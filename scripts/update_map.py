@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from map_availability import sanitize_geojson_file
 from movie_title_matching import aliases_for_titles
 from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS
 
@@ -117,6 +118,10 @@ def main() -> None:
     for movie_title in movie_titles:
         export_args.extend(["--movie-title", movie_title])
     run_step(export_args)
+
+    # A 0-showtime fallback pin is useful as a source-unavailable notice, but it
+    # must never make an upcoming movie/date selectable or become the default.
+    sanitize_geojson_file(DEFAULT_OUTPUT, args.date)
 
     print()
     print("[DONE] Map data updated.")
