@@ -1,0 +1,67 @@
+name: Future movie availability regression
+
+on:
+  push:
+    branches:
+      - agent/fix-future-movie-default-state
+    paths:
+      - .github/workflows/agent-future-movie-fix.yml
+      - scripts/map_availability.py
+      - scripts/update_map.py
+      - tests/test_map_availability.py
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run availability regressions
+        run: python -m unittest tests.test_map_availability -v
+
+      - name: Sanitize current checked-in map
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+
+          sys.path.insert(0, 'scripts')
+          from map_availability import sanitize_geojson_file
+
+          path = Path('web/data/locations.geojson')
+          payload = json.loads(path.read_text(encoding='utf-8'))
+          primary_date = payload['show_date']
+          sanitize_geojson_file(path, primary_date)
+
+          cleaned = json.loads(path.read_text(encoding='utf-8'))
+          by_movie = cleaned.get('movie_features_by_date', {})
+          assert by_movie, 'sanitized map has no real showtime movies'
+          for title, by_date in by_movie.items():
+              for show_date, features in by_date.items():
+                  assert any((f.get('properties') or {}).get('showtime_count', 0) > 0 for f in features), (title, show_date)
+          first = next(iter(by_movie))
+          assert primary_date in by_movie[first], 'default movie must have real showtimes today when one exists'
+          assert cleaned['movie_title'] == first
+          print('default movie:', first)
+          print('visible movies:', list(by_movie))
+          PY
+
+      - name: Commit sanitized map
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/data/locations.geojson
+          if git diff --cached --quiet; then
+            echo "GeoJSON already sanitized."
+          else
+            git commit -m "Refresh map availability after future movie fix"
+            git push
+          fi
