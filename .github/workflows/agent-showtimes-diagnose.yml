@@ -1,0 +1,64 @@
+name: Diagnose ShowTimes event dates
+
+on:
+  push:
+    branches:
+      - agent/fix-future-movie-default-state
+    paths:
+      - .github/workflows/agent-showtimes-diagnose.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect ShowTimes bootstrap programs and event dates
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          url = 'https://capi.showtimes.com.tw/4/app/bootstrap'
+          req = urllib.request.Request(url, headers={
+              'User-Agent': 'Mozilla/5.0',
+              'Accept': 'application/json,text/plain,*/*',
+              'Origin': 'https://www.showtimes.com.tw',
+              'Referer': 'https://www.showtimes.com.tw/',
+          })
+          with urllib.request.urlopen(req, timeout=45) as resp:
+              payload = json.load(resp)['payload']
+
+          programs = {int(p['id']): p for p in payload.get('programs', [])}
+          target_ids = set()
+          for pid, p in programs.items():
+              text = f"{p.get('name','')} {p.get('nameAlternative','')}"
+              if '攻殼' in text or '瓦爾普吉斯' in text or '魔法少女小圓' in text:
+                  target_ids.add(pid)
+                  print('PROGRAM', pid, repr(p.get('name')), repr(p.get('nameAlternative')))
+
+          tz = ZoneInfo('Asia/Taipei')
+          found = 0
+          for cid, bundle in payload.get('eventsForCorporations', {}).items():
+              for event in bundle.get('events', []):
+                  pid = int(event.get('programId') or 0)
+                  if pid not in target_ids:
+                      continue
+                  started_raw = str(event.get('startedAt', ''))
+                  local_started = None
+                  try:
+                      local_started = datetime.fromisoformat(started_raw.replace('Z', '+00:00')).astimezone(tz).isoformat()
+                  except Exception:
+                      pass
+                  print('EVENT', 'cid=', cid, 'pid=', pid,
+                        'listedAt=', repr(event.get('listedAt')),
+                        'startedAt=', repr(started_raw),
+                        'localStarted=', repr(local_started),
+                        'meta=', repr(event.get('meta')))
+                  found += 1
+                  if found >= 80:
+                      raise SystemExit
+          print('EVENT_COUNT', found)
+          PY
