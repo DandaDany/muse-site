@@ -1,9 +1,10 @@
 """Extract the live Render control plane into version-controlled GitHub data.
 
-This command is intentionally fail-closed. It writes canonical files only after:
+This command is intentionally fail-closed. Canonical files are written only after:
 1) the full protected export validates;
-2) local tracked-movie selection exactly matches the current /api/tracked-movies/ view;
-3) local active cinema master exactly matches the current /api/cinema-master/ view.
+2) local tracked-movie selection exactly matches /api/tracked-movies/;
+3) local active cinema data exactly matches /api/cinema-master/;
+4) rebuilding SQLite from old and new cinema payloads produces identical master rows.
 
 It is the migration Gate for Render/Postgres retirement, not a best-effort importer.
 """
@@ -13,7 +14,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sqlite3
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -22,13 +25,14 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import control_data  # noqa: E402
 import muse_api  # noqa: E402
+from pull_cinema_master import CHAIN_COLUMNS, LOCATION_COLUMNS, rebuild_master  # noqa: E402
 
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT = PROJECT_DIR / "artifacts" / "control-plane-migration.json"
 
 
-def _fetch(endpoint: str, attempts: int = 8, timeout: int = 60):
+def _fetch(endpoint: str, attempts: int = 24, timeout: int = 60):
     base = muse_api.api_base()
     if not base:
         raise RuntimeError("MUSE_API_BASE_URL is required for migration")
@@ -127,29 +131,54 @@ def assert_movie_parity(tracked_payload: dict, old_payload: dict) -> None:
         )
 
 
+def _comparable_cinema(payload: dict) -> dict:
+    return {
+        "chain_count": payload.get("chain_count"),
+        "location_count": payload.get("location_count"),
+        "chains": payload.get("chains"),
+        "locations": payload.get("locations"),
+    }
+
+
 def assert_cinema_parity(cinema_payload: dict, old_payload: dict) -> None:
     local = control_data.active_cinema_payload(cinema_payload)
-    comparable_local = {
-        "chain_count": local["chain_count"],
-        "location_count": local["location_count"],
-        "chains": local["chains"],
-        "locations": local["locations"],
-    }
-    comparable_old = {
-        "chain_count": old_payload.get("chain_count"),
-        "location_count": old_payload.get("location_count"),
-        "chains": old_payload.get("chains"),
-        "locations": old_payload.get("locations"),
-    }
-    if comparable_local != comparable_old:
+    if _comparable_cinema(local) != _comparable_cinema(old_payload):
         raise ValueError(
             "cinema-master parity FAILED\n"
             + json.dumps(
-                {"local": comparable_local, "legacy": comparable_old},
+                {"local": _comparable_cinema(local), "legacy": _comparable_cinema(old_payload)},
                 ensure_ascii=False,
                 indent=2,
             )
         )
+
+
+def _table_rows(db_path: Path, table: str, columns: list[str]) -> list[tuple]:
+    with sqlite3.connect(str(db_path)) as conn:
+        return conn.execute(
+            f"SELECT {', '.join(columns)} FROM {table} ORDER BY id"
+        ).fetchall()
+
+
+def assert_sqlite_parity(cinema_payload: dict, old_payload: dict) -> None:
+    local_payload = control_data.active_cinema_payload(cinema_payload)
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        legacy_db = root / "legacy.sqlite"
+        local_db = root / "local.sqlite"
+        rebuild_master(legacy_db, old_payload)
+        rebuild_master(local_db, local_payload)
+
+        legacy_chains = _table_rows(legacy_db, "cinema_chains", CHAIN_COLUMNS)
+        local_chains = _table_rows(local_db, "cinema_chains", CHAIN_COLUMNS)
+        legacy_locations = _table_rows(legacy_db, "cinema_locations", LOCATION_COLUMNS)
+        local_locations = _table_rows(local_db, "cinema_locations", LOCATION_COLUMNS)
+        if legacy_chains != local_chains or legacy_locations != local_locations:
+            raise ValueError(
+                "SQLite cinema master parity FAILED: "
+                f"chains legacy/local={len(legacy_chains)}/{len(local_chains)}, "
+                f"locations legacy/local={len(legacy_locations)}/{len(local_locations)}"
+            )
 
 
 def main() -> None:
@@ -162,11 +191,12 @@ def main() -> None:
     export_payload = _fetch("/api/control-export/")
     tracked_payload, cinema_payload = build_canonical(export_payload)
 
-    # Independent reads of the legacy runtime endpoints are the first parity gate.
+    # Independent reads of the legacy runtime endpoints are parity Gate 1/2.
     old_movies = _fetch("/api/tracked-movies/")
     old_cinemas = _fetch("/api/cinema-master/")
     assert_movie_parity(tracked_payload, old_movies)
     assert_cinema_parity(cinema_payload, old_cinemas)
+    assert_sqlite_parity(cinema_payload, old_cinemas)
 
     # Only now is it safe to materialize GitHub canonical state.
     _write_json(args.tracked_output, tracked_payload)
@@ -185,6 +215,7 @@ def main() -> None:
             "full_export_valid": True,
             "tracked_movie_runtime_parity": True,
             "cinema_master_runtime_parity": True,
+            "sqlite_master_row_parity": True,
         },
         "counts": {
             "tracked_movies_total": len(tracked_payload["movies"]),
