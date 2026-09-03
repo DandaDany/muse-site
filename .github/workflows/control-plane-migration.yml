@@ -1,0 +1,253 @@
+name: One-time Render control-plane migration
+
+# This workflow is deliberately one-shot and fail-closed. On the merge that introduces
+# the migration code it waits for Render to deploy the protected export endpoint, exports
+# all control data, proves old/new parity, then runs a complete crawl with backend env vars
+# cleared. Only after every Gate passes does it commit canonical control files to main.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/mapdata/control_export.py"
+      - "backend/movie_map_admin/urls.py"
+      - "scripts/control_data.py"
+      - "scripts/migrate_control_plane.py"
+      - "scripts/verify_control_plane_cutover.py"
+      - ".github/workflows/control-plane-migration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Share the daily-crawl lock: migration and scheduled publishing must never mutate the
+# ephemeral DB / map state concurrently.
+concurrency:
+  group: daily-crawl
+  cancel-in-progress: false
+
+jobs:
+  migrate-and-cut-over:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TZ: Asia/Taipei
+      PYTHONUNBUFFERED: "1"
+      MUSE_API_BASE_URL: ${{ secrets.MUSE_API_BASE_URL }}
+      MUSE_API_TOKEN: ${{ secrets.MUSE_API_TOKEN }}
+      MUSE_WORKER_NAME: github-actions-migration
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Guard one-time state
+        id: guard
+        shell: bash
+        run: |
+          tracked=0
+          cinema=0
+          [ -f data/control/tracked_movies.json ] && tracked=1
+          [ -f data/control/cinema_master.json ] && cinema=1
+          if [ "$tracked" != "$cinema" ]; then
+            echo "::error::Half-migrated control plane detected; refusing to continue."
+            exit 1
+          fi
+          if [ "$tracked" = "1" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Canonical control files already exist; one-time migration is already materialized."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Python
+        if: steps.guard.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install crawler and backend dependencies
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r backend/requirements.txt
+
+      - name: Install Playwright Chromium and Xvfb
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          python -m playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Preflight tests
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          python -m unittest discover -s tests -v
+          python -m compileall -q scripts tests backend
+          (cd backend && python manage.py check)
+
+      - name: Extract full Render data and prove old/new parity
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          mkdir -p artifacts
+          python scripts/migrate_control_plane.py \
+            --report artifacts/control-plane-migration.json
+
+      - name: Build SQLite from GitHub canonical data with backend disabled
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          MUSE_API_BASE_URL: ""
+          MUSE_API_TOKEN: ""
+        run: python scripts/pull_cinema_master.py --require-codes
+
+      - name: Apply existing verified cinema overlays
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          MUSE_API_BASE_URL: ""
+          MUSE_API_TOKEN: ""
+        run: |
+          python scripts/import_cinema_sources.py data/input/cinema_codes.csv --overlay-existing --chain "新光影城" --require-existing
+          python scripts/verify_cinema_codes.py --csv data/input/cinema_codes.csv --chain "新光影城"
+          python scripts/import_cinema_sources.py data/input/manual_location_urls.csv --overlay-existing --chain "秀泰影城" --require-existing
+
+      - name: Refresh dynamic cinema codes without Render
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          MUSE_API_BASE_URL: ""
+          MUSE_API_TOKEN: ""
+        run: |
+          if curl -L -o /dev/null -sS --connect-timeout 15 --max-time 90 \
+            'https://www.skcinemas.com/films?c=1001'; then
+            SKCINEMAS_OFFICIAL_REACHABLE=true
+          else
+            SKCINEMAS_OFFICIAL_REACHABLE=false
+            echo '::warning::SKCINEMAS official site unavailable; validating last-known-good fallback.'
+          fi
+          if [ "$SKCINEMAS_OFFICIAL_REACHABLE" = "true" ]; then
+            xvfb-run -a --server-args="-screen 0 1366x900x24" \
+              python scripts/fetch_skcinemas_locations.py --headed || \
+            xvfb-run -a --server-args="-screen 0 1366x900x24" \
+              python scripts/fetch_skcinemas_locations.py --headed || true
+          fi
+          python scripts/fetch_in89_locations.py || true
+          python scripts/fetch_ambassador_locations.py || true
+          python scripts/fetch_showtimes_locations.py || true
+          python scripts/fetch_misc_locations.py || true
+          python scripts/push_cinema_codes.py
+
+      - name: Full GitHub-only production crawl
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          MUSE_API_BASE_URL: ""
+          MUSE_API_TOKEN: ""
+          SKCINEMAS_HEADLESS: "false"
+        run: |
+          xvfb-run -a --server-args="-screen 0 1366x900x24" \
+            python scripts/daily_update.py --no-git 2>&1 | tee artifacts/github-only-crawl.log
+
+      - name: Verify production cutover
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          MUSE_API_BASE_URL: ""
+          MUSE_API_TOKEN: ""
+        run: |
+          python scripts/verify_control_plane_cutover.py \
+            --report artifacts/control-plane-cutover.json
+
+      - name: Freeze migration verification evidence
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from datetime import datetime
+          from pathlib import Path
+          from zoneinfo import ZoneInfo
+
+          migration = json.loads(Path('artifacts/control-plane-migration.json').read_text(encoding='utf-8'))
+          cutover = json.loads(Path('artifacts/control-plane-cutover.json').read_text(encoding='utf-8'))
+          def digest(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          evidence = {
+              'status': 'PASS',
+              'verified_at': datetime.now(ZoneInfo('Asia/Taipei')).isoformat(),
+              'migration_gates': migration['gates'],
+              'cutover_gates': cutover['gates'],
+              'migration_counts': migration['counts'],
+              'cutover_counts': cutover['counts'],
+              'final_sha256': {
+                  'tracked_movies': digest('data/control/tracked_movies.json'),
+                  'cinema_master': digest('data/control/cinema_master.json'),
+                  'locations_geojson': digest('web/data/locations.geojson'),
+              },
+          }
+          Path('data/control/migration_verification.json').write_text(
+              json.dumps(evidence, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+          )
+          print(json.dumps(evidence, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Ensure main did not move during cutover
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || {
+            echo "::error::main moved during migration; refusing to publish stale cutover state."
+            exit 1
+          }
+
+      - name: Commit verified GitHub control plane
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/control/tracked_movies.json \
+            data/control/cinema_master.json \
+            data/control/migration_verification.json \
+            web/data/locations.geojson \
+            電影清單.txt
+          git diff --cached --check
+          git commit -m "Migrate control plane from Render to GitHub"
+          git push
+
+      - name: Upload migration evidence
+        if: always() && steps.guard.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-plane-migration-${{ github.run_id }}
+          path: |
+            artifacts/control-plane-migration.json
+            artifacts/control-plane-cutover.json
+            artifacts/github-only-crawl.log
+          if-no-files-found: warn
+          retention-days: 30
+
+  deploy-pages:
+    needs: migrate-and-cut-over
+    if: needs.migrate-and-cut-over.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4
