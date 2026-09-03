@@ -1,30 +1,28 @@
-"""每日排程更新（Worker）：拉片單 → 爬蟲 → GeoJSON → 推 Pages → 回傳摘要。
+"""每日排程更新（Worker）：片單 → 爬蟲 → GeoJSON → 發佈 → 摘要。
 
-資料流（每次執行同步一次；雲端斷線仍可執行）：
+遷移期間採雙模式：
+- data/control/tracked_movies.json + cinema_master.json 都存在時，GitHub 是 control plane；
+- 尚未完成 migration materialization 前，沿用 legacy Django API。
+- 兩份 canonical files 只存在其中一份時直接失敗，避免半遷移狀態。
 
-    [執行前] 向雲端 Django 拉啟用片單（API）→ 原子寫入 電影清單.txt
-             （API 失敗 → 用上次快取；未設定 API → 用現有 txt；合法 0 部則清空）
-    [執行]   本機爬蟲 → 本機 SQLite → GeoJSON → git push（0 部時跳過影城爬蟲並輸出空地圖）
-    [執行後] 組執行摘要（唯一 run_id）→ 先落地 pending_reports → POST 回雲端
-             （outbox：上傳成功才刪檔；失敗下次重送，以 run_id 冪等不重複）
-
-設定見 scripts/muse_api.py 的環境變數（MUSE_API_BASE_URL / MUSE_API_TOKEN）。
-排程方式見 docs/scheduled_update.md。
-
-旗標：--date / --no-crawl / --no-push / --no-git / --skip-pull / --dry-run
+GitHub control mode 不再把 crawl report POST 回 Render；CI 以 Actions log / summary
+作為執行紀錄。legacy mode 保留原本 outbox 回報，直到正式切換完成。
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import secrets
 import sqlite3
 import subprocess
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import control_data  # noqa: E402
 import muse_api  # noqa: E402
 from showtime_availability import MAX_SOURCE_LOOKAHEAD_DAYS  # noqa: E402
 from update_map import read_movie_titles, write_empty_movie_map  # noqa: E402
@@ -32,6 +30,7 @@ from update_map import read_movie_titles, write_empty_movie_map  # noqa: E402
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MOVIE_LIST = PROJECT_DIR / "電影清單.txt"
 DB_PATH = PROJECT_DIR / "data" / "movie_map.sqlite"
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 
 
 def run(cmd, check=True):
@@ -41,6 +40,40 @@ def run(cmd, check=True):
 
 def new_run_id() -> str:
     return datetime.now().strftime("%Y%m%dT%H%M%S") + "-" + secrets.token_hex(3)
+
+
+def git_control_enabled() -> bool:
+    tracked = control_data.TRACKED_MOVIES_PATH.exists()
+    cinemas = control_data.CINEMA_MASTER_PATH.exists()
+    if tracked != cinemas:
+        raise RuntimeError(
+            "GitHub control plane is incomplete: tracked_movies.json and cinema_master.json "
+            "must appear together"
+        )
+    return tracked and cinemas
+
+
+def load_runtime_movie_list() -> dict:
+    """Materialize 電影清單.txt + alias cache from GitHub canonical data or legacy API."""
+    if git_control_enabled():
+        canonical = control_data.load_tracked_movies()
+        runtime = control_data.write_runtime_movie_files(
+            canonical,
+            datetime.now(TAIPEI_TZ).date(),
+            MOVIE_LIST,
+            muse_api.CACHE_JSON,
+        )
+        return {
+            "source": "git",
+            "version": runtime.get("version"),
+            "count": runtime.get("count"),
+            "cache_age_seconds": 0,
+        }
+
+    movies, meta = muse_api.pull_movie_list()
+    if movies is not None:
+        muse_api.write_movie_list_txt(movies)
+    return meta
 
 
 def max_crawl_run_id() -> int:
@@ -123,7 +156,6 @@ def build_no_crawl_export_args(titles: list[str], primary_show_date: str) -> lis
 
 
 def showtime_coverage(show_date: str):
-    """當日不重複影城據點數、電影數（供雲端儀表板 KPI 顯示）。"""
     if not DB_PATH.exists():
         return 0, 0
     try:
@@ -153,7 +185,6 @@ def build_summary(sources, show_date):
 
 
 def overall_status(summary, crawled: bool, movie_count: int | None = None) -> str:
-    # 後台明確回傳 0 部電影是正常業務狀態：本輪沒有來源需要爬，但發布空地圖仍算成功。
     if movie_count == 0:
         return "success"
     if not crawled:
@@ -195,13 +226,36 @@ def _commit_sha():
         return None
 
 
+def write_actions_summary(report: dict) -> None:
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_path:
+        return
+    summary = report["summary"]
+    movies = report["movie_list"]
+    lines = [
+        "## Daily crawl",
+        "",
+        f"- Status: **{report['status']}**",
+        f"- Show date: `{report['show_date']}`",
+        f"- Movie source: `{movies.get('source')}` / count `{movies.get('count')}`",
+        f"- Sources success / failed: `{summary['sources_success']} / {summary['sources_failed']}`",
+        f"- Showtimes saved: `{summary['showtimes_saved']}`",
+    ]
+    failed = [s for s in report["sources"] if s["status"] != "success"]
+    if failed:
+        lines.extend(["", "### Failed / partial sources"])
+        lines.extend(f"- {s['name']}: {s['status']} — {s.get('error_message') or 'no error text'}" for s in failed)
+    with open(summary_path, "a", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + "\n")
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="每日排程：拉片單 → 爬蟲 → GeoJSON → 推送 → 回傳摘要。")
+    parser = argparse.ArgumentParser(description="每日排程：片單 → 爬蟲 → GeoJSON → 發佈 → 摘要。")
     parser.add_argument("--date", default=date.today().isoformat())
     parser.add_argument("--no-crawl", action="store_true", help="不爬蟲，只重出 GeoJSON。")
     parser.add_argument("--no-push", action="store_true", help="commit 但不 push。")
     parser.add_argument("--no-git", action="store_true", help="完全不做 git 操作。")
-    parser.add_argument("--skip-pull", action="store_true", help="不向雲端拉片單，用現有 電影清單.txt。")
+    parser.add_argument("--skip-pull", action="store_true", help="不更新片單，用現有 電影清單.txt。")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -213,24 +267,26 @@ def main() -> None:
     print("=" * 50)
 
     if args.dry_run:
-        print("[dry-run] 拉片單(API) → " + ("重出 GeoJSON" if args.no_crawl else "爬蟲+GeoJSON")
-              + (" → git" if not args.no_git else "") + " → 回傳摘要")
+        mode = "git" if git_control_enabled() else "legacy-backend"
+        print(
+            f"[dry-run] control={mode} → "
+            + ("重出 GeoJSON" if args.no_crawl else "爬蟲+GeoJSON")
+            + (" → git" if not args.no_git else "")
+        )
         return
 
-    # 1) 拉片單（API → 快取 → txt）
     movie_list_meta = {"source": "skipped"}
     if not args.skip_pull:
-        movies, movie_list_meta = muse_api.pull_movie_list()
-        if movies is not None:
-            muse_api.write_movie_list_txt(movies)
-        print(f"[片單] 來源={movie_list_meta.get('source')} "
-              f"版本={movie_list_meta.get('version')} 數量={movie_list_meta.get('count')}"
-              + (f" 錯誤={movie_list_meta['api_error']}" if movie_list_meta.get("api_error") else ""))
+        movie_list_meta = load_runtime_movie_list()
+        print(
+            f"[片單] 來源={movie_list_meta.get('source')} "
+            f"版本={movie_list_meta.get('version')} 數量={movie_list_meta.get('count')}"
+            + (f" 錯誤={movie_list_meta['api_error']}" if movie_list_meta.get("api_error") else "")
+        )
 
     titles = read_movie_titles(MOVIE_LIST)
     movie_count = len(titles)
 
-    # 2) 爬蟲 + GeoJSON。0 部電影時 update_map 只輸出 empty state，不呼叫任何影城來源。
     pre_max = max_crawl_run_id()
     crawled = not args.no_crawl
     if crawled:
@@ -254,13 +310,11 @@ def main() -> None:
             "movies_with_showtimes": 0,
         })
 
-    # 3) 發佈
     git = {"push_status": "skipped", "commit_sha": None}
     if not args.no_git:
         push_status, sha = git_publish(args.no_push)
         git = {"push_status": push_status, "commit_sha": sha}
 
-    # 4) 組報告 → 先落地 → 上傳（含補送先前失敗的）
     report = {
         "run_id": run_id,
         "worker_name": muse_api.worker_name(),
@@ -273,11 +327,21 @@ def main() -> None:
         "sources": sources,
         "git": git,
     }
-    muse_api.save_pending_report(report)
-    sent, failed = muse_api.flush_pending_reports()
-    print(f"[摘要] 狀態={report['status']} 來源成功/失敗={summary['sources_success']}/{summary['sources_failed']} "
-          f"場次={summary['showtimes_saved']} git={git['push_status']}")
-    print(f"[回傳] 已上傳 {sent} 份、待送 {failed} 份")
+    write_actions_summary(report)
+
+    if git_control_enabled():
+        sent = failed = 0
+        print("[回傳] GitHub control mode：不再依賴 Render crawl-report API。")
+    else:
+        muse_api.save_pending_report(report)
+        sent, failed = muse_api.flush_pending_reports()
+        print(f"[回傳] 已上傳 {sent} 份、待送 {failed} 份")
+
+    print(
+        f"[摘要] 狀態={report['status']} 來源成功/失敗="
+        f"{summary['sources_success']}/{summary['sources_failed']} "
+        f"場次={summary['showtimes_saved']} git={git['push_status']}"
+    )
     print("[DONE] 完成。")
 
 

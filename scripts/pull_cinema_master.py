@@ -1,16 +1,11 @@
-"""從雲端後台拉影城主檔，建立本機爬蟲用的 SQLite。
+"""Build the crawler SQLite cinema master from GitHub control data or legacy backend.
 
-用途：GitHub Actions 每次排程爬蟲前，在乾淨環境呼叫本腳本，向後台
-`GET /api/cinema-master/` 取得影城品牌 + 據點（含爬蟲必需的
-source_location_code），寫入 data/movie_map.sqlite 的 cinema_chains /
-cinema_locations 兩張表。取代「把 binary SQLite 提交進 repo」的舊做法——
-後台是影城主檔的單一真相來源（同片單 /api/tracked-movies/）。
+Migration behavior:
+- If data/control/cinema_master.json exists, it is the canonical source.
+- Before migration materializes that file, fall back to legacy /api/cinema-master/.
+- A present-but-invalid GitHub master fails closed; it never silently falls back.
 
-設定：MUSE_API_BASE_URL / MUSE_API_TOKEN（見 scripts/muse_api.py）。
-未設定或後台無資料時直接失敗，避免爬出空地圖。
-
-注意：本腳本會「清掉並重建」cinema_chains / cinema_locations，設計給 CI 的
-乾淨環境使用。若在本機執行，會以後台資料覆蓋這兩張表（不動場次）。
+The script rebuilds only cinema_chains / cinema_locations in data/movie_map.sqlite.
 """
 
 from __future__ import annotations
@@ -22,6 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import control_data  # noqa: E402
 import muse_api  # noqa: E402
 from init_db import DEFAULT_DB_PATH, init_db  # noqa: E402
 
@@ -40,7 +36,6 @@ def _row(record: dict, columns: list[str]) -> tuple:
     values = []
     for col in columns:
         val = record.get(col)
-        # SQLite 的布林旗標以 0/1 儲存（schema 為 INTEGER）。
         if col in ("active", "all_locations_assumed_showing"):
             val = 1 if val else 0
         values.append(val)
@@ -51,13 +46,11 @@ def rebuild_master(db_path: Path, payload: dict) -> tuple[int, int]:
     chains = payload["chains"]
     locations = payload["locations"]
 
-    init_db(db_path)  # 確保 schema 存在（CREATE TABLE IF NOT EXISTS，冪等）
+    init_db(db_path)
     with sqlite3.connect(str(db_path)) as conn:
-        conn.execute("PRAGMA foreign_keys = OFF")  # 重建期間先關 FK，避免清空順序限制
-        # 只清影城主檔兩張；場次等爬蟲產出不動（CI 環境本就是空的）。
+        conn.execute("PRAGMA foreign_keys = OFF")
         conn.execute("DELETE FROM cinema_locations")
         conn.execute("DELETE FROM cinema_chains")
-
         conn.executemany(
             f"INSERT INTO cinema_chains ({', '.join(CHAIN_COLUMNS)}) "
             f"VALUES ({', '.join('?' for _ in CHAIN_COLUMNS)})",
@@ -72,19 +65,7 @@ def rebuild_master(db_path: Path, payload: dict) -> tuple[int, int]:
     return len(chains), len(locations)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="從後台拉影城主檔，建立本機爬蟲用的 SQLite。"
-    )
-    parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH, help="目標 SQLite 路徑。")
-    parser.add_argument(
-        "--require-codes", action="store_true",
-        help="要求至少一個據點有 source_location_code，否則視為後台未灌完整主檔而失敗。",
-    )
-    args = parser.parse_args()
-
-    # Render 免費方案閒置會休眠，第一個請求需 ~50-90 秒喚醒。逐次重試吸收冷啟動：
-    # timeout 拉長 + 多次嘗試，讓每天排程那次「叫醒後台」不會直接失敗。
+def _fetch_legacy_master() -> dict:
     attempts = 5
     payload = None
     last_exc = None
@@ -97,32 +78,59 @@ def main() -> None:
         except Exception as exc:
             last_exc = exc
             if i < attempts:
-                print(f"[重試 {i}/{attempts}] 後台尚未回應（{type(exc).__name__}: {exc}）；"
-                      "可能是 Render 冷啟動，等待喚醒後重試…", file=sys.stderr)
+                print(
+                    f"[重試 {i}/{attempts}] 後台尚未回應（{type(exc).__name__}: {exc}）；"
+                    "等待後重試…",
+                    file=sys.stderr,
+                )
                 time.sleep(15)
     if payload is None:
-        print(f"[錯誤] 重試 {attempts} 次仍無法從後台取得影城主檔：{last_exc}", file=sys.stderr)
-        print("       請確認 GitHub Secrets 的 MUSE_API_BASE_URL / MUSE_API_TOKEN，"
-              "以及後台已部署 /api/cinema-master/。", file=sys.stderr)
+        raise RuntimeError(f"重試 {attempts} 次仍無法從後台取得影城主檔：{last_exc}")
+    return payload
+
+
+def load_runtime_master() -> tuple[dict, str]:
+    if control_data.CINEMA_MASTER_PATH.exists():
+        canonical = control_data.load_cinema_master()
+        return control_data.active_cinema_payload(canonical), "git"
+    return _fetch_legacy_master(), "backend"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="建立爬蟲用影城主檔 SQLite。")
+    parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH, help="目標 SQLite 路徑。")
+    parser.add_argument(
+        "--require-codes",
+        action="store_true",
+        help="要求至少一個據點有 source_location_code，否則直接失敗。",
+    )
+    args = parser.parse_args()
+
+    try:
+        payload, source = load_runtime_master()
+    except Exception as exc:
+        print(f"[錯誤] 無法建立影城主檔：{type(exc).__name__}: {exc}", file=sys.stderr)
         sys.exit(1)
 
     chains = payload.get("chains", [])
     locations = payload.get("locations", [])
     if not chains or not locations:
-        print(f"[錯誤] 後台影城主檔為空（品牌={len(chains)} 據點={len(locations)}）。"
-              "請先對後台 Postgres 執行 import_from_sqlite 灌入影城資料。", file=sys.stderr)
+        print(
+            f"[錯誤] 影城主檔為空（品牌={len(chains)} 據點={len(locations)}）。",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     with_codes = sum(1 for loc in locations if (loc.get("source_location_code") or "").strip())
     if args.require_codes and with_codes == 0:
-        print("[錯誤] 後台據點皆無 source_location_code，爬蟲將抓不到需代碼的來源（如威秀）。"
-              "請確認後台是用 import_from_sqlite（含代碼）而非 import_from_geojson 灌入。",
-              file=sys.stderr)
+        print("[錯誤] 據點皆無 source_location_code，拒絕啟動爬蟲。", file=sys.stderr)
         sys.exit(1)
 
     n_chains, n_locations = rebuild_master(args.db, payload)
-    print(f"[影城主檔] 已從後台重建 {args.db}："
-          f"品牌={n_chains}、據點={n_locations}（其中含代碼 {with_codes}）")
+    print(
+        f"[影城主檔] source={source} → {args.db}："
+        f"品牌={n_chains}、據點={n_locations}（含代碼 {with_codes}）"
+    )
 
 
 if __name__ == "__main__":
