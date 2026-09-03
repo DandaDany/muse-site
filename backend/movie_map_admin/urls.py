@@ -15,7 +15,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import path
 from django.views.generic import RedirectView
 
-from mapdata import api
+from mapdata import api, control_export
 from mapdata.views import dashboard
 
 
@@ -32,6 +32,8 @@ urlpatterns = [
     path("api/tracked-movies/", api.tracked_movies, name="api_tracked_movies"),
     path("api/cinema-master/", api.cinema_master, name="api_cinema_master"),
     path("api/crawl-report/", api.crawl_report, name="api_crawl_report"),
+    # 遷移專用：完整匯出所有 tracked movies / chains / locations，不含帳號或 secrets。
+    path("api/control-export/", control_export.control_export, name="api_control_export"),
     # 根路徑改導向營運儀表板，方便使用者一進站就能掌握營運狀況
     path("", RedirectView.as_view(url="/dashboard/", permanent=False)),
     path("healthz/", healthz),
