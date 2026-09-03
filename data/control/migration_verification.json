@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-09-03T16:12:12.558696+08:00",
+  "migration_gates": {
+    "full_export_valid": true,
+    "tracked_movie_runtime_parity": true,
+    "cinema_master_runtime_parity": true,
+    "sqlite_master_row_parity": true
+  },
+  "cutover_gates": {
+    "movie_list_from_git": true,
+    "dynamic_codes_persisted": true,
+    "production_crawl_executed": true,
+    "geojson_contract_valid": true
+  },
+  "migration_counts": {
+    "tracked_movies_total": 9,
+    "tracked_movies_active": 9,
+    "tracked_movies_inactive": 0,
+    "chains_total": 32,
+    "locations_total": 97,
+    "locations_with_source_code": 83
+  },
+  "cutover_counts": {
+    "runtime_movies": 3,
+    "crawl_runs": 93,
+    "successful_crawl_runs": 87,
+    "failed_or_partial_crawl_runs": 6,
+    "runtime_codes": 83,
+    "published_movies": 3
+  },
+  "final_sha256": {
+    "tracked_movies": "b46fa71613cd55c9f618b4def16d12d3b1e9dd868f9ccaabe19a2c6e8e8a4d1e",
+    "cinema_master": "f6284255656d1be028123010dfd803233143a0aa67f9144f5a86de434a9a41bf",
+    "locations_geojson": "c4146748efac81c3cf87c2dae5630510d4e3975219b7620ea3d71b747af7eea2"
+  }
+}
