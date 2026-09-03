@@ -1,14 +1,10 @@
-"""把本機 SQLite 裡「即時爬到的據點代碼」回寫到後台，持久化為單一來源。
+"""Persist refreshed cinema source_location_code values.
 
-背景：新光/in89/國賓 的 source_location_code 是每次排程即時爬官網取得，原本只留在
-當次執行的暫存 SQLite、沒存回後台。導致後台看不到這些代碼，且哪次官網逾時（如新光）
-就整家沒資料、沒有備援。
+After the GitHub control plane is materialized, codes are written back to
+`data/control/cinema_master.json` by natural key. Before migration, the legacy
+backend POST remains as a compatibility fallback.
 
-本腳本在「即時爬代碼」之後執行：讀出 SQLite 內所有帶 source_location_code 的據點，
-POST 到後台 /api/cinema-master/。後台以 (品牌, 據點名) 更新既有據點的代碼（找不到就
-略過，不新建）。之後即使某天官網逾時，後台已有上次存好的代碼可用。
-
-設定：MUSE_API_BASE_URL / MUSE_API_TOKEN（見 scripts/muse_api.py）。
+Blank/missing runtime codes never erase a last-known-good canonical code.
 """
 
 from __future__ import annotations
@@ -18,6 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import control_data  # noqa: E402
 import muse_api  # noqa: E402
 from init_db import DEFAULT_DB_PATH  # noqa: E402
 
@@ -50,6 +47,22 @@ def collect_coded_locations(db_path: Path) -> list[dict]:
 
 
 def main() -> None:
+    if control_data.CINEMA_MASTER_PATH.exists():
+        try:
+            updated, skipped = control_data.persist_codes_from_sqlite(
+                DEFAULT_DB_PATH,
+                control_data.CINEMA_MASTER_PATH,
+            )
+        except Exception as exc:
+            # Canonical data exists: fail closed instead of silently reverting to Render.
+            print(
+                f"[回寫代碼] GitHub master 更新失敗：{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            raise
+        print(f"[回寫代碼] GitHub master 更新 {updated}、略過 {skipped}")
+        return
+
     locations = collect_coded_locations(DEFAULT_DB_PATH)
     if not locations:
         print("[回寫代碼] 本機無帶代碼的據點，略過。")
@@ -57,12 +70,12 @@ def main() -> None:
     try:
         resp = muse_api.push_cinema_codes(locations)
     except Exception as exc:
-        # 容錯：回寫失敗不應中斷排程（下次成功爬取時會再回寫）。
-        print(f"[回寫代碼] 失敗（不中斷）：{type(exc).__name__}: {exc}", file=sys.stderr)
+        print(f"[回寫代碼] 後台回寫失敗（不中斷）：{type(exc).__name__}: {exc}", file=sys.stderr)
         return
-    print(f"[回寫代碼] 送出 {len(locations)} 筆 → "
-          f"後台更新 {resp.get('updated')}、未變 {resp.get('unchanged')}、"
-          f"略過 {resp.get('skipped')}")
+    print(
+        f"[回寫代碼] legacy backend：送出 {len(locations)} 筆 → "
+        f"更新 {resp.get('updated')}、未變 {resp.get('unchanged')}、略過 {resp.get('skipped')}"
+    )
 
 
 if __name__ == "__main__":
