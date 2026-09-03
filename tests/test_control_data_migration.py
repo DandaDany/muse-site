@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -14,6 +15,8 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import control_data  # noqa: E402
+import daily_update  # noqa: E402
+import migrate_control_plane  # noqa: E402
 
 
 def tracked_payload():
@@ -148,6 +151,19 @@ class ControlDataMigrationTest(unittest.TestCase):
         self.assertEqual(runtime["chains"][0]["chain_name"], "A")
         self.assertEqual(runtime["locations"][0]["location_name"], "L1")
 
+    def test_sqlite_rebuild_is_row_for_row_equivalent(self):
+        canonical = cinema_payload()
+        legacy = control_data.active_cinema_payload(canonical)
+        migrate_control_plane.assert_sqlite_parity(canonical, legacy)
+
+    def test_sqlite_parity_detects_a_master_difference(self):
+        canonical = cinema_payload()
+        legacy = control_data.active_cinema_payload(canonical)
+        legacy["locations"][0] = dict(legacy["locations"][0])
+        legacy["locations"][0]["source_location_code"] = "different"
+        with self.assertRaises(ValueError):
+            migrate_control_plane.assert_sqlite_parity(canonical, legacy)
+
     def test_dynamic_code_persists_and_blank_refresh_does_not_erase_it(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -194,6 +210,18 @@ class ControlDataMigrationTest(unittest.TestCase):
         payload["locations"][0]["chain_id"] = 999
         with self.assertRaises(ValueError):
             control_data.validate_cinema_master(payload)
+
+    def test_half_migrated_control_plane_fails_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tracked = root / "tracked_movies.json"
+            cinema = root / "cinema_master.json"
+            tracked.write_text("{}", encoding="utf-8")
+            with patch.object(daily_update.control_data, "TRACKED_MOVIES_PATH", tracked), patch.object(
+                daily_update.control_data, "CINEMA_MASTER_PATH", cinema
+            ):
+                with self.assertRaises(RuntimeError):
+                    daily_update.git_control_enabled()
 
 
 if __name__ == "__main__":
