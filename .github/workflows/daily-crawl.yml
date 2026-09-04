@@ -154,6 +154,11 @@ jobs:
         with:
           ref: main
 
+      - name: Build browser runtime config
+        env:
+          CARTO_BASEMAP_KEY: ${{ secrets.CARTO_BASEMAP_KEY }}
+        run: python3 scripts/build_web_runtime_config.py --require-carto-key
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

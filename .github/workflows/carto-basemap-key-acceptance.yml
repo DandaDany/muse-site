@@ -1,0 +1,54 @@
+name: CARTO basemap key acceptance
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.head_ref == 'agent/fix-carto-basemap-key'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Regression and syntax checks
+        run: |
+          python -m unittest discover -s tests -v
+          python -m compileall -q scripts tests
+          node --check web/carto-basemap-auth.js
+          node --check web/runtime-config.js
+          python scripts/build_web_runtime_config.py
+          node --check web/runtime-config.js
+
+      - name: Verify runtime load order and deployment wiring
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          index = Path('web/index.html').read_text(encoding='utf-8')
+          runtime = index.index('runtime-config.js')
+          auth = index.index('carto-basemap-auth.js')
+          app = index.index('app.js')
+          assert runtime < auth < app
+          for path in [
+              '.github/workflows/pages.yml',
+              '.github/workflows/daily-crawl.yml',
+              '.github/workflows/control-plane-migration.yml',
+          ]:
+              text = Path(path).read_text(encoding='utf-8')
+              assert 'CARTO_BASEMAP_KEY' in text
+              assert 'build_web_runtime_config.py --require-carto-key' in text
+          PY
+          git diff --check
